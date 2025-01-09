@@ -1,0 +1,15 @@
+/* Baseado no styles2.css */
+@import url('/css/styles2.css');
+
+/* Customizações específicas para a página de detalhes */
+.observations {
+    margin-top: 20px;
+}
+textarea#observacoes {
+    width: 98%;
+    height: 100px;
+    resize: vertical;
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #131212;
+}
