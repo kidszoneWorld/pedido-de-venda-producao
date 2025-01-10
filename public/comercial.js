@@ -75,7 +75,7 @@ function renderTable(data) {
         row.innerHTML = `
             <td>${order.dataPedido ? new Date(order.dataPedido).toLocaleDateString('pt-BR') : 'N/A'}</td>
             <td><a href="detalhes?pedidoId=${order.id}&status=${currentFilters.status}" target="_blank">${order.codigo}</a></td>
-            <td>${order.status}</td>
+            <td>${mapStatus(order.status)}</td>
             <td>${mapStatusSeparacao(order.statusSeparacao)}</td>
             <td>${order.cliente.codigo}</td>
             <td>${order.cliente.nomeAbreviado}</td>
@@ -96,6 +96,21 @@ function mapStatusSeparacao(status) {
         case 1: return 'Separado Parcial';
         case 2: return 'Separado Total';
         default: return 'Desconhecido';
+    }
+}
+
+
+// Mapear Status de Separação
+function mapStatus(status) {
+    switch (status) {
+        case 6: return 'Pendente';
+        case 1: return 'Cancelado Parcial';
+        case 2: return 'Cancelado Total';
+        case 3: return 'Em Aprovação';
+        case 4: return 'Faturado Parcial';
+        case 5: return 'Faturado Total';
+        case 7: return 'Reprovado';      
+    
     }
 }
 
