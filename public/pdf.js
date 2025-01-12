@@ -18,6 +18,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const razaoSocial = document.getElementById('razao_social').value;
         const codCliente = document.getElementById('cod_cliente').value;
         const representante = document.getElementById('representante').value;
+        const emailRep = document.getElementById('email_rep').value;
 
         const filename = `Pedido de Venda ${razaoSocial} - ${codCliente} e Rep ${representante}.pdf`;
 
@@ -92,7 +93,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         headers: {
                             'Content-Type': 'application/json'
                         },
-                        body: JSON.stringify({ pdfBase64, razaoSocial, codCliente, representante })
+                        body: JSON.stringify({ pdfBase64, razaoSocial, codCliente, representante , emailRep })
                     });
 
                     const result = await response.text();

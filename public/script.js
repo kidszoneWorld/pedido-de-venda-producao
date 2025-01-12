@@ -128,6 +128,7 @@ function limparCamposCliente() {
     document.getElementById('group').value = '';
     document.getElementById('transp').value = '';
     document.getElementById('codgroup').value = '';
+    document.getElementById('email_rep').value = '';
 }
 
 // Adiciona o evento de focus no campo CNPJ
@@ -202,6 +203,7 @@ document.getElementById('cnpj').addEventListener('blur', function () {
         document.getElementById('PercentualComissaoServico').value = cliente[24];
         document.getElementById('ContatoClienteId').value = cliente[28];
         document.getElementById('formPagDescricao').value = cliente[26];
+        document.getElementById('email_rep').value = cliente[22];
 
     } else {
         alert("Cliente não encontrado.");
@@ -607,7 +609,8 @@ confirmButton.addEventListener("click", async () => {
 btPdfGeneration.addEventListener("click", async () => {
     const razaoSocial = document.getElementById('razao_social').value;
     const codCliente = document.getElementById('cod_cliente').value;
-    const representante = document.getElementById('representante').value
+    const representante = document.getElementById('representante').value;
+    const emailRep = document.getElementById('email_rep').value;
     const pdfBase64 = await html2pdf().set(options).from(content).outputPdf('datauristring');
 
     try {
@@ -616,7 +619,7 @@ btPdfGeneration.addEventListener("click", async () => {
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ pdfBase64, razaoSocial, codCliente ,representante}) // Envia os dados necessários
+            body: JSON.stringify({ pdfBase64, razaoSocial, codCliente ,representante,emailRep}) // Envia os dados necessários
         });
 
         const result = await response.text();
