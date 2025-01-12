@@ -59,6 +59,7 @@ async function loadPedidoDetails() {
           : '';  
 
         document.getElementById('observacoes').value = pedido.observacao || '';
+        document.getElementById('observacoes1').value = pedido.detalhes.cliente.observacao || '';
         document.getElementById('pay').value = pedido.detalhes.condicaoPagamento.descricao || '';
         document.getElementById('codgroup').value = pedido.detalhes.listaPreco.id || '';
         document.getElementById('group').value = pedido.detalhes.listaPreco.descricao || '';

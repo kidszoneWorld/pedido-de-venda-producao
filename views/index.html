@@ -11,11 +11,32 @@
     <link rel="manifest" href="/images/site.webmanifest">
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.2/html2pdf.bundle.min.js" integrity="sha512-MpDFIChbcXl2QgipQrt1VcPHMldRILetapBl5MPCA9Y8r7qvlwx1/Mc9hNTzY+kS5kX6PdoDq41ws1HiVNLdZA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <link rel="stylesheet" href="/css/styles2.css?v=1736533076587">
+    <link rel="stylesheet" href="/css/styles2.css?v=1736709517424">
 </head>
 
 <body id="corpo">
     <div class="container">
+
+        <div id="customModal" class="modal">
+            <div class="modal-content">
+              <span class="close-button">&times;</span>
+              <h2>Aviso!</h2>
+              <p>Você deseja realmente enviar para o sistema?</p>
+              <button id="confirmButton">Sim</button>
+              <button id="cancelButton">Não</button>
+            </div>
+          </div>
+
+          <div id="customModal1" class="modal1">
+            <div class="modal-content1">
+              <span class="close-button1">&times;</span>
+              <h2>Aviso!</h2>
+              <p>Você deseja realmente enviar o e-mail?</p>
+              <button id="confirmButton1">Sim</button>
+              <button id="cancelButton1">Não</button>
+            </div>
+          </div>
+
         <div class="header">
            <a href="https://kidszoneworld.com.br/portal-do-representante/"><img src="/images/logo.png" alt="Imagem KidsZone"></a> 
             <div class="date"></div> <!-- A data e hora serão inseridas aqui -->
@@ -55,7 +76,7 @@
             <button id="button_pdf">SALVAR EM PDF E ENVIAR E-MAIL </button>
             <button id="button_sistema">ENVIAR PARA O SISTEMA</button>
         </div>
-        
+   
         <div class="section">
             <div class="section-title">DADOS DO CLIENTE</div>
             <form class="form-group">
@@ -220,7 +241,7 @@
         
     </footer>
     
-    <script src="/script.js?v=1736533076587"></script>
+    <script src="/script.js?v=1736709517424"></script>
     <script  src="/pdf.js"></script>
 
     <script>

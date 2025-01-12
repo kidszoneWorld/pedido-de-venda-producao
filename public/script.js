@@ -487,15 +487,29 @@ function preencherLinha(tr, listaPrecos, promocao = null, ufCliente) {
 
 const btSistema = document.getElementById('button_sistema');
 const feedbackDiv = document.getElementById('feedback1');
+const modal = document.getElementById('customModal');
+const closeButton = document.querySelector('.close-button');
+const confirmButton = document.getElementById('confirmButton');
+const cancelButton = document.getElementById('cancelButton');
 
-btSistema.addEventListener("click", async () => {
+// Função para abrir o modal
+btSistema.addEventListener("click", () => {
+    modal.style.display = "block"; // Exibe o modal
+});
 
-    // Pergunta ao usuário se deseja enviar os dados para o sistema
-    const confirmSend1 = confirm("Você deseja realmente enviar para o sistema ?");
-    if (!confirmSend1) {
-        console.log('Envio cancelado.');
-        return;
-    }
+// Fecha o modal ao clicar no botão "Não" ou no botão de fechar
+closeButton.addEventListener("click", () => {
+    modal.style.display = "none";
+});
+
+cancelButton.addEventListener("click", () => {
+    modal.style.display = "none";
+    console.log('Envio cancelado.');
+});
+
+// Executa a lógica de envio ao clicar no botão "Sim"
+confirmButton.addEventListener("click", async () => {
+    modal.style.display = "none"; // Fecha o modal
 
     // Exibe a mensagem de feedback
     feedbackDiv.style.display = "block";
@@ -586,8 +600,8 @@ btSistema.addEventListener("click", async () => {
         feedbackDiv.style.display = "none";
     }
 });
-//--fim-----envio de dados para o sistema DBCorp-----------------------------------------------------------------------------------------////
 
+//--fim-----envio de dados para o sistema DBCorp------------------------------------------------------------
 
 
 btPdfGeneration.addEventListener("click", async () => {
