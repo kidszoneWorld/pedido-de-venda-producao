@@ -105,5 +105,32 @@ async function loadPedidoDetails() {
     }
 }
 
+
+    document.addEventListener('DOMContentLoaded', () => {
+        // Fazer uma chamada à API para obter os dados da sessão
+        fetch('/session-data')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Erro ao obter dados da sessão');
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Verificar se o atributo "numero" existe no objeto "user"
+                const hasNumero = data.user?.numero;
+
+                if (hasNumero) {
+                    // Ocultar a div "sistema" se o atributo "numero" existir
+                    const sistemaDiv = document.getElementById('sistema');
+                    if (sistemaDiv) {
+                        sistemaDiv.style.display = 'none';
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Erro ao verificar o usuário:', error);
+            });
+    });
+
 // Executar ao carregar a página
 loadPedidoDetails();
