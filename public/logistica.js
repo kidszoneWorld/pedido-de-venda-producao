@@ -101,6 +101,7 @@ async function applyFilters1() {
     try {
         const representanteFilter1 = document.getElementById('representanteFilter1').value.trim();
         const clienteCNPJFilter1 = document.getElementById('clienteCNPJFilter1').value.trim();
+        const notaFilter1 = document.getElementById('notaFilter1').value.trim();
         const dataPedidoInicioFilter1 = document.getElementById('dataPedidoInicioFilter1').value;
         const dataPedidoFimFilter1 = document.getElementById('dataPedidoFimFilter1').value;
         const statusFilter1 = document.getElementById('statusFilter1').value;
@@ -109,11 +110,12 @@ async function applyFilters1() {
         const filteredData1 = ordersData1.filter(order => {
             const matchRepresentante1 = !representanteFilter1 || order.Rep.toString() === representanteFilter1;
             const matchClienteCNPJ1 = !clienteCNPJFilter1 || order.CNPJ.replace(/[\.\-\/]/g, '') === clienteCNPJFilter1.replace(/[\.\-\/]/g, '');
+            const matchNota1 =!notaFilter1 || order.NF.toString() === notaFilter1;
             const matchDataPedidoInicio1 = !dataPedidoInicioFilter1 || new Date(order.EMISSÃO) >= new Date(dataPedidoInicioFilter1);
             const matchDataPedidoFim1 = !dataPedidoFimFilter1 || new Date(order.EMISSÃO) <= new Date(dataPedidoFimFilter1);
             const matchStatus1 = !statusFilter1 || order.STATUS_ENTREGA.toLowerCase() === (statusFilter1 === "1" ? "entregue" : "pendente");
 
-            return matchRepresentante1 && matchClienteCNPJ1 && matchDataPedidoInicio1 && matchDataPedidoFim1 && matchStatus1;
+            return matchRepresentante1 && matchClienteCNPJ1 && matchDataPedidoInicio1 && matchDataPedidoFim1 && matchStatus1 && matchNota1;
         });
                 if (filteredData1.length === 0) {
             showFeedback("Nenhum dado encontrado com os filtros aplicados.");
