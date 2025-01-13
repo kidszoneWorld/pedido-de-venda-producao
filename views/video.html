@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tutorial - Como Utilizar o Site</title>
+    <link rel="stylesheet" href="/css/video.css?v=1736811770447">
+</head>
+<body>
+    <div class="container">
+        <div class="image-container">
+            <img src="/images/logo.png" alt="Imagem KidsZone">
+        </div>
+        <h1>Tutorial de como utilizar o site</h1>
+        <div class="video-container">
+            <video id="tutorial-video" src="/video/pedido-venda.mp4" controls></video>
+            <!-- Controles personalizados -->
+            <div class="controls">
+                <button onclick="playVideo()">▶️ Reproduzir</button>
+                <button onclick="pauseVideo()">⏸️ Pausar</button>
+                <button onclick="rewindVideo()">⏪ Retroceder 10s</button>
+                <button onclick="forwardVideo()">⏩ Avançar 10s</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const video = document.getElementById('tutorial-video');
+
+        function playVideo() {
+            video.play();
+        }
+
+        function pauseVideo() {
+            video.pause();
+        }
+
+        function rewindVideo() {
+            video.currentTime -= 10; // Retrocede 10 segundos
+        }
+
+        function forwardVideo() {
+            video.currentTime += 10; // Avança 10 segundos
+        }
+    </script>
+</body>
+</html>

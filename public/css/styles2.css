@@ -853,7 +853,13 @@ label[for="referencia"]::after {
       .header img {
         width: 140px;
     }
-  
+
+    #helpContainer {
+        bottom: 75px;
+     
+    }
+    
+
 }
 
 @media (max-width: 896px) {

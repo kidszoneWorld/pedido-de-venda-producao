@@ -50,6 +50,10 @@ router.get('/logistica',authMiddleware, (req, res) => {
     res.sendFile(path.join(__dirname, '..', 'views', 'logistica.html'));
 });
 
+// Rota para a página (video.html)
+router.get('/video',authMiddleware, (req, res) => {
+    res.sendFile(path.join(__dirname, '..', 'views', 'video.html'));
+});
 
 
 // Rotas da API de pedidos
