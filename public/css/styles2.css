@@ -482,6 +482,144 @@ label[for="referencia"]::after {
     cursor: pointer;
   }
 
+/* Botão de ajuda fixado */
+#helpContainer {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1000;
+}
+
+.help-icon {
+    display: flex;
+    align-items: center;
+    background-color: #25D366;
+    color: #fff;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
+}
+
+.help-icon img {
+    width: 24px;
+    height: 24px;
+    margin-right: 10px;
+}
+
+.help-icon:hover {
+    background-color: #128C7E;
+}
+
+/* Overlay de desfoque */
+.overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 999; /* Abaixo do modal, mas acima do restante */
+    backdrop-filter: blur(5px); /* Aplica o desfoque */
+}
+
+/* Modal de ajuda */
+.help-modal {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1000;
+    background-color: #fff;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.3);
+    width: 90%;
+    max-width: 400px;
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+/* Conteúdo do modal */
+.help-modal-content {
+    display: flex;
+    flex-direction: column; /* Organiza os itens em uma coluna */
+    align-items: center; /* Centraliza horizontalmente */
+    justify-content: center; /* Centraliza verticalmente */
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+    max-width: 400px;
+    width: 90%;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
+    z-index: 10001;
+    position: relative;
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+/* Conteúdo do modal */
+.help-modal-content h2 {
+    margin-bottom: 15px;
+    font-size: 24px; /* Tamanho do título */
+    color: #333;
+}
+
+.help-modal-content p {
+    margin-bottom: 15px;
+    font-size: 18px; /* Tamanho do texto */
+    color: #666;
+}
+
+.help-modal-content ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.help-modal-content li {
+    margin: 10px 0;
+}
+
+
+.help-modal-content a {
+    color: #25D366;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.help-modal-content a:hover {
+    color: #128C7E;
+}
+
+.close-modal {
+    margin-top: 20px;
+    padding: 10px 15px;
+    background-color: #f44336;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.close-modal:hover {
+    background-color: #d32f2f;
+}
+
+/* Animação para o modal */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+
 
 /* Media Queries para responsividade */
 
@@ -509,9 +647,7 @@ label[for="referencia"]::after {
 
 @media (max-width: 1020px) {
 
-    .payment-conditions {
-
-    }
+ 
     
     .payment-conditions input {
         width: 17%;
@@ -532,14 +668,7 @@ label[for="referencia"]::after {
         padding-bottom:15px ;
         border: 1px solid #ddd;
     }
-    .form-group input {
-    
-    }
 
-    #tipo_pedido {
-    
-    }
-    
 }
 
 @media (min-width: 789px) and (max-width: 975px) {
@@ -667,6 +796,31 @@ label[for="referencia"]::after {
 
     .header img {
         width: 150px;
+    }
+
+    .help-modal-content {
+        width: 95%;
+    }
+
+    .help-icon {
+        padding: 8px 12px;
+    }
+
+    .help-icon img {
+        width: 20px;
+        height: 20px;
+    }
+
+    .help-modal-content h2 {
+        font-size: 20px;
+    }
+
+    .help-modal-content p {
+        font-size: 16px;
+    }
+
+    .help-modal-content a {
+        font-size: 14px;
     }
 
 

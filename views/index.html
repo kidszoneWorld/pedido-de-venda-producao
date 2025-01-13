@@ -11,7 +11,7 @@
     <link rel="manifest" href="/images/site.webmanifest">
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.2/html2pdf.bundle.min.js" integrity="sha512-MpDFIChbcXl2QgipQrt1VcPHMldRILetapBl5MPCA9Y8r7qvlwx1/Mc9hNTzY+kS5kX6PdoDq41ws1HiVNLdZA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <link rel="stylesheet" href="/css/styles2.css?v=1736719991378">
+    <link rel="stylesheet" href="/css/styles2.css?v=1736775296589">
 </head>
 
 <body id="corpo">
@@ -112,7 +112,7 @@
 
                 <label class="esconder" for="email_rep">Email_Rep</label> 
                 <input type="text" class="esconder" id="email_rep" placeholder="Descrição Grupo" readonly>
-                
+
                   <!-- input escondidos  -->
 
 
@@ -232,6 +232,38 @@
             <div class="obs-title">OBSERVAÇÕES</div>
             <textarea id="observation" placeholder="Escreva alguma observação"></textarea>
         </div>
+
+        <div id="helpContainer">
+            <div id="helpIcon" class="help-icon">
+                <img src="/images/whatsapp.png" alt="WhatsApp">
+                <span>Precisa de ajuda?</span>
+            </div>
+            <div id="overlay" class="overlay"></div> <!-- Overlay para desfoque -->
+            <div id="helpModal" class="help-modal">
+                <div class="help-modal-content">
+                    <h2>Precisa de Ajuda?</h2>
+                    <p id="tutorialLink">Ir para o <a href="/video" target="_blank">Tutorial do site</a></p>
+                    <ul id="whatsappList">
+                        <li>
+                            <a href="https://wa.me/5511933379433?text=Olá%20estou%20usando%20o%20site%20de%20pedidos%20de%20venda%20e%20estou%20com%20uma%20dúvida,%20poderia%20me%20ajudar?" 
+                                target="_blank">
+                                Falar com o T.I.
+                            </a>
+                        </li>
+                        <li>
+                            <a href="https://wa.me/5511932974527?text=Olá%20estou%20usando%20o%20site%20de%20pedidos%20de%20venda%20e%20estou%20com%20uma%20dúvida,%20poderia%20me%20ajudar?" 
+                                target="_blank">
+                                Falar com o Comercial.
+                            </a>
+                        </li>                        
+                    </ul>
+                    <button id="closeModal" class="close-modal">Fechar</button>
+                </div>
+            </div>
+        </div>
+        
+        
+        
     </div>
 
     <footer>
@@ -245,7 +277,7 @@
         
     </footer>
     
-    <script src="/script.js?v=1736719991378"></script>
+    <script src="/script.js?v=1736775296589"></script>
     <script  src="/pdf.js"></script>
 
     <script>
