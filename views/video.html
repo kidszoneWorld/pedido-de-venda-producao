@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tutorial - Como Utilizar o Site</title>
-    <link rel="stylesheet" href="/css/video.css?v=1739658427362">
+    <link rel="stylesheet" href="/css/video.css?v=1741908229006">
 </head>
 <body>
     <div class="container">
@@ -14,13 +14,15 @@
         <h1>Tutorial de como utilizar o site</h1>
         <div class="video-container">
             <video id="tutorial-video" src="/video/pedido-venda.mp4" controls></video>
-            <!-- Controles personalizados -->
             <div class="controls">
                 <button onclick="playVideo()">▶️ Reproduzir</button>
                 <button onclick="pauseVideo()">⏸️ Pausar</button>
                 <button onclick="rewindVideo()">⏪ Retroceder 10s</button>
                 <button onclick="forwardVideo()">⏩ Avançar 10s</button>
             </div>
+        </div>
+        <div class="pdf-container">
+            <iframe src="/video/manual_site.pdf" width="100%" height="600px" style="border: none;"></iframe>
         </div>
     </div>
 
@@ -36,11 +38,11 @@
         }
 
         function rewindVideo() {
-            video.currentTime -= 10; // Retrocede 10 segundos
+            video.currentTime -= 10;
         }
 
         function forwardVideo() {
-            video.currentTime += 10; // Avança 10 segundos
+            video.currentTime += 10;
         }
     </script>
 </body>

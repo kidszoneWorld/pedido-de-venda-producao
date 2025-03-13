@@ -257,7 +257,7 @@
 footer {
 
     display: flex;
-    justify-content: space-between;
+    justify-content:space-between;
     flex-wrap: wrap;
     margin-top: 20px;
     padding-top: 20px;
@@ -288,6 +288,7 @@ footer {
     text-align: center;
     padding-left: 20px;
     text-decoration: none;
+    font-size: 100%;
 
 }
 
@@ -628,6 +629,24 @@ label[for="referencia"]::after {
         width: 100%;
      
     }
+
+    .link_sites {
+        flex-direction: column; /* Garante que os itens fiquem em coluna */
+        align-items: center;
+       
+    }
+
+    .link_sites button#logoutButton2 {
+        width: 10%; /* Mantém a largura relativa em telas menores */
+        margin-top: 20px;
+        text-align: center;
+        margin-bottom: 15px; /* Espaçamento abaixo do botão */
+    }
+
+    .link_sites a {
+        margin: 5px ;
+        padding: 5px ;
+    }
 }
 
 
@@ -858,8 +877,7 @@ label[for="referencia"]::after {
         bottom: 75px;
      
     }
-    
-
+  
 }
 
 @media (max-width: 896px) {
