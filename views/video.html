@@ -4,6 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tutorial - Como Utilizar o Site</title>
+
+    <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+    <link rel="icon"  type="image/png" sizes="32x32" href="/images/favicon-32x32.png" >
+    <link rel="icon"  type="image/png" sizes="16x16" href="/images/favicon-16x16.png" >
+    <link rel="manifest" href="/images/site.webmanifest">
+
     <link rel="stylesheet" href="/css/video.css?v=1741908229006">
 </head>
 <body>
@@ -11,7 +17,14 @@
         <div class="image-container">
             <img src="/images/logo.png" alt="Imagem KidsZone">
         </div>
+         
         <h1>Tutorial de como utilizar o site</h1>
+
+        <div class="pdf-container">
+            <iframe class ="frame" src="/video/manual_site.pdf" ></iframe>
+        </div>
+
+        
         <div class="video-container">
             <video id="tutorial-video" src="/video/pedido-venda.mp4" controls></video>
             <div class="controls">
@@ -21,10 +34,46 @@
                 <button onclick="forwardVideo()">⏩ Avançar 10s</button>
             </div>
         </div>
-        <div class="pdf-container">
-            <iframe src="/video/manual_site.pdf" width="100%" height="600px" style="border: none;"></iframe>
+
+    </div>
+
+    <div id="helpContainer">
+        <div id="helpIcon" class="help-icon">
+            <img src="/images/whatsapp.png" alt="WhatsApp">
+            <span>Precisa de ajuda?</span>
+        </div>
+        <div id="overlay" class="overlay"></div> <!-- Overlay para desfoque -->
+        <div id="helpModal" class="help-modal">
+            <div class="help-modal-content">
+                <h2>Precisa de Ajuda?</h2>
+                <p id="tutorialLink">Ir para o <a href="/video" target="_blank">Tutorial do site</a></p>
+                <ul id="whatsappList">
+                    <li>
+                        <a href="https://wa.me/5511933379433?text=Olá%20estou%20usando%20o%20site%20de%20pedidos%20de%20venda%20e%20estou%20com%20uma%20dúvida,%20poderia%20me%20ajudar?" 
+                            target="_blank">
+                            Falar com o T.I.
+                        </a>
+                    </li>
+                    <li>
+                        <a href="https://wa.me/5511932974527?text=Olá%20estou%20usando%20o%20site%20de%20pedidos%20de%20venda%20e%20estou%20com%20uma%20dúvida,%20poderia%20me%20ajudar?" 
+                            target="_blank">
+                            Falar com o Comercial.
+                        </a>
+                    </li> 
+                </ul>
+                <button id="closeModal" class="close-modal">Fechar</button>
+            </div>
         </div>
     </div>
+
+
+    <footer>
+        <div class="link_sites">
+           
+        </div>
+        
+    </footer>
+    
 
     <script>
         const video = document.getElementById('tutorial-video');
@@ -45,5 +94,8 @@
             video.currentTime += 10;
         }
     </script>
+
+<script src="/video.js"></script>
+
 </body>
 </html>
