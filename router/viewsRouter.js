@@ -44,27 +44,27 @@ router.get('/detalhes',authMiddleware, (req, res) => {
 });
 
 // Rota para a página de detalhes do produto (Detalhes_Produtos.html)
-router.get('/detalhesProdutos',(req, res) => {
+router.get('/detalhesProdutos',authMiddleware,(req, res) => {
     res.sendFile(path.join(__dirname, '..', 'views', 'Detalhes_Produtos.html'));
 });
 
 // Rota para a página de eficiencia cliente (eficiencia.html)
-router.get('/eficiencia',(req, res) => {
+router.get('/eficiencia',authMiddleware,(req, res) => {
     res.sendFile(path.join(__dirname, '..', 'views', 'eficiencia.html'));
 });
 
 // Rota para a página de eficiencia cliente (sellOut.html)
-router.get('/sellOut',(req, res) => {
+router.get('/sellOut',authMiddleware,(req, res) => {
     res.sendFile(path.join(__dirname, '..', 'views', 'sellOut.html'));
 });
 
 // Rota para a página de eficiencia cliente (display.html)
-router.get('/display',(req, res) => {
+router.get('/display',authMiddleware,(req, res) => {
     res.sendFile(path.join(__dirname, '..', 'views', 'display.html'));
 });
 
 // Rota para a página de eficiencia cliente (redes.html)
-router.get('/redes',(req, res) => {
+router.get('/redes',authMiddleware,(req, res) => {
     res.sendFile(path.join(__dirname, '..', 'views', 'redes.html'));
 });
 
