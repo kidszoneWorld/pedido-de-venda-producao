@@ -514,6 +514,7 @@ confirmButton.addEventListener("click", async () => {
     modal.style.display = "none"; // Fecha o modal
 
     // Exibe a mensagem de feedback
+    feedbackDiv.textContent = 'Estamos enviando o pedido, aguarde...';
     feedbackDiv.style.display = "block";
 
     try {
