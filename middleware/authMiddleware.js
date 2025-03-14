@@ -28,6 +28,9 @@ function authenticateUser(req, res) {
         // Valida senha para o usuário "ti.kz" ou demais representantes
         if (
             (email === "ti.kz@kidszoneworld.com.br" && senha === user.dadoTi) ||
+            (email === "comercial.kz@kidszoneworld.com.br" && senha === user.dadocm) ||
+            (email === "financeiro.kz@kidszoneworld.com.br" && senha === user.dadofn) ||
+            (email === "gerencia.kz@kidszoneworld.com.br" && senha === user.dadogr) ||
             (email.startsWith("rep") && senha === "Repkz@2024")
         ) {
             req.session.isAuthenticated = true;

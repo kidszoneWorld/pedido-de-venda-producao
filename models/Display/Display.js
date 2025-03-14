@@ -9,7 +9,7 @@ const DisplaySchema = new mongoose.Schema({
     bairro: String,
     cidade: String,   
     uf: String,
-    valor_compra: Number,
+    qtd_display: Number,
     modelo_display: String,
     jan25: Number,
     fev25: Number,

@@ -131,7 +131,7 @@ async function salvarDados() {
             bairro: inputs[3].value,
             cidade: inputs[4].value,
             uf: inputs[5].value,
-            valor_compra: parseFloat(inputs[6].value) || 0,
+            qtd_display: parseFloat(inputs[6].value) || 0,
             modelo_display: inputs[7].value,
             jan25: parseFloat(inputs[8].value) || 0,
             fev25: parseFloat(inputs[9].value) || 0,
