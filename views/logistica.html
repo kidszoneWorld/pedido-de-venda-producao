@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalhes Logística</title>
+    <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+    <link rel="icon"  type="image/png" sizes="32x32" href="/images/favicon-32x32.png" >
+    <link rel="icon"  type="image/png" sizes="16x16" href="/images/favicon-16x16.png" >
+    <link rel="manifest" href="/images/site.webmanifest">
+    <link rel="stylesheet" href="/css/comercial.css?v=1742236424078">
+</head>
+<body>
+
+    <header class="header-container">
+        <a href="https://kidszoneworld.com.br/portal-do-representante/">
+            <img src="/images/logo.png" alt="Imagem KidsZone" class="logo">
+        </a> 
+        <h2 class="header-title">Acompanhamento de entrega</h2>
+    </header>
+
+    <button id="logoutButton1">Sair</button>
+
+    <!-- Feedback -->
+    <div id="feedback1" style="display: none; text-align: center; font-weight: bold; margin: 10px; color: red;"></div>
+    
+    <!-- Filtros -->
+    <div id="filters">
+        <label for="representanteFilter1">Cód Rep:</label>
+        <input type="text" id="representanteFilter1" placeholder="Ex.: 37">
+
+        <label for="notaFilter1">Nota Fiscal:</label>
+        <input type="text" id="notaFilter1" placeholder="Ex.: 36777">
+        
+        <label for="clienteCNPJFilter1">Cliente CNPJ:</label>
+        <input type="text" id="clienteCNPJFilter1" placeholder="Ex.: 08712676000110">
+        
+        <label for="dataPedidoInicioFilter1">Data Pedido (Início):</label>
+        <input type="date" id="dataPedidoInicioFilter1">
+        
+        <label for="dataPedidoFimFilter1">Data Pedido (Fim):</label>
+        <input type="date" id="dataPedidoFimFilter1">
+        
+        <label for="statusFilter1">Status:</label>
+        <select id="statusFilter1">
+            <option value="2"></option>
+            <option value="1">Entregue</option>
+            <option value="0">Pendente</option>
+        </select>
+        
+        <button id="applyFilters1">Aplicar Filtros</button>
+        <button id="clearFilters1">Limpar Filtros</button>
+    </div>
+
+    <!-- Tabela -->
+    <table id="order-table1">
+        <thead>
+            <tr>
+                <th>Data da emissão</th>
+                <th>Núm notas</th>
+                <th>Cód Cliente</th>
+                <th>Cliente</th>
+                <th>Cliente CNPJ</th>
+                <th>UF</th>
+                <th>Cód Rep</th>
+                <th>Cod Trans</th>
+                <th>Transportadora</th>
+                <th>Saída</th>
+                <th>Previsão de Entrega</th>
+                <th>Data de Entrega</th>
+                <th>Status Entrega</th> 
+                <th>Agenda</th>
+                <th>Ocorrência</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Dados serão adicionados dinamicamente -->
+        </tbody>
+    </table>
+
+    <script src="/logistica.js?v=1742236424078"></script>
+</body>
+</html>

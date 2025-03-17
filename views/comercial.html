@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalhes dos Pedidos</title>
+    <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+    <link rel="icon"  type="image/png" sizes="32x32" href="/images/favicon-32x32.png" >
+    <link rel="icon"  type="image/png" sizes="16x16" href="/images/favicon-16x16.png" >
+    <link rel="manifest" href="/images/site.webmanifest">
+    <link rel="stylesheet" href="/css/comercial.css?v=1742236424065">
+</head>
+<body>
+    <header class="header-container">
+        <a href="https://kidszoneworld.com.br/portal-do-representante/">
+            <img src="/images/logo.png" alt="Imagem KidsZone" class="logo">
+        </a> 
+        <h2 class="header-title">Detalhes dos Pedidos</h2>
+    </header>
+    
+    <button id="logoutButton">Sair</button>
+
+    <div class="buttons_filters">
+        <button id="applyFilters">Aplicar Filtros</button>
+        <button id="clearFilters">Limpar Filtros</button>
+    </div>
+  
+
+    <!-- Feedback -->
+    <div id="feedback" style="display: none; text-align: center; font-weight: bold; margin: 10px; color: red;"></div>
+    
+    <!-- Filtros -->
+    <div id="filters">
+        <label for="representanteFilter">Cód Rep:</label>
+        <input type="text" id="representanteFilter" placeholder="Ex.: 37">
+        
+        <label for="clienteCNPJFilter">Cliente CNPJ:</label>
+        <input type="text" id="clienteCNPJFilter" placeholder="Ex.: 08712676000110">
+        
+        <label for="dataPedidoInicioFilter">Data Pedido (Início):</label>
+        <input type="date" id="dataPedidoInicioFilter">
+        
+        <label for="dataPedidoFimFilter">Data Pedido (Fim):</label>
+        <input type="date" id="dataPedidoFimFilter">
+
+        <label for="statusSeparacaoFilter">Status Separação:</label>
+        <select id="statusSeparacaoFilter">
+            <option value="0"></option>
+            <option value="0">0 -Não Separado</option>
+            <option value="1">1 -Separado Parcial</option>
+            <option value="2">2 -Separado Total</option>
+        </select>
+        
+        <label for="statusFilter">Status:</label>
+        <select id="statusFilter">
+            <option value="6">6 -Pendente</option>       
+            <option value="1">1 -Cancelado Parcial</option>
+            <option value="2">2 -Cancelado Total</option>
+            <option value="3">3 -Em Aprovação</option>
+            <option value="4">4 -Faturado Parcial</option>
+            <option value="5">5 -Faturado Total</option>        
+            <option value="7">7 -Reprovado</option>           
+        </select>
+        
+    </div>
+
+    <!-- Tabela -->
+    <table id="order-table">
+        <thead>
+            <tr>
+                <th>Data do Pedido</th>
+                <th>Cód Pedido</th>
+                <th>Status</th>
+                <th>Status Separação</th>
+                <th>Cód Cliente</th>
+                <th>Cliente</th>
+                <th>Cliente CNPJ</th>
+                <th>Cód Rep</th>
+                <th>Representante</th>
+                <th>Valor Total</th>
+                <th>Transportadora</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Dados serão adicionados dinamicamente -->
+        </tbody>
+    </table>
+
+    <script src="/comercial.js?v=1742236424065"></script>
+</body>
+</html>

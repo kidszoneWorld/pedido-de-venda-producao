@@ -1,0 +1,135 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0px;
+    padding: 10px;
+    background-color: #caccc6;
+}
+
+h2 {
+    text-align: center;
+    margin-bottom: 20px;
+    padding-bottom: 20px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+}
+
+table thead th {
+    position: sticky;
+    top: 0;
+    background-color: #333; /* Fundo escuro para contraste */
+    color: #f9f9f9; /* Texto branco */
+    z-index: 1; /* Para garantir que o cabeçalho fique acima do conteúdo */
+}
+
+table th, table td {
+    border: 1px solid #ccc;
+    padding: 10px;
+    text-align: left;
+    background-color: #f9f9f9;
+}
+
+table th {
+    background-color: #333;
+    color:#f9f9f9;
+}
+
+table tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+table tr:hover {
+    background-color: #f1f1f1;
+}
+
+#filters {
+    margin-bottom: 20px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+#filters label {
+    font-weight: bold;
+}
+
+#filters input, #filters button {
+    padding: 5px;
+}
+
+#representanteFilter , #representanteFilter1{
+    width:50px;
+    border-radius: 5px;
+    border: 1px solid #0f0f0f;
+}
+
+#statusFilter , #statusFilter1 ,#statusSeparacaoFilter{
+    padding: 7px;
+    width: 120px;
+    border-radius: 5px;
+    border: 1px solid #0f0f0f;
+}
+
+button:hover{
+    background-color: rgba(225, 0, 152);/* Cor de fundo ao passar o mouse */
+    color: rgb(250, 242, 247); /* Mantém a cor do texto */
+    border:none;
+}
+
+#applyFilters , #clearFilters ,#logoutButton , #logoutButton1{
+    padding: 6px;
+    margin-bottom: 5px;
+    border-radius: 5px;
+    border: 1px solid #0f0f0f;
+}
+
+#clienteCNPJFilter1 , 
+#clienteCNPJFilter , 
+#dataPedidoInicioFilter1 , 
+#dataPedidoInicioFilter ,
+#dataPedidoFimFilter1 ,
+#dataPedidoFimFilter {
+    padding: 7px;
+    border-radius: 5px;
+    border: 1px solid #0f0f0f;
+
+}
+
+#applyFilters1 , #clearFilters1 {
+    border-radius: 5px;
+    border: 1px solid #0f0f0f;
+    
+}
+
+.buttons_filters{
+    display: flex;
+    justify-content:flex-end;
+    gap: 10px;
+}
+
+.header-container {
+    display: flex;
+    align-items: center; /* Alinha verticalmente imagem e texto */
+    justify-content: center; /* Alinha horizontalmente */
+    margin-bottom: 10px; /* Ajuste o espaçamento entre o cabeçalho e a tabela */
+    gap: 15px; /* Espaçamento entre a imagem e o texto */
+}
+
+.logo {
+    width: 100px; /* Tamanho ajustável da imagem */
+    height: auto;
+}
+
+.header-title {
+    font-size: 24px; /* Tamanho do texto */
+    margin: 0; /* Remove espaçamentos padrão */
+    color: #333; /* Cor do texto */
+}
+
+table {
+    margin-top: 10px; /* Reduz a margem superior da tabela */
+}
+
