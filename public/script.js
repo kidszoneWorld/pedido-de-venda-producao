@@ -605,6 +605,7 @@ confirmButton.addEventListener("click", async () => {
         console.error("Erro de conexão:", error);
         alert("Erro ao conectar com o servidor.");
     } finally {
+        limparCamposCliente()
         // Oculta a mensagem de feedback
         feedbackDiv.style.display = "none";
     }
