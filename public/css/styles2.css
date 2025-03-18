@@ -429,6 +429,7 @@ label[for="referencia"]::after {
 /* Estilo para a label */
 .label-referencia {
     color: rgba(225, 0, 152);
+    font-size: 90%;
 }
 
 /* Estilo para o placeholder */
