@@ -1,47 +1,52 @@
 const nodemailer = require('nodemailer');
 
+let emailsRecentes = new Map();
+
 exports.sendPdf = async (req, res) => {
+    const { pdfBase64, razaoSocial, codCliente, representante, emailRep } = req.body;
 
-    const { pdfBase64, razaoSocial, codCliente,representante,emailRep } = req.body;
+    if (!pdfBase64 || !razaoSocial || !codCliente || !representante) {
+        return res.status(400).send('Dados incompletos para envio do PDF.');
+    }
 
-    if (!pdfBase64) {
-        return res.status(400).send('Nenhum PDF foi recebido.');
+    const emailKey = `${razaoSocial}-${codCliente}-${representante}-${emailRep}-${Date.now()}`; // Adiciona timestamp para unicidade
+
+    if (emailsRecentes.has(emailKey)) {
+        return res.status(429).send('E-mail já enviado recentemente. Aguarde antes de tentar novamente.');
     }
 
     try {
-        // Configurando o transporte usando Gmail
+        emailsRecentes.set(emailKey, Date.now());
+
         const transporter = nodemailer.createTransport({
             service: 'gmail',
             auth: {
-                user: process.env.GMAIL_USER, // Seu e-mail do Gmail
-                pass: process.env.GMAIL_APP_PASSWORD // Substitua pela senha de aplicativo gerada
+                user: process.env.GMAIL_USER,
+                pass: process.env.GMAIL_APP_PASSWORD
             },
-            tls: {
-                rejectUnauthorized: false // Ignora a verificação do certificado
-            }
+            tls: { rejectUnauthorized: false }
         });
 
         const subject = `Pedido de Venda ${razaoSocial} - ${codCliente}`;
         const fileName = `Pedido de Venda ${razaoSocial} - ${codCliente} e Rep ${representante}.pdf`;
 
-        // Configurando o e-mail
         await transporter.sendMail({
-            from: 'Pedidos KidsZone <kidzonekidszonemail@gmail.com>', // Seu e-mail do Gmail
-            to: ['pedidos.kz@kidszoneworld.com.br',emailRep],// Destinatário do e-mail
-            subject: subject, // Assunto dinâmico
-            text: `Segue em anexo o PDF gerado para o cliente ${razaoSocial} - ${codCliente} representante ${representante}`,
-            attachments: [
-                {
-                    filename: fileName,
-                    content: pdfBase64.split(",")[1],
-                    encoding: 'base64'
-                }
-            ]
+            from: 'Pedidos KidsZone <kidzonekidszonemail@gmail.com>',
+            to: ['pedidos.kz@kidszoneworld.com.br', emailRep],
+            subject,
+            text: `Segue em anexo o PDF gerado para o cliente ${razaoSocial} - ${codCliente}, representante ${representante}.`,
+            attachments: [{
+                filename: fileName,
+                content: pdfBase64.split(",")[1],
+                encoding: 'base64'
+            }]
         });
 
         res.status(200).send('E-mail enviado com sucesso!');
     } catch (error) {
         console.error('Erro ao enviar o e-mail:', error);
         res.status(500).send('Erro ao enviar o e-mail');
+    } finally {
+        setTimeout(() => emailsRecentes.delete(emailKey), 10000); // Aumenta para 10 segundos
     }
 };
