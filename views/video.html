@@ -10,7 +10,7 @@
     <link rel="icon"  type="image/png" sizes="16x16" href="/images/favicon-16x16.png" >
     <link rel="manifest" href="/images/site.webmanifest">
     <script src="https://www.youtube.com/iframe_api"></script>
-    <link rel="stylesheet" href="/css/video.css?v=1742273726366">
+    <link rel="stylesheet" href="/css/video.css?v=1742299779085">
 </head>
 <body>
     <div class="container">
@@ -113,8 +113,8 @@
         let player2;
     
         // Função chamada pela API do YouTube quando ela estiver pronta
-        function onYouTubeIframeAPIReady() {
-            player2 = new YT.Player('youtube-player2', {
+     async  function onYouTubeIframeAPIReady() {
+           player2 = await new YT.Player('youtube-player2', {
                 height: '100%', // Ajuste conforme necessário
                 width: '100%',
                 videoId: 'MsdpC5P_zG0', // Substitua pelo ID do vídeo do YouTube (ex.: 'dQw4w9WgXcQ')
@@ -132,7 +132,7 @@
         }
     
         // Função chamada quando o player estiver pronto
-        function onPlayerReady(event) {
+        async  function onPlayerReady(event) {
             // O player está pronto, você pode adicionar lógica adicional aqui se necessário
         }
     
@@ -156,7 +156,7 @@
         }
     </script>
 
-<script src="/video.js?v=1742273726366"></script>
+<script src="/video.js?v=1742299779085"></script>
 
 </body>
 </html>
