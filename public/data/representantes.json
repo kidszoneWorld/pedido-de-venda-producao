@@ -37,5 +37,6 @@
   "comercial.kz@kidszoneworld.com.br": {"nome": "Comercial", "dadocm": "CmKids@2024"},
   "financeiro.kz@kidszoneworld.com.br": {"nome": "Financeiro", "dadofn": "FnKids@2024"},
   "gerencia.kz@kidszoneworld.com.br": {"nome": "Gerencia", "dadogr": "GrKids@2024"},
-  "rep30@kidszoneworld.com.br": {"nome": "Kids Zone", "numero": "30"}
+  "rep30@kidszoneworld.com.br": {"nome": "Kids Zone", "numero": "30"},
+  "logistica.kz@kidszoneworld.com.br": {"nome": "Gerencia", "dadolg": "LgKids@2024"}
 }
