@@ -225,7 +225,16 @@ function zerarCamposPedido() {
 }
 
 // Adiciona o evento para zerar os campos quando o tipo de pedido for alterado
-document.getElementById('tipo_pedido').addEventListener('change', zerarCamposPedido);
+
+document.getElementById('tipo_pedido').addEventListener('change', function () {
+    zerarCamposPedido();
+    let tipoPedido1 = this.value;
+    if (tipoPedido1 === 'Bonificação') {
+        document.getElementById('referencia').value = 'BONIFICAÇÃO';
+    } else {
+        document.getElementById('referencia').value = '';
+    }
+});
 
 // Função para atualizar o total com imposto de todas as linhas
 function atualizarTotalComImposto() {
