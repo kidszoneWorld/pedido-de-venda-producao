@@ -76,6 +76,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 feedbackDiv.style.display = 'block';
                 helpWhats.style.display = 'none';
                 elementsToHide.forEach(el => el.style.display = 'none');
+                cnpjInput.readOnly = true;
 
                 try {
                   
@@ -121,7 +122,12 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function resetForm(excludeCnpj = false) {
-        console.log('Resetando formulário...');
+
+        
+        if(cnpjInput.readOnly){
+            return; // Sai da função se o campo estiver readonly
+        }
+            console.log('Resetando formulário...');
 
         // Limpa todos os campos da seção "DADOS DO CLIENTE", incluindo readonly
         document.querySelectorAll('.form-group input, .form-group textarea, .form-group select').forEach(element => {

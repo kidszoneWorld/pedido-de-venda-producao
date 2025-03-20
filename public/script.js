@@ -132,8 +132,34 @@ function limparCamposCliente() {
 }
 
 // Adiciona o evento de focus no campo CNPJ
-document.getElementById('cnpj').addEventListener('focus', function () {
-    limparCamposCliente(); // Limpa todos os campos relacionados ao cliente
+const cnpjInput1 = document.getElementById('cnpj');
+const blockModal = document.getElementById('blockModal');
+const okButton = document.getElementById('okButton');
+const closeButtonBlock = blockModal.querySelector('.close-button');
+
+cnpjInput1.addEventListener('focus', function () {
+    if (cnpjInput1.readOnly) {
+        blockModal.style.display = "block";
+        const now = new Date();
+        const timestamp = now.toLocaleDateString('pt-BR') + ' ' + now.toLocaleTimeString('pt-BR');
+        document.getElementById('timestamp').textContent = timestamp;
+        return;
+    }
+    limparCamposCliente();
+});
+
+okButton.addEventListener('click', () => {
+    blockModal.style.display = "none";
+});
+
+closeButtonBlock.addEventListener('click', () => {
+    blockModal.style.display = "none";
+});
+
+window.addEventListener('click', (event) => {
+    if (event.target == blockModal) {
+        blockModal.style.display = "none";
+    }
 });
 
 // Função para buscar os dados do cliente pelo CNPJ
@@ -508,6 +534,7 @@ const modal = document.getElementById('customModal');
 const closeButton = document.querySelector('.close-button');
 const confirmButton = document.getElementById('confirmButton');
 const cancelButton = document.getElementById('cancelButton');
+const cnpjInput = document.getElementById('cnpj');
 
 // Função para abrir o modal
 btSistema.addEventListener("click", () => {
@@ -531,6 +558,7 @@ confirmButton.addEventListener("click", async () => {
     // Exibe a mensagem de feedback
     feedbackDiv.textContent = 'Estamos enviando o pedido, aguarde...';
     feedbackDiv.style.display = "block";
+    cnpjInput.readOnly = false; // Habilita o campo CNPJ
 
     try {
 

@@ -12,7 +12,7 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.2/html2pdf.bundle.min.js"></script>
 
-    <link rel="stylesheet" href="/css/styles2.css?v=1742471961124">
+    <link rel="stylesheet" href="/css/styles2.css?v=1742479765213">
 </head>
 
 <body id="corpo">
@@ -35,6 +35,16 @@
               <p>Você deseja realmente enviar o e-mail?</p>
               <button id="confirmButton1">Sim</button>
               <button id="cancelButton1">Não</button>
+            </div>
+          </div>
+
+          <div id="blockModal" class="modal">
+            <div class="modal-content">
+              <span class="close-button">&times;</span>
+              <h2>Aviso!</h2>
+              <p>Por favor enviar o pedido para o sistema para liberar um novo cadastro.</p>
+              <p id="timestamp"></p>
+              <button id="okButton">OK</button>
             </div>
           </div>
 
@@ -279,8 +289,8 @@
         
     </footer>
     
-    <script src="/script.js?v=1742471961124"></script>
-    <script  src="/pdf.js?v=1742259354170"></script>
+    <script src="/script.js?v=1742479765213"></script>
+    <script  src="/pdf.js?v=1742259354185"></script>
 
     <script>
          // Função para limpar dados do usuário e redirecionar para a página de login
