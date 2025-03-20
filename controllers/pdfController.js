@@ -32,7 +32,7 @@ exports.sendPdf = async (req, res) => {
 
         await transporter.sendMail({
             from: 'Pedidos KidsZone <kidzonekidszonemail@gmail.com>',
-            to: ['alex.lima@kidszoneworld.com.br'],
+            to: ['pedidos.kz@kidszoneworld.com.br', emailRep],
             subject,
             text: `Segue em anexo o PDF gerado para o cliente ${razaoSocial} - ${codCliente}, representante ${representante}.`,
             attachments: [{
