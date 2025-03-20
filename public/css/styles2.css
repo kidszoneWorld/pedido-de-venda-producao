@@ -665,6 +665,9 @@ label[for="referencia"]::after {
     cursor: pointer;
 }
 
+#okButton:hover{  
+    background-color: rgba(225, 0, 152);
+}
 .close-button:hover,
 .close-button:focus {
     color: black;
