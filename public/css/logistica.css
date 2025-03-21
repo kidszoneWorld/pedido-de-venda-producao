@@ -4,16 +4,27 @@ body {
     margin: 0px;
     padding: 10px;
     background-color: #caccc6;
+    width: 100%;
+    max-width: 1400px;
    
 }
 
+.container {
+    display: flex;
+    flex-direction:column;
+    justify-content: space-between; /* Alinha horizontalmente */
+    margin-bottom: 10px; /* Ajuste o espaçamento entre o cabeçalho e a tabela */
+    gap: 15px; /* Espaçamento entre a imagem e o texto */
+}
 
 .header {
     display: flex;
-    align-items: center; /* Alinha verticalmente imagem e texto */
-    justify-content: space-around; /* Alinha horizontalmente */
-    margin-bottom: 10px; /* Ajuste o espaçamento entre o cabeçalho e a tabela */
-    gap: 15px; /* Espaçamento entre a imagem e o texto */
+    align-items: center;
+    background-color: #333;
+    color: #ffffff;
+    padding: 15px;
+    border-radius: 5px;
+    justify-content: space-between;
 }
 
 .header-logo {
@@ -119,6 +130,10 @@ button:hover{
     border: 1px solid #0f0f0f;
 }
 
+#logoutButton1{
+    width: 50px;
+}
+
 #clienteCNPJFilter1 , 
 #clienteCNPJFilter , 
 #dataPedidoInicioFilter1 , 
@@ -166,3 +181,6 @@ table {
     margin-top: 10px; /* Reduz a margem superior da tabela */
 }
 
+#order-table1 {
+
+}
