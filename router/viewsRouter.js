@@ -9,6 +9,7 @@ const eficienciaController = require('../controllers/eficienciaController');
 const displayController = require('../controllers/displayController');  
 const redesController = require('../controllers/redesController');  
 const sellOutController = require('../controllers/sellOutController');
+const fernandoController = require('../controllers/fernandoController');
 
 const router = express.Router();
 
@@ -73,6 +74,11 @@ router.get('/logistica',authMiddleware, (req, res) => {
     res.sendFile(path.join(__dirname, '..', 'views', 'logistica.html'));
 });
 
+// Rota para a página de detalhes do pedido (detalhes.html)
+router.get('/logistica03', (req, res) => {
+    res.sendFile(path.join(__dirname, '..', 'views', 'logisticaFernando.html'));
+});
+
 
 
 // Rota para a página (video.html)
@@ -88,7 +94,7 @@ router.get('/api/pedidos/:id', orderController.getOrderDetailsById); // Detalhes
 
 // Rotas da API de Logistica
 router.get('/api/logistica/onedrive', invoicesController.fetchLogisticsData);
-
+router.get('/api/logistica/logistica03', fernandoController.fetchLogisticsData);
 
 // Rota para página de erro 401 (Senha incorreta)
 router.get('/error-401', (req, res) => {
