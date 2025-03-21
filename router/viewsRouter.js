@@ -79,6 +79,9 @@ router.get('/logistica03', (req, res) => {
     res.sendFile(path.join(__dirname, '..', 'views', 'logisticaFernando.html'));
 });
 
+router.get('/logistica02', (req, res) => {
+    res.sendFile(path.join(__dirname, '..', 'views', 'logisticaJoao.html'));
+});
 
 
 // Rota para a página (video.html)
@@ -95,6 +98,7 @@ router.get('/api/pedidos/:id', orderController.getOrderDetailsById); // Detalhes
 // Rotas da API de Logistica
 router.get('/api/logistica/onedrive', invoicesController.fetchLogisticsData);
 router.get('/api/logistica/logistica03', fernandoController.fetchLogisticsData);
+router.get('/api/logistica/logistica02', fernandoController.fetchLogisticsData1);
 
 // Rota para página de erro 401 (Senha incorreta)
 router.get('/error-401', (req, res) => {
