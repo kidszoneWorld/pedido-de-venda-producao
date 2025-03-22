@@ -88,6 +88,12 @@ body {
 .img_link_excel:hover{
     width: 50px;
 }
+
+.sairExcel {
+  display: flex;
+ gap: 20px;
+}
+
 .header-container .header-title {
     color: #ffffff !important; /* Força a cor branca com !important para evitar conflitos */
     margin: 0; /* Remove margens padrão do h3 */
