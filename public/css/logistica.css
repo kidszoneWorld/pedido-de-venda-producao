@@ -1,3 +1,29 @@
+
+@keyframes modalAnimation {
+    from{
+        opacity: 0;
+        transform: translate3d(0,-20px,-5px);
+    }
+    to{
+        opacity: 1;
+        transform: translate3d(0,0,0);
+    }
+    
+}
+
+/* Define a animação de saída */
+@keyframes modalAnimationOut {
+    from {
+        opacity: 1;
+        transform: translate3d(0, 0, 0);
+    }
+    to {
+        opacity: 0;
+        transform: translate3d(0, -20px, -5px);
+    }
+}
+ 
+
 body {
     font-family: Arial, sans-serif;
     margin: 0;
@@ -79,19 +105,18 @@ body {
     border-radius: 5px;
 }
 
-
-.img_link_excel{
+.img_link_excel {
     width: 40px;
     cursor: pointer;
 }
 
-.img_link_excel:hover{
+.img_link_excel:hover {
     width: 50px;
 }
 
 .sairExcel {
-  display: flex;
- gap: 20px;
+    display: flex;
+    gap: 20px;
 }
 
 .header-container .header-title {
@@ -119,13 +144,13 @@ body {
     flex-shrink: 1; /* Permite que o link encolha se necessário */
 }
 
-.link_logistica:hover{
+.link_logistica:hover {
     background-color: rgba(225, 0, 152); /* Cor de fundo ao passar o mouse */
     color: rgb(250, 242, 247); /* Mantém a cor do texto */
     padding: 5px;
     border-radius: 5px;
-
 }
+
 h2 {
     text-align: center;
     margin-bottom: 20px;
@@ -146,7 +171,8 @@ table thead th {
     z-index: 1; /* Para garantir que o cabeçalho fique acima do conteúdo */
 }
 
-table th, table td {
+table th,
+table td {
     border: 1px solid #ccc;
     padding: 10px;
     text-align: left;
@@ -199,6 +225,7 @@ table tr:hover {
 
 .filter-buttons {
     display: flex;
+    flex-direction: row; /* Alinha os botões horizontalmente em telas grandes */
     gap: 10px;
     align-items: center;
 }
@@ -207,17 +234,21 @@ table tr:hover {
     font-weight: bold;
 }
 
-#filters input, #filters button {
+#filters input,
+#filters button {
     padding: 5px;
 }
 
-#representanteFilter, #representanteFilter1 {
+#representanteFilter,
+#representanteFilter1 {
     width: 50px;
     border-radius: 5px;
     border: 1px solid #0f0f0f;
 }
 
-#statusFilter, #statusFilter1, #statusSeparacaoFilter {
+#statusFilter,
+#statusFilter1,
+#statusSeparacaoFilter {
     padding: 7px;
     width: 120px;
     border-radius: 5px;
@@ -230,7 +261,10 @@ button:hover {
     border: none;
 }
 
-#applyFilters, #clearFilters, #logoutButton, #logoutButton1 {
+#applyFilters,
+#clearFilters,
+#logoutButton,
+#logoutButton1 {
     padding: 6px;
     margin-bottom: 5px;
     border-radius: 5px;
@@ -241,9 +275,9 @@ button:hover {
     width: 50px;
 }
 
-#clienteCNPJFilter1, 
-#clienteCNPJFilter, 
-#dataPedidoInicioFilter1, 
+#clienteCNPJFilter1,
+#clienteCNPJFilter,
+#dataPedidoInicioFilter1,
 #dataPedidoInicioFilter,
 #dataPedidoFimFilter1,
 #dataPedidoFimFilter {
@@ -252,7 +286,8 @@ button:hover {
     border: 1px solid #0f0f0f;
 }
 
-#applyFilters1, #clearFilters1 {
+#applyFilters1,
+#clearFilters1 {
     border-radius: 5px;
     border: 1px solid #0f0f0f;
 }
@@ -367,6 +402,59 @@ button:hover {
     z-index: 1; /* Garante que o texto expandido fique acima de outros elementos */
 }
 
+/* Estilo para o botão de menu */
+.menu-toggle {
+    display: none; /* Escondido por padrão em telas maiores */
+    width: 20%;
+    max-width: 300px;
+    margin: 0 auto;
+    margin-bottom: 15px;
+}
+
+.menu-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    padding: 10px;
+    background-color: #333;
+    color: #ffffff;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.menu-button:hover {
+    background-color: rgba(225, 0, 152);
+    color: rgb(250, 242, 247);
+}
+
+.menu-icon {
+    font-size: 20px;
+}
+
+/* Contêiner dos filtros */
+.filter-container {
+    display: flex; /* Para alinhar inputs e botões lado a lado em telas grandes */
+    align-items: flex-start; /* Alinha ao topo */
+    gap: 20px; /* Espaço entre inputs e botões */
+    width: 100%;
+    max-width: 1200px;
+}
+
+/* Quando o filterContainer estiver ativo (aberto) */
+.filter-container.active {
+    display: flex; /* Mostra o elemento */
+    animation: modalAnimation 0.70s forwards; /* Aplica a animação de entrada */
+}
+
+/* Estilo para animação de saída (quando a classe 'active' é removida) */
+.filter-container.closing {
+    animation: modalAnimationOut 0.70s forwards; /* Aplica a animação de saída */
+}
+
 /* Media query para telas menores (celular) */
 @media (max-width: 768px) {
     .header-container {
@@ -405,60 +493,78 @@ button:hover {
         font-size: 16px; /* Reduz o tamanho da fonte para evitar overflow */
     }
 
+    .menu-toggle {
+        display: block; /* Mostra o botão de menu em telas menores */
+       
+    }
+
+    .filter-container {
+        display: none; /* Esconde os filtros por padrão em telas menores */
+        flex-direction: column; /* Empilha os elementos em coluna */
+        width: 100%;
+        max-width: 300px;
+        margin: 0 auto;
+    }
+
+    .filter-container.active {
+        display: flex; /* Mostra os filtros quando a classe 'active' é adicionada */
+    }
+
     #filters {
-        flex-direction: column; /* Coloca os filtros e botões em coluna */
-        align-items: center; /* Centraliza os elementos horizontalmente */
-        width: 100%; /* Garante que o #filters ocupe a largura total */
-        max-width: none; /* Remove o max-width para evitar limitações */
-        margin: 0 auto; /* Garante que o #filters esteja centralizado */
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
+        max-width: none;
+        margin: 0 auto;
     }
 
     .filter-inputs {
-        width: 100%; /* Ocupa a largura total */
-        max-width: 300px; /* Limita a largura para melhor centralização */
+        width: 100%;
+        max-width: 300px;
         display: flex;
-        justify-content: center; /* Centraliza os subcontêineres dentro de .filter-inputs */
-        align-items: center; /* Garante que os itens dentro de .filter-inputs estejam centralizados */
+        justify-content: center;
+        align-items: center;
     }
 
     .filter-row {
-        flex-direction: column; /* Organiza os itens em coluna */
+        flex-direction: column;
         gap: 10px;
-        width: 100%; /* Ocupa a largura total do .filter-inputs */
+        width: 100%;
         display: flex;
-        justify-content: center; /* Centraliza os itens dentro da linha */
-        align-items: center; /* Garante que os itens dentro de .filter-row estejam centralizados */
+        justify-content: center;
+        align-items: center;
     }
 
     .filter-item {
-        width: 100%; /* Cada item ocupa a largura total */
-        max-width: 300px; /* Limita a largura máxima dos itens */
+        width: 100%;
+        max-width: 300px;
         display: flex;
-        flex-direction: column; /* Alinha label e input/select verticalmente */
-        align-items: center; /* Centraliza o label e o input/select */
+        flex-direction: column;
+        align-items: center;
         gap: 5px;
     }
 
     .filter-item label {
-        width: 100%; /* Label ocupa a largura total */
-        text-align: center; /* Centraliza o texto do label */
+        width: 100%;
+        text-align: center;
     }
 
-    .filter-item input, .filter-item select {
-        width: 100%; /* Inputs e select ocupam a largura total do item */
-        max-width: 200px; /* Reduz o tamanho dos inputs (exceto Cód Rep) */
+    .filter-item input,
+    .filter-item select {
+        width: 100%;
+        max-width: 200px;
     }
 
-    /* Mantém o tamanho do input de Cód Rep */
     #representanteFilter1 {
-        max-width: 50px; /* Mantém o tamanho atual do Cód Rep */
+        max-width: 50px;
     }
 
     .filter-buttons {
-        width: 100%; /* Ocupa a largura total */
-        max-width: 300px; /* Limita a largura para alinhar com os campos */
+        width: 100%;
+        max-width: 300px;
         display: flex;
-        justify-content: center; /* Centraliza os botões */
-        margin-top: 10px;
+        flex-direction: row; /* Mantém os botões em linha em telas menores */
+        justify-content: center;
+        margin-top: 15px;
     }
 }

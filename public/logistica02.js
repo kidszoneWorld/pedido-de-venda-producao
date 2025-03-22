@@ -266,3 +266,22 @@ document.getElementById('logoutButton1').addEventListener('click', async () => {
 
     window.location.href = '/login2';
 });
+
+// Função para alternar a visibilidade dos filtros
+document.getElementById('menuToggle').addEventListener('click', () => {
+    const filterContainer = document.getElementById('filterContainer');
+    const menuButton = document.getElementById('menuToggle');
+    const menuIcon = menuButton.querySelector('.menu-icon');
+
+    // Alterna a classe 'active' para mostrar/esconder os filtros
+    filterContainer.classList.toggle('active');
+
+    // Muda o ícone e o texto do botão
+    if (filterContainer.classList.contains('active')) {
+        menuIcon.textContent = '✖'; // Ícone de fechar
+        menuButton.innerHTML = `<span class="menu-icon">✖</span> Fechar Filtros`;
+    } else {
+        menuIcon.textContent = '☰'; // Ícone de menu
+        menuButton.innerHTML = `<span class="menu-icon">☰</span> Filtros`;
+    }
+});

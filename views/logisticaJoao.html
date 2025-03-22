@@ -11,7 +11,7 @@
 
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <link rel="stylesheet" href="/css/logistica.css?v=1742666491977">
+    <link rel="stylesheet" href="/css/logistica.css?v=1742682296461">
 </head>
 <body>
 <div class="container">
@@ -46,43 +46,54 @@
     
     <!-- Filtros -->
     <div id="filters">
-        <div class="filter-inputs">
-            <div class="filter-row filter-row-top">
-                <div class="filter-item">
-                    <label for="representanteFilter1">Cód Rep:</label>
-                    <input type="text" id="representanteFilter1" placeholder="Ex.: 37">
-                </div>
-                <div class="filter-item">
-                    <label for="notaFilter1">Nota Fiscal:</label>
-                    <input type="text" id="notaFilter1" placeholder="Ex.: 36777">
-                </div>
-                <div class="filter-item">
-                    <label for="clienteCNPJFilter1">Cliente CNPJ:</label>
-                    <input type="text" id="clienteCNPJFilter1" placeholder="Ex.: 08712676000110">
-                </div>
-            </div>
-            <div class="filter-row filter-row-bottom">
-                <div class="filter-item">
-                    <label for="dataPedidoInicioFilter1">Data Pedido (Início):</label>
-                    <input type="date" id="dataPedidoInicioFilter1">
-                </div>
-                <div class="filter-item">
-                    <label for="dataPedidoFimFilter1">Data Pedido (Fim):</label>
-                    <input type="date" id="dataPedidoFimFilter1">
-                </div>
-                <div class="filter-item">
-                    <label for="statusFilter1">Status:</label>
-                    <select id="statusFilter1">
-                        <option value="2"></option>
-                        <option value="1">Entregue</option>
-                        <option value="0">Pendente</option>
-                    </select>
-                </div>
-            </div>
+        <!-- Botão de menu para telas menores -->
+        <div class="menu-toggle">
+            <button id="menuToggle" class="menu-button">
+                <span class="menu-icon">☰</span> Filtros
+            </button>
         </div>
-        <div class="filter-buttons">
-            <button id="applyFilters1">Aplicar Filtros</button>
-            <button id="clearFilters1">Limpar Filtros</button>
+
+        <!-- Contêiner dos filtros (será escondido/mostrado) -->
+        <div class="filter-container" id="filterContainer">
+            <div class="filter-inputs">
+                <div class="filter-row filter-row-top">
+                    <div class="filter-item">
+                        <label for="representanteFilter1">Cód Rep:</label>
+                        <input type="text" id="representanteFilter1" placeholder="Ex.: 37">
+                    </div>
+                    <div class="filter-item">
+                        <label for="notaFilter1">Nota Fiscal:</label>
+                        <input type="text" id="notaFilter1" placeholder="Ex.: 36777">
+                    </div>
+                    <div class="filter-item">
+                        <label for="clienteCNPJFilter1">Cliente CNPJ:</label>
+                        <input type="text" id="clienteCNPJFilter1" placeholder="Ex.: 08712676000110">
+                    </div>
+                </div>
+                <div class="filter-row filter-row-bottom">
+                    <div class="filter-item">
+                        <label for="dataPedidoInicioFilter1">Data Pedido (Início):</label>
+                        <input type="date" id="dataPedidoInicioFilter1">
+                    </div>
+                    <div class="filter-item">
+                        <label for="dataPedidoFimFilter1">Data Pedido (Fim):</label>
+                        <input type="date" id="dataPedidoFimFilter1">
+                    </div>
+                    <div class="filter-item">
+                        <label for="statusFilter1">Status:</label>
+                        <select id="statusFilter1">
+                            <option value="2"></option>
+                            <option value="1">Entregue</option>
+                            <option value="0">Pendente</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <!-- Botões de filtro agora dentro do filter-container -->
+            <div class="filter-buttons">
+                <button id="applyFilters1">Aplicar Filtros</button>
+                <button id="clearFilters1">Limpar Filtros</button>
+            </div>
         </div>
     </div>
 
@@ -114,6 +125,6 @@
         </table>
      </div>
   </div>
-    <script src="/logistica02.js?v=1742666491977"></script>
+    <script src="/logistica02.js?v=1742682296461"></script>
 </body>
 </html>
