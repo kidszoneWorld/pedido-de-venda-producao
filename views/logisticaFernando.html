@@ -8,7 +8,9 @@
     <link rel="icon"  type="image/png" sizes="32x32" href="/images/favicon-32x32.png" >
     <link rel="icon"  type="image/png" sizes="16x16" href="/images/favicon-16x16.png" >
     <link rel="manifest" href="/images/site.webmanifest">
-    <link rel="stylesheet" href="/css/logistica.css?v=1742609566498">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <link rel="stylesheet" href="/css/logistica.css?v=1742622135393">
 </head>
 <body>
 
@@ -25,7 +27,7 @@
                 <h3 class="header-title">Acompanhamento de entrega</h3>
             </div>
             <div class="header-right">
-                <h4>Você está em: <br/><strong>Norte/Nordeste/Centro-oeste</strong></h4>
+                <h4>Você está em: <br/><strong>Norte/Nordeste/Centro-Oeste</strong></h4>
                 <div class="link-wrapper">
                     <span class="link-label">Ir para:</span>
                     <a class="link_logistica" href="/logistica02">Sul/Sudeste</a>
@@ -35,6 +37,7 @@
     </div>
     
     <button id="logoutButton1">Sair</button>
+    <img class="img_link_excel" src="/images/excel.png" alt="exportar para excel" id="exportExcel1">
 
     <!-- Feedback -->
     <div id="feedback1" style="display: none; text-align: center; font-weight: bold; margin: 10px; color: red;"></div>
@@ -109,6 +112,6 @@
             </table>
     </div>
  </div>
-    <script src="/logistica03.js?v=1742609566498"></script>
+    <script src="/logistica03.js?v=1742622135393"></script>
 </body>
 </html>

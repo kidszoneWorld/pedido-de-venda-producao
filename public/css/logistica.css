@@ -79,6 +79,15 @@ body {
     border-radius: 5px;
 }
 
+
+.img_link_excel{
+    width: 40px;
+    cursor: pointer;
+}
+
+.img_link_excel:hover{
+    width: 50px;
+}
 .header-container .header-title {
     color: #ffffff !important; /* Força a cor branca com !important para evitar conflitos */
     margin: 0; /* Remove margens padrão do h3 */
@@ -104,6 +113,13 @@ body {
     flex-shrink: 1; /* Permite que o link encolha se necessário */
 }
 
+.link_logistica:hover{
+    background-color: rgba(225, 0, 152); /* Cor de fundo ao passar o mouse */
+    color: rgb(250, 242, 247); /* Mantém a cor do texto */
+    padding: 5px;
+    border-radius: 5px;
+
+}
 h2 {
     text-align: center;
     margin-bottom: 20px;
