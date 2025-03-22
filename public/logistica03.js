@@ -40,21 +40,21 @@ function renderTable(data) {
     data.forEach(order => {
         const row = document.createElement('tr');
         row.innerHTML = `
-            <td>${order.EMISSÃO ? new Date(order.EMISSÃO).toLocaleDateString('pt-BR') : ''}</td>
-            <td>${order.NF || ''}</td>
-            <td>${order.codCliente || ''}</td>
-            <td>${order.NOME || ''}</td>
-            <td>${order.CNPJ.replace(/[\.\-\/]/g, '') || ''}</td>
-            <td>${order.UF || ''}</td>
-            <td>${order.Rep || ''}</td>
-            <td>${order.CodTransporte || ''}</td>
-            <td>${order.TRANSPORTES || ''}</td>
-            <td>${order.SAÍDA ? new Date(order.SAÍDA).toLocaleDateString('pt-BR') : ''}</td>
-            <td>${order.PrevisaoEntrega ? new Date(order.PrevisaoEntrega).toLocaleDateString('pt-BR') : ''}</td>
-            <td>${order.ENTREGUE || '' ? new Date(order.PrevisaoEntrega).toLocaleDateString('pt-BR') : ''}</td>
-            <td>${order.STATUS_ENTREGA || ''}</td>
-            <td>${order.AGENDA || ''}</td>
-            <td>${order.OCORRÊNCIA || ''}</td>
+            <td class="dataEmissao">${order.EMISSÃO ? new Date(order.EMISSÃO).toLocaleDateString('pt-BR') : ''}</td>
+            <td class="numNotas">${order.NF || ''}</td>
+            <td class="codCliente">${order.codCliente || ''}</td>
+            <td class="cliente">${order.NOME || ''}</td>
+            <td class="clienteCNPJ">${order.CNPJ.replace(/[\.\-\/]/g, '') || ''}</td>
+            <td class="uf">${order.UF || ''}</td>
+            <td class="codRep">${order.Rep || ''}</td>
+            <td class="codTrans">${order.CodTransporte || ''}</td>
+            <td class="transportadora">${order.TRANSPORTES || ''}</td>
+            <td class="saida">${order.SAÍDA ? new Date(order.SAÍDA).toLocaleDateString('pt-BR') : ''}</td>
+            <td class="previsaoEntrega">${order.PrevisaoEntrega ? new Date(order.PrevisaoEntrega).toLocaleDateString('pt-BR') : ''}</td>
+            <td class="dataEntrega">${order.ENTREGUE || '' ? new Date(order.PrevisaoEntrega).toLocaleDateString('pt-BR') : ''}</td>
+            <td class="statusEntrega">${order.STATUS_ENTREGA || ''}</td>
+            <td class="agenda">${order.AGENDA || ''}</td>
+            <td class="ocorrencia">${order.OCORRÊNCIA || ''}</td>
 
         `;
         orderTableBody1.appendChild(row);

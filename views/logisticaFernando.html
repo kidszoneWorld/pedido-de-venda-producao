@@ -8,24 +8,32 @@
     <link rel="icon"  type="image/png" sizes="32x32" href="/images/favicon-32x32.png" >
     <link rel="icon"  type="image/png" sizes="16x16" href="/images/favicon-16x16.png" >
     <link rel="manifest" href="/images/site.webmanifest">
-    <link rel="stylesheet" href="/css/logistica.css?v=1742587095605">
+    <link rel="stylesheet" href="/css/logistica.css?v=1742609566498">
 </head>
 <body>
 
 <div class="container">
+   
     <div class="header">
         <header class="header-container">
-            <div class="header-logo">
-                <a href="https://kidszoneworld.com.br/portal-do-representante/">
-                    <img class="img_link" src="/images/logo.png" alt="Imagem KidsZone">
-                </a>
+            <div class="header-left">
+                <div class="header-logo">
+                    <a href="https://kidszoneworld.com.br/portal-do-representante/">
+                        <img class="img_link" src="/images/logo.png" alt="Imagem KidsZone">
+                    </a>
+                </div>
+                <h3 class="header-title">Acompanhamento de entrega</h3>
             </div>
-            <h3 class="header-title">Acompanhamento de entrega</h3>
-            <h4> Voce esta em: <br/><strong>Norte/Nordeste/Centro-oste</strong></h5>
-            <a class="link_logistica" href="/logistica02">Sul/Sudeste</a>
+            <div class="header-right">
+                <h4>Você está em: <br/><strong>Norte/Nordeste/Centro-oeste</strong></h4>
+                <div class="link-wrapper">
+                    <span class="link-label">Ir para:</span>
+                    <a class="link_logistica" href="/logistica02">Sul/Sudeste</a>
+                </div>
+            </div>
         </header>
     </div>
-
+    
     <button id="logoutButton1">Sair</button>
 
     <!-- Feedback -->
@@ -33,58 +41,74 @@
     
     <!-- Filtros -->
     <div id="filters">
-        <label for="representanteFilter1">Cód Rep:</label>
-        <input type="text" id="representanteFilter1" placeholder="Ex.: 37">
-
-        <label for="notaFilter1">Nota Fiscal:</label>
-        <input type="text" id="notaFilter1" placeholder="Ex.: 36777">
-        
-        <label for="clienteCNPJFilter1">Cliente CNPJ:</label>
-        <input type="text" id="clienteCNPJFilter1" placeholder="Ex.: 08712676000110">
-        
-        <label for="dataPedidoInicioFilter1">Data Pedido (Início):</label>
-        <input type="date" id="dataPedidoInicioFilter1">
-        
-        <label for="dataPedidoFimFilter1">Data Pedido (Fim):</label>
-        <input type="date" id="dataPedidoFimFilter1">
-        
-        <label for="statusFilter1">Status:</label>
-        <select id="statusFilter1">
-            <option value="2"></option>
-            <option value="1">Entregue</option>
-            <option value="0">Pendente</option>
-        </select>
-        
-        <button id="applyFilters1">Aplicar Filtros</button>
-        <button id="clearFilters1">Limpar Filtros</button>
+        <div class="filter-inputs">
+            <div class="filter-row filter-row-top">
+                <div class="filter-item">
+                    <label for="representanteFilter1">Cód Rep:</label>
+                    <input type="text" id="representanteFilter1" placeholder="Ex.: 37">
+                </div>
+                <div class="filter-item">
+                    <label for="notaFilter1">Nota Fiscal:</label>
+                    <input type="text" id="notaFilter1" placeholder="Ex.: 36777">
+                </div>
+                <div class="filter-item">
+                    <label for="clienteCNPJFilter1">Cliente CNPJ:</label>
+                    <input type="text" id="clienteCNPJFilter1" placeholder="Ex.: 08712676000110">
+                </div>
+            </div>
+            <div class="filter-row filter-row-bottom">
+                <div class="filter-item">
+                    <label for="dataPedidoInicioFilter1">Data Pedido (Início):</label>
+                    <input type="date" id="dataPedidoInicioFilter1">
+                </div>
+                <div class="filter-item">
+                    <label for="dataPedidoFimFilter1">Data Pedido (Fim):</label>
+                    <input type="date" id="dataPedidoFimFilter1">
+                </div>
+                <div class="filter-item">
+                    <label for="statusFilter1">Status:</label>
+                    <select id="statusFilter1">
+                        <option value="2"></option>
+                        <option value="1">Entregue</option>
+                        <option value="0">Pendente</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div class="filter-buttons">
+            <button id="applyFilters1">Aplicar Filtros</button>
+            <button id="clearFilters1">Limpar Filtros</button>
+        </div>
     </div>
 
     <!-- Tabela -->
-    <table id="order-table1">
-        <thead>
-            <tr>
-                <th>Data da emissão</th>
-                <th>Núm notas</th>
-                <th>Cód Cliente</th>
-                <th>Cliente</th>
-                <th>Cliente CNPJ</th>
-                <th>UF</th>
-                <th>Cód Rep</th>
-                <th>Cod Trans</th>
-                <th>Transportadora</th>
-                <th>Saída</th>
-                <th>Previsão de Entrega</th>
-                <th>Data de Entrega</th>
-                <th>Status Entrega</th> 
-                <th>Agenda</th>
-                <th>Ocorrência</th>
-            </tr>
-        </thead>
-        <tbody>
-            <!-- Dados serão adicionados dinamicamente -->
-        </tbody>
-    </table>
+        <div class="table-container">
+            <table id="order-table1">
+                <thead>
+                    <tr>
+                        <th class="dataEmissao">Data da emissão</th>
+                        <th class="numNotas">Núm notas</th>
+                        <th class="codCliente">Cód Cliente</th>
+                        <th class="cliente">Cliente</th>
+                        <th class="clienteCNPJ">Cliente CNPJ</th>
+                        <th class="uf">UF</th>
+                        <th class="codRep">Cód Rep</th>
+                        <th class="codTrans">Cod Trans</th>
+                        <th class="transportadora">Transportadora</th>
+                        <th class="saida">Saída</th>
+                        <th class="previsaoEntrega">Previsão de Entrega</th>
+                        <th class="dataEntrega">Data de Entrega</th>
+                        <th class="statusEntrega">Status Entrega</th> 
+                        <th class="agenda">Agenda</th>
+                        <th class="ocorrencia">Ocorrência</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Dados serão adicionados dinamicamente -->
+                </tbody>
+            </table>
+    </div>
  </div>
-    <script src="/logistica03.js?v=1742587095605"></script>
+    <script src="/logistica03.js?v=1742609566498"></script>
 </body>
 </html>
