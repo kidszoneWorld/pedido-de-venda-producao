@@ -73,17 +73,17 @@ function renderTable(data) {
     data.forEach(order => {
         const row = document.createElement('tr');
         row.innerHTML = `
-            <td>${order.dataPedido ? new Date(order.dataPedido).toLocaleDateString('pt-BR') : 'N/A'}</td>
-            <td><a href="detalhes?pedidoId=${order.id}&status=${currentFilters.status}" target="_blank">${order.codigo}</a></td>
-            <td>${mapStatus(order.status)}</td>
-            <td>${mapStatusSeparacao(order.statusSeparacao)}</td>
-            <td>${order.cliente.codigo}</td>
-            <td>${order.cliente.nomeAbreviado}</td>
-            <td>${order.cliente.documento.numeroTexto}</td>
-            <td>${order.representante?.id || 'Não informado'}</td>
-            <td>${order.representante?.nomeAbreviado || 'Não informado'}</td>
-            <td>${order.detalhes?.valor?.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) || 'N/A'}</td>
-            <td>${order.detalhes_transporte?.nomeAbreviado || 'Não informado'}</td>
+            <td class="dataPedido">${order.dataPedido ? new Date(order.dataPedido).toLocaleDateString('pt-BR') : 'N/A'}</td>
+            <td class="codPedido"><a href="detalhes?pedidoId=${order.id}&status=${currentFilters.status}" target="_blank">${order.codigo}</a></td>
+            <td class="statusPedido">${mapStatus(order.status)}</td>
+            <td class="statusSeparacao">${mapStatusSeparacao(order.statusSeparacao)}</td>
+            <td class="codCliente">${order.cliente.codigo}</td>
+            <td class="cliente">${order.cliente.nomeAbreviado}</td>
+            <td class="clienteCNPJ">${order.cliente.documento.numeroTexto}</td>
+            <td class="codRep">${order.representante?.id || 'Não informado'}</td>
+            <td class="representante">${order.representante?.nomeAbreviado || 'Não informado'}</td>
+            <td class="valorTotal">${order.detalhes?.valor?.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) || 'N/A'}</td>
+            <td class="transportadora">${order.detalhes_transporte?.nomeAbreviado || 'Não informado'}</td>
         `;
         orderTableBody.appendChild(row);
     });
@@ -219,3 +219,22 @@ document.getElementById('logoutButton').addEventListener('click', async () => {
     window.location.href = '/login2';
 });
 
+
+// Função para alternar a visibilidade dos filtros
+document.getElementById('menuToggle').addEventListener('click', () => {
+    const filterContainer = document.getElementById('filterContainer');
+    const menuButton = document.getElementById('menuToggle');
+    const menuIcon = menuButton.querySelector('.menu-icon');
+
+    // Alterna a classe 'active' para mostrar/esconder os filtros
+    filterContainer.classList.toggle('active');
+
+    // Muda o ícone e o texto do botão
+    if (filterContainer.classList.contains('active')) {
+        menuIcon.textContent = '✖'; // Ícone de fechar
+        menuButton.innerHTML = `<span class="menu-icon">✖</span> Fechar Filtros`;
+    } else {
+        menuIcon.textContent = '☰'; // Ícone de menu
+        menuButton.innerHTML = `<span class="menu-icon">☰</span> Filtros`;
+    }
+});

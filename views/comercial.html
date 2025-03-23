@@ -8,84 +8,122 @@
     <link rel="icon"  type="image/png" sizes="32x32" href="/images/favicon-32x32.png" >
     <link rel="icon"  type="image/png" sizes="16x16" href="/images/favicon-16x16.png" >
     <link rel="manifest" href="/images/site.webmanifest">
-    <link rel="stylesheet" href="/css/comercial.css?v=1742682296441">
+    <link rel="stylesheet" href="/css/comercial.css?v=1742692310143">
 </head>
 <body>
-    <header class="header-container">
-        <a href="https://kidszoneworld.com.br/portal-do-representante/">
-            <img src="/images/logo.png" alt="Imagem KidsZone" class="logo">
-        </a> 
-        <h2 class="header-title">Detalhes dos Pedidos</h2>
-    </header>
-    
-    <button id="logoutButton">Sair</button>
 
-    <div class="buttons_filters">
-        <button id="applyFilters">Aplicar Filtros</button>
-        <button id="clearFilters">Limpar Filtros</button>
+<div class="container">
+
+    <div class="header">
+        <header class="header-container">
+            <div class="header-left">
+                <div class="header-logo">
+                    <a href="https://kidszoneworld.com.br/portal-do-representante/">
+                        <img class="img_link" src="/images/logo.png" alt="Imagem KidsZone">
+                    </a>
+                </div>
+                <h3 class="header-title">Detalhes do pedido de venda</h3>
+            </div>
+        </header>
     </div>
-  
+    
+    <div class="sairExcel">
+        <button id="logoutButton">Sair</button>
+    </div>
 
-    <!-- Feedback -->
-    <div id="feedback" style="display: none; text-align: center; font-weight: bold; margin: 10px; color: red;"></div>
+     <!-- Feedback -->
+     <div id="feedback" style="display: none; text-align: center; font-weight: bold; margin: 10px; color: red;"></div>
+
     
     <!-- Filtros -->
     <div id="filters">
-        <label for="representanteFilter">Cód Rep:</label>
-        <input type="text" id="representanteFilter" placeholder="Ex.: 37">
-        
-        <label for="clienteCNPJFilter">Cliente CNPJ:</label>
-        <input type="text" id="clienteCNPJFilter" placeholder="Ex.: 08712676000110">
-        
-        <label for="dataPedidoInicioFilter">Data Pedido (Início):</label>
-        <input type="date" id="dataPedidoInicioFilter">
-        
-        <label for="dataPedidoFimFilter">Data Pedido (Fim):</label>
-        <input type="date" id="dataPedidoFimFilter">
 
-        <label for="statusSeparacaoFilter">Status Separação:</label>
-        <select id="statusSeparacaoFilter">
-            <option value="0"></option>
-            <option value="0">0 -Não Separado</option>
-            <option value="1">1 -Separado Parcial</option>
-            <option value="2">2 -Separado Total</option>
-        </select>
-        
-        <label for="statusFilter">Status:</label>
-        <select id="statusFilter">
-            <option value="6">6 -Pendente</option>       
-            <option value="1">1 -Cancelado Parcial</option>
-            <option value="2">2 -Cancelado Total</option>
-            <option value="3">3 -Em Aprovação</option>
-            <option value="4">4 -Faturado Parcial</option>
-            <option value="5">5 -Faturado Total</option>        
-            <option value="7">7 -Reprovado</option>           
-        </select>
-        
+        <!-- Botão de menu para telas menores -->
+        <div class="menu-toggle">
+            <button id="menuToggle" class="menu-button">
+                <span class="menu-icon">☰</span> Filtros
+            </button>
+        </div>
+
+
+         <!-- Contêiner dos filtros (será escondido/mostrado) -->
+        <div class="filter-container" id="filterContainer">
+          
+            <div class="filter-inputs">
+                <div class="filter-row filter-row-top">
+                    <div class="filter-item">
+                        <label for="representanteFilter">Cód Rep:</label>
+                        <input type="text" id="representanteFilter" placeholder="Ex.: 37">
+                    </div>
+                    <div class="filter-item">
+                        <label for="clienteCNPJFilter">Cliente CNPJ:</label>
+                        <input type="text" id="clienteCNPJFilter" placeholder="Ex.: 08712676000110">
+                    </div>
+                </div>
+                <div class="filter-row filter-row-bottom">
+                    <div class="filter-item">
+                        <label for="dataPedidoInicioFilter">Data Pedido (Início):</label>
+                        <input type="date" id="dataPedidoInicioFilter">
+                    </div>
+                    <div class="filter-item">
+                        <label for="dataPedidoFimFilter">Data Pedido (Fim):</label>
+                        <input type="date" id="dataPedidoFimFilter">
+                    </div>
+                    <div class="filter-item">
+                        <label for="statusSeparacaoFilter">Status Separação:</label>
+                        <select id="statusSeparacaoFilter">
+                            <option value="0"></option>
+                            <option value="0">0 -Não Separado</option>
+                            <option value="1">1 -Separado Parcial</option>
+                            <option value="2">2 -Separado Total</option>
+                        </select>
+                    </div>
+                    <div class="filter-item">
+                        <label for="statusFilter">Status:</label>
+                        <select id="statusFilter">
+                            <option value="6">6 -Pendente</option>       
+                            <option value="1">1 -Cancelado Parcial</option>
+                            <option value="2">2 -Cancelado Total</option>
+                            <option value="3">3 -Em Aprovação</option>
+                            <option value="4">4 -Faturado Parcial</option>
+                            <option value="5">5 -Faturado Total</option>        
+                            <option value="7">7 -Reprovado</option>           
+                        </select>
+                    </div>
+                </div>  
+            </div> 
+            <!-- Botões de filtro agora dentro do filter-container -->
+            <div class="filter-buttons">
+                <button id="applyFilters">Aplicar Filtros</button>
+                <button id="clearFilters">Limpar Filtros</button>
+            </div>
+        </div>
     </div>
 
     <!-- Tabela -->
-    <table id="order-table">
-        <thead>
-            <tr>
-                <th>Data do Pedido</th>
-                <th>Cód Pedido</th>
-                <th>Status</th>
-                <th>Status Separação</th>
-                <th>Cód Cliente</th>
-                <th>Cliente</th>
-                <th>Cliente CNPJ</th>
-                <th>Cód Rep</th>
-                <th>Representante</th>
-                <th>Valor Total</th>
-                <th>Transportadora</th>
-            </tr>
-        </thead>
-        <tbody>
-            <!-- Dados serão adicionados dinamicamente -->
-        </tbody>
-    </table>
-
-    <script src="/comercial.js?v=1742682296441"></script>
+    <div class="table-container">
+        <table id="order-table">
+            <thead>
+                <tr>
+                    <th class="dataPedido">Data do Pedido</th>
+                    <th class="codPedido">Cód Pedido</th>
+                    <th class="statusPedido">Status</th>
+                    <th class="statusSeparacao">Status Separação</th>
+                    <th class="codCliente">Cód Cliente</th>
+                    <th class="cliente">Cliente</th>
+                    <th class="clienteCNPJ">Cliente CNPJ</th>
+                    <th class="codRep">Cód Rep</th>
+                    <th class="representante">Representante</th>
+                    <th class="valorTotal">Valor Total</th>
+                    <th class="transportadora">Transportadora</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Dados serão adicionados dinamicamente -->
+            </tbody>
+        </table>
+    </div>
+ </div>
+    <script src="/comercial.js?v=1742692310143"></script>
 </body>
 </html>
