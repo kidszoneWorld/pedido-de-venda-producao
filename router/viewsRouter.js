@@ -99,9 +99,8 @@ router.get('/api/pedidos/:id', orderController.getOrderDetailsById); // Detalhes
 router.get('/api/logistica/onedrive', invoicesController.fetchLogisticsData);
 router.get('/api/logistica/logistica03', fernandoController.fetchLogisticsData);
 router.get('/api/logistica/logistica02', fernandoController.fetchLogisticsData1);
-router.get('/view-xml', fernandoController.viewXML); // Visualizar XML
-router.get('/download-xml', fernandoController.downloadXML); // Nova rota para baixar XML
-router.get('/download-danfe', fernandoController.downloadDANFE);
+
+
 
 // Rota para página de erro 401 (Senha incorreta)
 router.get('/error-401', (req, res) => {

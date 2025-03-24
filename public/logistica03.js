@@ -1,6 +1,5 @@
 let ordersData1 = [];
 let filteredData1 = [];
-let selectedOrder = null; // Para armazenar a ordem selecionada
 
 // Mostrar Feedback
 function showFeedback(message) {
@@ -106,7 +105,7 @@ function renderTable(data) {
         const row = document.createElement('tr');
         row.innerHTML = `
             <td class="dataEmissao">${order.EMISSÃO ? new Date(order.EMISSÃO).toLocaleDateString('pt-BR') : ''}</td>
-            <td class="numNotas" style="cursor: pointer; color: blue; text-decoration: underline;">${order.NF || ''}</td>
+            <td class="numNotas">${order.NF || ''}</td>
             <td class="codCliente">${order.codCliente || ''}</td>
             <td class="cliente">${order.NOME || ''}</td>
             <td class="clienteCNPJ">${order.CNPJ?.replace(/[\.\-\/]/g, '') || ''}</td>
@@ -123,17 +122,6 @@ function renderTable(data) {
         `;
         orderTableBody1.appendChild(row);
 
-        // Adicionar evento de clique na célula "Núm notas"
-        const numNotasCell = row.querySelector('.numNotas');
-        numNotasCell.addEventListener('click', () => {
-            if (order.XML) {
-                selectedOrder = order; // Armazena a ordem selecionada
-                const modal = document.getElementById('downloadModal');
-                modal.style.display = 'block'; // Exibe o modal
-            } else {
-                showFeedback("Nenhum XML disponível para esta nota.");
-            }
-        });
     });
 }
 
