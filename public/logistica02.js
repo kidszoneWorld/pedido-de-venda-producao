@@ -7,10 +7,6 @@ function showFeedback(message) {
     feedback.style.display = 'block';
     feedback.textContent = message;
 
-    // Ocultar a mensagem após 3 segundos
-    setTimeout(() => {
-        hideFeedback();
-    }, 3000);
 }
 
 // Ocultar Feedback
