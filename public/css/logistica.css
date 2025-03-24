@@ -40,14 +40,14 @@ body {
     margin-bottom: 10px;
     gap: 15px;
     width: 100%;
-    max-width: 1400px;
+    max-width: 1700px;
     background-color: #e7c8df;
     border-radius: 8px;
 }
 
 .header {
     width: 100%;
-    max-width: 1200px;
+    max-width: 1600px;
     margin: 0 auto;
     box-sizing: border-box;
 }
@@ -299,7 +299,7 @@ button:hover {
 
 .table-container {
     width: 100%;
-    max-width: 1200px;
+    max-width: 1600px;
     max-height: 55vh;
     overflow-x: auto;
     overflow-y: auto;

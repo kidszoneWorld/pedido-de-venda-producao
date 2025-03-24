@@ -44,7 +44,7 @@ body {
     margin-bottom: 10px;
     gap: 15px;
     width: 100%;
-    max-width: 1400px; /* Mantém a largura máxima */
+    max-width: 1700px; /* Mantém a largura máxima */
     background-color: #e7c8df;
     border-radius: 8px;
 }
@@ -52,7 +52,7 @@ body {
 
 .header {
     width: 100%;
-    max-width: 1200px; /* Mantém a largura máxima */
+    max-width: 1600px; /* Mantém a largura máxima */
     margin: 0 auto; /* Centraliza o header dentro do .container */
     box-sizing: border-box; /* Garante que o padding não aumente a largura total */
 }
@@ -177,7 +177,7 @@ table tr:hover {
     justify-content: space-between; /* Alinha os subcontêineres (inputs e botões) */
     flex-wrap: nowrap; /* Garante que os subcontêineres fiquem em uma única linha */
     width: 100%;
-    max-width: 1200px; /* Limita a largura máxima */
+    max-width: 1600px; /* Limita a largura máxima */
 }
 
 .filter-inputs  {
@@ -272,7 +272,7 @@ button:hover{
 /* Contêiner para a tabela */
 .table-container {
     width: 100%;
-    max-width: 1200px; /* Limita a largura máxima */
+    max-width: 1600px; /* Limita a largura máxima */
     max-height: 55vh; /* Limita a altura máxima (ajuste conforme necessário) */
     overflow-x: auto; /* Adiciona rolagem horizontal */
     overflow-y: auto; /* Adiciona rolagem vertical */
