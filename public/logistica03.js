@@ -1,5 +1,6 @@
 let ordersData1 = [];
 let filteredData1 = [];
+let selectedOrder = null; // Para armazenar a ordem selecionada
 
 // Mostrar Feedback
 function showFeedback(message) {
@@ -7,10 +8,7 @@ function showFeedback(message) {
     feedback.style.display = 'block';
     feedback.textContent = message;
 
-    // Ocultar a mensagem após 3 segundos
-    setTimeout(() => {
-        hideFeedback();
-    }, 3000);
+
 }
 
 // Ocultar Feedback
@@ -108,7 +106,7 @@ function renderTable(data) {
         const row = document.createElement('tr');
         row.innerHTML = `
             <td class="dataEmissao">${order.EMISSÃO ? new Date(order.EMISSÃO).toLocaleDateString('pt-BR') : ''}</td>
-            <td class="numNotas">${order.NF || ''}</td>
+            <td class="numNotas" style="cursor: pointer; color: blue; text-decoration: underline;">${order.NF || ''}</td>
             <td class="codCliente">${order.codCliente || ''}</td>
             <td class="cliente">${order.NOME || ''}</td>
             <td class="clienteCNPJ">${order.CNPJ?.replace(/[\.\-\/]/g, '') || ''}</td>
@@ -124,8 +122,81 @@ function renderTable(data) {
             <td class="ocorrencia">${order.OCORRÊNCIA || ''}</td>
         `;
         orderTableBody1.appendChild(row);
+
+        // Adicionar evento de clique na célula "Núm notas"
+        const numNotasCell = row.querySelector('.numNotas');
+        numNotasCell.addEventListener('click', () => {
+            if (order.XML) {
+                selectedOrder = order; // Armazena a ordem selecionada
+                const modal = document.getElementById('downloadModal');
+                modal.style.display = 'block'; // Exibe o modal
+            } else {
+                showFeedback("Nenhum XML disponível para esta nota.");
+            }
+        });
     });
 }
+
+
+// Configurar eventos do modal
+document.addEventListener('DOMContentLoaded', () => {
+    const modal = document.getElementById('downloadModal');
+    const downloadXMLButton = document.getElementById('downloadXML');
+    const downloadDANFEButton = document.getElementById('downloadDANFE');
+    const closeModalButton = document.getElementById('closeModal');
+
+    // Baixar XML
+    downloadXMLButton.addEventListener('click', async () => {
+        if (selectedOrder && selectedOrder.NF) {
+            showFeedback("Aguarde, estamos gerando o arquivo XML...");
+            try {
+                // Faz a requisição para baixar o XML
+                window.location.href = `/download-xml?nf=${selectedOrder.NF}`;
+                // Aumenta o tempo de espera para garantir que o download comece
+                setTimeout(() => {
+                    hideFeedback();
+                }, 15000); // 3 segundos, ajuste conforme necessário
+            } catch (error) {
+                console.error('Erro ao iniciar o download do XML:', error);
+                showFeedback("Erro ao gerar o arquivo XML. Tente novamente.");
+            }
+        }
+        modal.style.display = 'none';
+    });
+
+    // Baixar DANFE
+    downloadDANFEButton.addEventListener('click', async () => {
+        if (selectedOrder && selectedOrder.NF) {
+            showFeedback("Aguarde, estamos gerando o arquivo DANFE...");
+            try {
+                // Faz a requisição para baixar o DANFE
+                window.location.href = `/download-danfe?nf=${selectedOrder.NF}`;
+                // Aumenta o tempo de espera para o DANFE, que pode ser mais demorado
+                setTimeout(() => {
+                    hideFeedback();
+                }, 15000); // 5 segundos, ajuste conforme necessário
+            } catch (error) {
+                console.error('Erro ao iniciar o download do DANFE:', error);
+                showFeedback("Erro ao gerar o arquivo DANFE. Tente novamente.");
+            }
+        }
+        modal.style.display = 'none';
+    });
+
+    // Fechar o modal
+    closeModalButton.addEventListener('click', () => {
+        modal.style.display = 'none';
+        hideFeedback(); // Oculta a mensagem ao fechar o modal manualmente
+    });
+
+    // Fechar o modal ao clicar fora dele
+    window.addEventListener('click', (event) => {
+        if (event.target === modal) {
+            modal.style.display = 'none';
+            hideFeedback(); // Oculta a mensagem ao fechar o modal manualmente
+        }
+    });
+});
 
 // Inicializar ao carregar a página
 document.addEventListener('DOMContentLoaded', async () => {
