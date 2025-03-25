@@ -489,6 +489,19 @@ function preencherLinha(tr, listaPrecos, promocao = null, ufCliente) {
         cells[9].querySelector('input').value = listaPrecos[13];
     }
 
+    if( cells[6].querySelector('input').value == 0 || cells[6].querySelector('input').value == '' )   {
+        alert("Item não disponivel para este cliente no momento , por favor verificar com Edmundo")
+        cells[0].querySelector('input').value = '';
+        cells[1].querySelector('input').value = '';
+        cells[2].querySelector('input').value = '';
+        cells[3].querySelector('input').value = '';
+        cells[4].querySelector('input').value = '';
+        cells[5].querySelector('input').value = '';
+        cells[7].querySelector('input').value = '';
+        cells[8].querySelector('input').value = '';
+
+    }
+
     function atualizarValorTotal() {
         if (codProduto) {
             let quantidade = Number(cells[1].querySelector('input').value);
