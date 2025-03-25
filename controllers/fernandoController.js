@@ -27,7 +27,7 @@ async function fetchLogisticsData(req, res) {
          console.log('Número do Representante na Sessão:', userNumero);
 
         // Processar os dados para o formato necessário
-        let formattedData = data.slice(4).map(row => ({
+        let formattedData = data.slice(0).map(row => ({
             NF: row[0],
             EMISSÃO: row[1] ? (excelDateToJSDate(row[1]) ? excelDateToJSDate(row[1]).toISOString(): null) : null,
             codCliente: row[2],
@@ -75,7 +75,7 @@ async function fetchLogisticsData1(req, res) {
          console.log('Número do Representante na Sessão:', userNumero);
 
         // Processar os dados para o formato necessário
-        let formattedData = data.slice(4).map(row => ({
+        let formattedData = data.slice(0).map(row => ({
             NF: row[0],
             EMISSÃO: row[1] ? (excelDateToJSDate(row[1]) ? excelDateToJSDate(row[1]).toISOString(): null) : null,
             codCliente: row[2],

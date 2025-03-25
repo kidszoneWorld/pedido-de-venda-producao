@@ -28,26 +28,32 @@ function getCurrentDateFormatted() {
 
 // Função para exportar os dados para Excel
 function exportToExcel(data) {
-    // Preparar os dados para o Excel
+    const addOneDay = (dateStr) => {
+        if (!dateStr) return "";
+        const date = new Date(dateStr);
+        date.setDate(date.getDate() + 1);
+        return date.toLocaleDateString('pt-BR');
+    };
+
     const exportData = data.map(order => ({
-        "Data da emissão": order.EMISSÃO ? new Date(order.EMISSÃO).toLocaleDateString('pt-BR') : '',
-        "Núm notas": order.NF || '',
-        "Cód Cliente": order.codCliente || '',
-        "Cliente": order.NOME || '',
-        "Cliente CNPJ": order.CNPJ?.replace(/[\.\-\/]/g, '') || '',
-        "UF": order.UF || '',
-        "Cód Rep": order.Rep || '',
-        "Cod Trans": order.CodTransporte || '',
-        "Transportadora": order.TRANSPORTES || '',
-        "Saída": order.SAÍDA ? new Date(order.SAÍDA).toLocaleDateString('pt-BR') : '',
-        "Previsão de Entrega": order.PrevisaoEntrega ? new Date(order.PrevisaoEntrega).toLocaleDateString('pt-BR') : '',
-        "Data de Entrega": order.ENTREGUE ? new Date(order.PrevisaoEntrega).toLocaleDateString('pt-BR') : '',
-        "Status Entrega": order.STATUS_ENTREGA || '',
-        "Agenda": order.AGENDA || '',
-        "Ocorrência": order.OCORRÊNCIA || ''
+        "Data da emissão": addOneDay(order.EMISSÃO),
+        "Núm notas": order.NF || "",
+        "Cód Cliente": order.codCliente || "",
+        "Cliente": order.NOME || "",
+        "Cliente CNPJ": order.CNPJ?.replace(/[\.\-\/]/g, '') || "",
+        "UF": order.UF || "",
+        "Cód Rep": order.Rep || "",
+        "Cod Trans": order.CodTransporte || "",
+        "Transportadora": order.TRANSPORTES || "",
+        "Saída": addOneDay(order.SAÍDA),
+        "Previsão de Entrega": addOneDay(order.PrevisaoEntrega),
+        "Data de Entrega": order.ENTREGUE ? addOneDay(order.ENTREGUE) : "",
+        "Status Entrega": order.STATUS_ENTREGA || "",
+        "Agenda": order.AGENDA || "",
+        "Ocorrência": order.OCORRÊNCIA || ""
     }));
 
-    // Criar uma nova planilha e workbook
+    // Criar uma nova planilha e worksheet
     const worksheet = XLSX.utils.json_to_sheet(exportData);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Pedidos");
@@ -103,8 +109,17 @@ function renderTable(data) {
     orderTableBody1.innerHTML = ''; // Limpar tabela
     data.forEach(order => {
         const row = document.createElement('tr');
+
+        // Função auxiliar para adicionar 1 dia à data
+        const addOneDay = (dateStr) => {
+            if (!dateStr) return '';
+            const date = new Date(dateStr);
+            date.setDate(date.getDate() + 1); // Adiciona 1 dia
+            return date.toLocaleDateString('pt-BR');
+        };
+
         row.innerHTML = `
-            <td class="dataEmissao">${order.EMISSÃO ? new Date(order.EMISSÃO).toLocaleDateString('pt-BR') : ''}</td>
+            <td class="dataEmissao">${addOneDay(order.EMISSÃO)}</td>
             <td class="numNotas">${order.NF || ''}</td>
             <td class="codCliente">${order.codCliente || ''}</td>
             <td class="cliente">${order.NOME || ''}</td>
@@ -113,18 +128,16 @@ function renderTable(data) {
             <td class="codRep">${order.Rep || ''}</td>
             <td class="codTrans">${order.CodTransporte || ''}</td>
             <td class="transportadora">${order.TRANSPORTES || ''}</td>
-            <td class="saida">${order.SAÍDA ? new Date(order.SAÍDA).toLocaleDateString('pt-BR') : ''}</td>
-            <td class="previsaoEntrega">${order.PrevisaoEntrega ? new Date(order.PrevisaoEntrega).toLocaleDateString('pt-BR') : ''}</td>
-            <td class="dataEntrega">${order.ENTREGUE ? new Date(order.PrevisaoEntrega).toLocaleDateString('pt-BR') : ''}</td>
+            <td class="saida">${addOneDay(order.SAÍDA)}</td>
+            <td class="previsaoEntrega">${addOneDay(order.PrevisaoEntrega)}</td>
+            <td class="dataEntrega">${addOneDay(order.ENTREGUE)}</td>
             <td class="statusEntrega">${order.STATUS_ENTREGA || ''}</td>
             <td class="agenda">${order.AGENDA || ''}</td>
             <td class="ocorrencia">${order.OCORRÊNCIA || ''}</td>
         `;
         orderTableBody1.appendChild(row);
-
-    });
+    });
 }
-
 
 // Configurar eventos do modal
 document.addEventListener('DOMContentLoaded', () => {
