@@ -44,7 +44,7 @@ async function checkToken() {
 function getLast30Days() {
   const hoje = new Date();
   const dataFim = hoje.toISOString().split('T')[0]; // Data de hoje no formato YYYY-MM-DD
-  const dataInicio = new Date(hoje.setDate(hoje.getDate() - 30)).toISOString().split('T')[0]; // Data 30 dias atrás
+  const dataInicio = new Date(hoje.setDate(hoje.getDate() - 60)).toISOString().split('T')[0]; // Data 30 dias atrás
   return { dataInicio, dataFim };
 }
 
@@ -65,7 +65,7 @@ async function fetchOrderDetails(status = 6) {
 
   try {
     const response = await fetch(
-      `https://gateway-ng.dbcorp.com.br:55500/vendas-service/pedido?DataPedidoInicio=${dataInicio}&DataPedidoFim=${dataFim}&status=${status}&EmpresaCodigo=2&PageNumber=1&PageSize=100`, {
+      `https://gateway-ng.dbcorp.com.br:55500/vendas-service/pedido?DataPedidoInicio=${dataInicio}&DataPedidoFim=${dataFim}&status=${status}&EmpresaCodigo=2&PageNumber=1&PageSize=200`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${authToken}`,
