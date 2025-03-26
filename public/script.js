@@ -502,6 +502,9 @@ function preencherLinha(tr, listaPrecos, promocao = null, ufCliente) {
 
     }
 
+ 
+
+
     function atualizarValorTotal() {
         if (codProduto) {
             let quantidade = Number(cells[1].querySelector('input').value);

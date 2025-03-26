@@ -13,6 +13,43 @@ document.addEventListener("DOMContentLoaded", () => {
     async function gerarEEnviarPDF() {
         console.log('Botão de PDF clicado');
 
+        // Validação das linhas da tabela
+        let itemsToCheck = [];
+        const tableRows = document.querySelectorAll('#dadosPedido tbody tr');
+
+        // Verifica cada linha da tabela
+        for (const row of tableRows) {
+            // Garante que a linha tenha células e pelo menos 9 colunas (índices 0 a 8)
+            if (row.cells.length >= 9) {
+                const cell0 = row.cells[0];
+                const cell1 = row.cells[1];
+                const cell8 = row.cells[8];
+
+                // Verifica se os inputs existem antes de acessá-los
+                const input0 = cell0.querySelector('input');
+                const input1 = cell1.querySelector('input');
+                const input8 = cell8.querySelector('input');
+
+                if (input0 && input1 && input8) {
+                    const code = parseInt(input0.value);
+                    const quantity = input1.value;
+                    const total = input8.value;
+
+                    // Verifica se o código é maior que 0 e se a quantidade é 0 ou o total está vazio
+                    if (!isNaN(code) && code > 0 && (quantity === '0' || total === '')) {
+                        itemsToCheck.push(input0.value);
+                    }
+                }
+            }
+        }
+
+        // Se houver itens problemáticos, exibe o alerta e interrompe o processo
+        if (itemsToCheck.length > 0) {
+            const message = "Por favor, digite a quantidade dos seguintes itens: " + itemsToCheck.join(', ');
+            alert(message);
+            return;
+        }
+
         const elementsToHide = document.querySelectorAll('.no-print');
         const elementsToHide1 = document.querySelectorAll('.button-group');
 
@@ -79,10 +116,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 cnpjInput.readOnly = true;
 
                 try {
-                  
-
-                      // Oculta a mensagem de feedback antes de gerar o PDF para envio
-                      feedbackDiv.style.display = 'none';
+                    // Oculta a mensagem de feedback antes de gerar o PDF para envio
+                    feedbackDiv.style.display = 'none';
                     
                     // Reexibe os elementos antes de gerar o PDF para envio
                     elementsToHide1.forEach(el1 => el1.style.display = 'none');
@@ -122,12 +157,10 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function resetForm(excludeCnpj = false) {
-
-        
-        if(cnpjInput.readOnly){
+        if (cnpjInput.readOnly) {
             return; // Sai da função se o campo estiver readonly
         }
-            console.log('Resetando formulário...');
+        console.log('Resetando formulário...');
 
         // Limpa todos os campos da seção "DADOS DO CLIENTE", incluindo readonly
         document.querySelectorAll('.form-group input, .form-group textarea, .form-group select').forEach(element => {
