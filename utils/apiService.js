@@ -49,7 +49,7 @@ function getLast30Days() {
 }
 
 // Função para buscar os pedidos de venda
-async function fetchOrderDetails(status = 6) {
+async function fetchOrderDetails(status = 3) {
   await checkToken();
 
   if (!authToken) {
@@ -87,7 +87,7 @@ async function fetchOrderDetails(status = 6) {
 }
 
 // Função para buscar representantes para cada cliente
-async function fetchOrdersWithRepresentatives(status = 6) {
+async function fetchOrdersWithRepresentatives(status = 3) {
 
   const orders = await fetchOrderDetails(status);
 
@@ -125,7 +125,7 @@ async function fetchOrdersWithRepresentatives(status = 6) {
 }
 
 // Função para buscar detalhes do pedido de venda
-async function fetchOrdersWithdetailsAndRepresentatives (status = 6) {
+async function fetchOrdersWithdetailsAndRepresentatives (status = 3) {
 
    const orders2 = await fetchOrdersWithRepresentatives(status) ;
 
@@ -167,7 +167,7 @@ async function fetchOrdersWithdetailsAndRepresentatives (status = 6) {
 }
 
 
-async function  fetchOrdersWithdetailsAndRepresentativesWithTransport(status = 6) {
+async function  fetchOrdersWithdetailsAndRepresentativesWithTransport(status = 3) {
 
     const orders3 = await fetchOrdersWithdetailsAndRepresentatives(status) ;   
 
@@ -214,7 +214,7 @@ async function  fetchOrdersWithdetailsAndRepresentativesWithTransport(status = 6
     
 }
 
-const fetchOrderDetailsById = async (id, status = 6) => {
+const fetchOrderDetailsById = async (id, status = 3) => {
   try {
     const response = await fetch(`/api/pedidos/${id}?status=${status}`);
     if (!response.ok) throw new Error(`Erro ao carregar pedido ${id}: ${response.statusText}`);
