@@ -197,8 +197,8 @@ async function clearFilters() {
 // Eventos dos botões de filtro
 document.getElementById('applyFilters').addEventListener('click', applyFilters);
 document.getElementById('clearFilters').addEventListener('click', clearFilters);
-document.getElementById('statusFilter').addEventListener('change', applyFilters);
-document.getElementById('statusSeparacaoFilter').addEventListener('change', applyFilters);
+//document.getElementById('statusFilter').addEventListener('change', applyFilters);
+//document.getElementById('statusSeparacaoFilter').addEventListener('change', applyFilters);
 
 
 
