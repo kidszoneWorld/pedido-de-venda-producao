@@ -62,7 +62,7 @@ async function loadOrderDetails(status = currentFilters.status) {
         hideFeedback();
     } catch (error) {
         console.error('Erro ao carregar os detalhes dos pedidos:', error);
-        showFeedback("Erro ao carregar dados. Recarregue a página e tente novamente.");
+        showFeedback("Nenhum dado encontrado com os filtros aplicados.");
     }
 }
 
