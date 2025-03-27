@@ -179,6 +179,8 @@ async function clearFilters() {
     document.getElementById('dataPedidoFimFilter').value = '';
     document.getElementById('statusFilter').value = '3';
     document.getElementById('statusSeparacaoFilter').value = '';
+ 
+    
 
     // Limpar o estado global de filtros
     currentFilters = {
