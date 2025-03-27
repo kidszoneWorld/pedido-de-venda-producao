@@ -20,8 +20,9 @@ async function getOrderDetails(req, res) {
         const matchCNPJ = !cnpj || (order.cliente?.documento?.numeroTexto === cnpj);
         const matchDataInicio = !dataInicio || new Date(order.dataPedido) >= dataInicio;
         const matchDataFim = !dataFim || new Date(order.dataPedido) <= dataFim;
-        const matchStatusSeparacao = (statusSeparacao === null || statusSeparacao === undefined)  || order.statusSeparacao === statusSeparacao;
-                            
+        //const matchStatusSeparacao = (statusSeparacao === null || statusSeparacao === undefined)  || order.statusSeparacao === statusSeparacao;
+        //const matchStatusSeparacao = statusSeparacao != null ? order.statusSeparacao === statusSeparacao : true;
+        const matchStatusSeparacao = !statusSeparacao || order.statusSeparacao === statusSeparacao;               
         return matchRep && matchCNPJ && matchDataInicio && matchDataFim && matchStatusSeparacao;
       });
   
