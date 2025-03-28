@@ -75,11 +75,11 @@ router.get('/logistica',authMiddleware, (req, res) => {
 });
 
 // Rota para a página de detalhes do pedido (detalhes.html)
-router.get('/logistica03', (req, res) => {
+router.get('/logistica03', authMiddleware, (req, res) => {
     res.sendFile(path.join(__dirname, '..', 'views', 'logisticaFernando.html'));
 });
 
-router.get('/logistica02', (req, res) => {
+router.get('/logistica02', authMiddleware, (req, res) => {
     res.sendFile(path.join(__dirname, '..', 'views', 'logisticaJoao.html'));
 });
 
