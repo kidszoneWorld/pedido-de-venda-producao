@@ -55,7 +55,7 @@ function exportToExcel(data) {
     // Criar uma nova planilha e worksheet
     const worksheet = XLSX.utils.json_to_sheet(exportData);
     const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Pedidos");
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Notas");
 
     // Ajustar a largura das colunas (opcional)
     worksheet['!cols'] = [

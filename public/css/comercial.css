@@ -84,6 +84,22 @@ body {
     gap: 15px; /* Aumenta o espaçamento vertical entre o h4 e o link-wrapper */
 }
 
+.img_link_excel {
+    width: 40px;
+    cursor: pointer;
+}
+
+.img_link_excel:hover {
+    width: 50px;
+}
+
+
+.sairExcel {
+    display: flex;
+    gap: 20px;
+}
+
+
 .link-wrapper {
     display: flex;
     flex-direction: column; /* Empilha o "Ir para:" e o link verticalmente */
@@ -106,6 +122,8 @@ body {
     height: auto;
     border-radius: 5px;
 }
+
+
 
 
 .header-container .header-title {

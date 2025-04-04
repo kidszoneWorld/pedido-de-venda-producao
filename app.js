@@ -2,7 +2,7 @@
 require('dotenv').config();
 const express = require('express');
 const session = require('express-session');
-const RedisStore = require('connect-redis').default; 
+const RedisStore = require('connect-redis').default;
 const Redis = require('ioredis');
 const path = require('path');
 const cookieParser = require('cookie-parser');
@@ -48,7 +48,7 @@ app.use(session({
     cookie: {
         secure: process.env.NODE_ENV === 'production', // Garante HTTPS
         httpOnly: true,
-        sameSite:'strict', // None para cross-origin em produção
+        sameSite: 'strict', // None para cross-origin em produção
         maxAge: 1000 * 60 * 60 // 1 hora
     }
 }));
@@ -62,11 +62,11 @@ app.get('/teste', (req, res) => {
 
 
 //app.use((req, res, next) => {
-   // res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-   // res.setHeader('Pragma', 'no-cache');
-   // res.setHeader('Expires', '0');
-   // res.setHeader('Surrogate-Control', 'no-store');
-   // next();
+// res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+// res.setHeader('Pragma', 'no-cache');
+// res.setHeader('Expires', '0');
+// res.setHeader('Surrogate-Control', 'no-store');
+// next();
 //});
 
 
@@ -77,8 +77,8 @@ mongoose.connect(process.env.MONGO_URI, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
 })
-.then(() => console.log("MongoDB Conectado"))
-.catch(err => console.error("Erro ao conectar MongoDB", err));
+    .then(() => console.log("MongoDB Conectado"))
+    .catch(err => console.error("Erro ao conectar MongoDB", err));
 
 
 app.use((req, res, next) => {

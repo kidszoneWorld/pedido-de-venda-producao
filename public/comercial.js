@@ -31,6 +31,60 @@ function hideFeedback() {
     feedback.textContent = '';
 }
 
+// Função para formatar a data atual no formato YYYY-MM-DD
+function getCurrentDateFormatted() {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0'); // +1 porque os meses começam em 0
+    const day = String(today.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
+// Função para exportar os dados para Excel
+function exportToExcel(data) {
+
+    const exportData = data.map(order => ({
+        "Cód Pedido": order.dataPedido,
+        "Status": order.Status || "",
+        "Status Separação": order.StatusSeparação || "",
+        "Cliente": order.cliente.nomeAbreviado || "",
+        "Cliente CNPJ": order.cliente.documento.numeroTexto?.replace(/[\.\-\/]/g, '') || "",
+        "Cód Rep": order.representante?.id || "",
+        "representante": order.representante?.nomeAbreviado || "",
+        "valorTotal": order.detalhes?.valor?.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) || "",
+        "Transportadora": order.detalhes_transporte?.nomeAbreviado || "",
+
+    }));
+
+    // Criar uma nova planilha e worksheet
+    const worksheet = XLSX.utils.json_to_sheet(exportData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Pedidos");
+
+    // Ajustar a largura das colunas (opcional)
+    worksheet['!cols'] = [
+        { wch: 15 }, // Data do Pedido
+        { wch: 10 }, // Cód Pedido
+        { wch: 12 }, // Status
+        { wch: 30 }, // Status Separação
+        { wch: 20 }, // Cód Cliente
+        { wch: 5 },  // Cliente
+        { wch: 10 }, // Cliente CNPJ
+        { wch: 10 }, // Cód Rep
+        { wch: 30 }, // Representante
+        { wch: 15 }, // Valor Total
+        { wch: 20 }, // Transportadora
+
+    ];
+
+    // Definir o nome do arquivo com a data atual
+    const currentDate = getCurrentDateFormatted();
+    const fileName = `Pedidos_Kids_Zone${currentDate}.xlsx`;
+
+    // Exportar o arquivo
+    XLSX.writeFile(workbook, fileName);
+}
+
 // Carregar detalhes dos pedidos
 async function loadOrderDetails(status = currentFilters.status) {
 
@@ -195,6 +249,45 @@ async function clearFilters() {
     await loadOrderDetails(currentFilters.status);
 }
 
+// Verificar se os filtros estão aplicados
+function areFiltersApplied() {
+    currentFilters.representante = document.getElementById('representanteFilter').value.trim();
+    currentFilters.clienteCNPJ = document.getElementById('clienteCNPJFilter').value.trim();
+    currentFilters.status = document.getElementById('statusFilter').value;
+    currentFilters.dataInicio = document.getElementById('dataPedidoInicioFilter').value;
+    currentFilters.dataFim = document.getElementById('dataPedidoFimFilter').value;
+    currentFilters.statusSeparacao = document.getElementById('statusSeparacaoFilter').value;
+
+    return (
+        currentFilters.representante !== '' ||
+        currentFilters.clienteCNPJ  !== '' ||
+        currentFilters.status !== '' ||
+        currentFilters.dataInicio !== '' ||
+        currentFilters.dataFim !== '' ||
+        currentFilters.statusSeparacao !== '3'
+    );
+}
+
+// Exportar para Excel (com ou sem filtros)
+document.getElementById('exportExcel1').addEventListener('click', () => {
+    if (ordersData.length === 0) {
+        showFeedback("Nenhum dado disponível para exportar. Carregue os dados primeiro.");
+        return;
+    }
+
+    // Verifica se os filtros estão aplicados
+    const dataToExport = areFiltersApplied()?  filteredData1 : ordersData;
+
+    if (dataToExport.length === 0) {
+        showFeedback("Nenhum dado para exportar com os filtros aplicados.");
+        return;
+    }
+
+    exportToExcel(dataToExport);
+});
+
+
+
 
 // Eventos dos botões de filtro
 document.getElementById('applyFilters').addEventListener('click', applyFilters);
@@ -240,3 +333,4 @@ document.getElementById('menuToggle').addEventListener('click', () => {
         menuButton.innerHTML = `<span class="menu-icon">☰</span> Filtros`;
     }
 });
+
