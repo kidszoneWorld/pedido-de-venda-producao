@@ -1,20 +1,20 @@
 let ordersData = [];
 
 let currentFilters = {
-        representante: '',
-        clienteCNPJ: '',
-        status: '',
-        dataInicio: '',
-        dataFim: '',
-        statusSeparacao: '' 
-   };
+    representante: '',
+    clienteCNPJ: '',
+    status: '',
+    dataInicio: '',
+    dataFim: '',
+    statusSeparacao: ''
+};
 
-   // Função para formatar as datas no formato YYYY-MM-DD
-    function formatDate(dateString) {
-        if (!dateString) return '';
-        const date = new Date(dateString);
-        return date.toISOString().split('T')[0]; // Retorna no formato YYYY-MM-DD
-    }
+// Função para formatar as datas no formato YYYY-MM-DD
+function formatDate(dateString) {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    return date.toISOString().split('T')[0]; // Retorna no formato YYYY-MM-DD
+}
 
 
 // Mostrar Feedback
@@ -109,8 +109,8 @@ function mapStatus(status) {
         case 3: return 'Em Aprovação';
         case 4: return 'Faturado Parcial';
         case 5: return 'Faturado Total';
-        case 7: return 'Reprovado';      
-    
+        case 7: return 'Reprovado';
+
     }
 }
 
@@ -122,31 +122,31 @@ document.addEventListener('DOMContentLoaded', async () => {
         const response = await fetch('/session-data');
         if (!response.ok) throw new Error('Erro ao buscar dados da sessão');
 
-            const sessionData = await response.json();
+        const sessionData = await response.json();
 
-            // Define os dados no front-end
-            if (sessionData.isAuthenticated) {
-                window.sessionData = sessionData;
+        // Define os dados no front-end
+        if (sessionData.isAuthenticated) {
+            window.sessionData = sessionData;
 
-                const userNumero = window.sessionData?.userNumero || null;
-                const representanteFilter = document.getElementById('representanteFilter');
+            const userNumero = window.sessionData?.userNumero || null;
+            const representanteFilter = document.getElementById('representanteFilter');
 
-                if (userNumero) {
-                    representanteFilter.value = userNumero;
-                    representanteFilter.disabled = true; // Bloqueia o campo
-                    currentFilters.representante = userNumero; // Atualiza o filtro global
-                }
-
-                // Simula o clique no botão "Aplicar Filtros" para carregar os dados filtrados automaticamente
-               await applyFilters();
-               //await loadOrderDetails(this.value);
-            } else {
-                console.warn('Usuário não autenticado');
-                window.location.href = '/login2'; // Redireciona para a página de login
+            if (userNumero) {
+                representanteFilter.value = userNumero;
+                representanteFilter.disabled = true; // Bloqueia o campo
+                currentFilters.representante = userNumero; // Atualiza o filtro global
             }
-        } catch (error) {
-            console.error('Erro ao carregar os dados da sessão:', error);
+
+            // Simula o clique no botão "Aplicar Filtros" para carregar os dados filtrados automaticamente
+            await applyFilters();
+            //await loadOrderDetails(this.value);
+        } else {
+            console.warn('Usuário não autenticado');
+            window.location.href = '/login2'; // Redireciona para a página de login
         }
+    } catch (error) {
+        console.error('Erro ao carregar os dados da sessão:', error);
+    }
 });
 
 
@@ -179,8 +179,8 @@ async function clearFilters() {
     document.getElementById('dataPedidoFimFilter').value = '';
     document.getElementById('statusFilter').value = '3';
     document.getElementById('statusSeparacaoFilter').value = '';
- 
-    
+
+
 
     // Limpar o estado global de filtros
     currentFilters = {
@@ -189,7 +189,7 @@ async function clearFilters() {
         status: '',
         dataInicio: '',
         dataFim: '',
-        statusSeparacao: '' 
+        statusSeparacao: ''
     };
 
     await loadOrderDetails(currentFilters.status);

@@ -168,7 +168,7 @@ img {
     height: 50px;
     margin: 0 auto;
     border: 1px solid #ddd;
-    border-radius: 5px;
+    border-radius: 24px;
     
 }
 
@@ -186,8 +186,8 @@ img {
     width: 80%;
     height: 350px;
     border: 1px solid #ddd;
-    border-radius: 5px;
-    animation: go-back 2s infinite alternate;
+    border-radius: 24px;
+    animation: go-back 1s infinite alternate;
     /*animation: inverterLado 30s linear infinite; /* Duração de 3 segundos, linear e looping infinito */
    /* transform-style: preserve-3d; /* Mantém o efeito 3D */
     /*backface-visibility: hidden; /* Evita mostrar o verso ao girar */
