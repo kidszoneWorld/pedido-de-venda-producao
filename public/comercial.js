@@ -44,7 +44,8 @@ function getCurrentDateFormatted() {
 function exportToExcel(data) {
 
     const exportData = data.map(order => ({
-        "Cód Pedido": order.dataPedido,
+        "Data do Pedido": order.dataPedido ? new Date(order.dataPedido).toLocaleDateString('pt-BR') : 'N/A',
+        "Cód Pedido": order.codigo || "",
         "Status": mapStatus(order.status) || "",
         "Status Separação": mapStatusSeparacao(order.statusSeparacao) || "",
         "Cliente": order.cliente.nomeAbreviado || "",
