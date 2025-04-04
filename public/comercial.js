@@ -45,8 +45,8 @@ function exportToExcel(data) {
 
     const exportData = data.map(order => ({
         "Cód Pedido": order.dataPedido,
-        "Status": order.Status || "",
-        "Status Separação": order.StatusSeparação || "",
+        "Status": mapStatus(order.status) || "",
+        "Status Separação": mapStatusSeparacao(order.statusSeparacao) || "",
         "Cliente": order.cliente.nomeAbreviado || "",
         "Cliente CNPJ": order.cliente.documento.numeroTexto?.replace(/[\.\-\/]/g, '') || "",
         "Cód Rep": order.representante?.id || "",
@@ -250,7 +250,7 @@ async function clearFilters() {
 }
 
 // Verificar se os filtros estão aplicados
-function areFiltersApplied() {
+async function areFiltersApplied() {
     currentFilters.representante = document.getElementById('representanteFilter').value.trim();
     currentFilters.clienteCNPJ = document.getElementById('clienteCNPJFilter').value.trim();
     currentFilters.status = document.getElementById('statusFilter').value;
@@ -268,15 +268,28 @@ function areFiltersApplied() {
     );
 }
 
+// Verificar se os filtros estão aplicados and return the data to export
+async function areFiltersApplied() {
+    currentFilters.representante = document.getElementById('representanteFilter').value.trim();
+    currentFilters.clienteCNPJ = document.getElementById('clienteCNPJFilter').value.trim();
+    currentFilters.status = document.getElementById('statusFilter').value;
+    currentFilters.dataInicio = document.getElementById('dataPedidoInicioFilter').value;
+    currentFilters.dataFim = document.getElementById('dataPedidoFimFilter').value;
+    currentFilters.statusSeparacao = document.getElementById('statusSeparacaoFilter').value;
+
+    // Since ordersData is already updated by applyFilters/loadOrderDetails, return it
+    return ordersData;
+}
+
 // Exportar para Excel (com ou sem filtros)
-document.getElementById('exportExcel1').addEventListener('click', () => {
+document.getElementById('exportExcel1').addEventListener('click', async () => {
     if (ordersData.length === 0) {
         showFeedback("Nenhum dado disponível para exportar. Carregue os dados primeiro.");
         return;
     }
 
-    // Verifica se os filtros estão aplicados
-    const dataToExport = areFiltersApplied()?  filteredData1 : ordersData;
+    // Get the data to export
+    const dataToExport = await areFiltersApplied();
 
     if (dataToExport.length === 0) {
         showFeedback("Nenhum dado para exportar com os filtros aplicados.");
@@ -285,8 +298,6 @@ document.getElementById('exportExcel1').addEventListener('click', () => {
 
     exportToExcel(dataToExport);
 });
-
-
 
 
 // Eventos dos botões de filtro
