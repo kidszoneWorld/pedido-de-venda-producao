@@ -48,6 +48,7 @@ function exportToExcel(data) {
         "Cód Pedido": order.codigo || "",
         "Status": mapStatus(order.status) || "",
         "Status Separação": mapStatusSeparacao(order.statusSeparacao) || "",
+        "Nota Fiscal": order.notas_fiscais?.dados[0].numero || 'Sem Nota',// Nova coluna no Excel
         "Cliente": order.cliente.nomeAbreviado || "",
         "Cliente CNPJ": order.cliente.documento.numeroTexto?.replace(/[\.\-\/]/g, '') || "",
         "Cód Rep": order.representante?.id || "",
@@ -68,6 +69,7 @@ function exportToExcel(data) {
         { wch: 10 }, // Cód Pedido
         { wch: 12 }, // Status
         { wch: 30 }, // Status Separação
+        { wch: 20 }, // Notas Fiscais
         { wch: 20 }, // Cód Cliente
         { wch: 5 },  // Cliente
         { wch: 10 }, // Cliente CNPJ
@@ -80,7 +82,7 @@ function exportToExcel(data) {
 
     // Definir o nome do arquivo com a data atual
     const currentDate = getCurrentDateFormatted();
-    const fileName = `Pedidos_Kids_Zone${currentDate}.xlsx`;
+    const fileName = `Pedidos_Kids_Zone ${currentDate}.xlsx`;
 
     // Exportar o arquivo
     XLSX.writeFile(workbook, fileName);
@@ -111,8 +113,8 @@ async function loadOrderDetails(status = currentFilters.status) {
         }
 
         if (!response.ok) throw new Error(`Erro ao obter pedidos: ${response.statusText}`);
-
-        ordersData = await response.json();
+        
+        ordersData = await response.json(); 
         renderTable(ordersData);
         hideFeedback();
     } catch (error) {
@@ -132,6 +134,7 @@ function renderTable(data) {
             <td class="codPedido"><a href="detalhes?pedidoId=${order.id}&status=${currentFilters.status}" target="_blank">${order.codigo}</a></td>
             <td class="statusPedido">${mapStatus(order.status)}</td>
             <td class="statusSeparacao">${mapStatusSeparacao(order.statusSeparacao)}</td>
+            <td class="notaFiscal">${order.notas_fiscais?.dados[0].numero || 'Sem Nota'}</td>
             <td class="codCliente">${order.cliente.codigo}</td>
             <td class="cliente">${order.cliente.nomeAbreviado}</td>
             <td class="clienteCNPJ">${order.cliente.documento.numeroTexto}</td>

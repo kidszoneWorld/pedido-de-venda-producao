@@ -214,6 +214,53 @@ async function  fetchOrdersWithdetailsAndRepresentativesWithTransport(status = 3
     
 }
 
+async function  fetchInvoicesDetails(status = 3) {
+
+  const fullOrderList = await fetchOrdersWithdetailsAndRepresentativesWithTransport(status)  
+
+   const codPedidoPoint = `https://gateway-ng.dbcorp.com.br:55500/documentos-fiscais-service/nota-fiscal?PedidoDeVendaCodigo=`;
+
+  const invoicetWithDetails = await Promise.all(
+    
+      fullOrderList.map(async (order) => {
+         
+         try {
+            
+            const response = await fetch(`${codPedidoPoint}${order.codigo}`,{
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${authToken}`,
+                    'Content-Type': 'application/json',
+                },
+            });
+          
+            
+            if (!response.ok) {
+                throw new Error(`Erro ao buscar detalhes da NF ${order.codigo}: ${response.statusText}`);
+            }
+
+            const invoiceDetails = await response.json();
+            return {
+              ...order,
+              notas_fiscais : invoiceDetails,
+            };  
+
+         } catch (error) {
+            console.error(`Erro ao buscar detalhes do id da NF ${order.codigo}:, error`);
+            return {
+              ...order,
+              notas_fiscais: null, // Caso haja erro, atribui null as notas fiscais
+            };
+         }
+
+      })
+
+  );
+
+  return invoicetWithDetails;
+  
+}
+
 const fetchOrderDetailsById = async (id, status = 3) => {
   try {
     const response = await fetch(`/api/pedidos/${id}?status=${status}`);
@@ -236,5 +283,6 @@ module.exports = {
   fetchOrdersWithRepresentatives,
   fetchOrdersWithdetailsAndRepresentatives,
   fetchOrdersWithdetailsAndRepresentativesWithTransport,
+  fetchInvoicesDetails,
   fetchOrderDetailsById
 };
