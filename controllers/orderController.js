@@ -12,7 +12,7 @@ async function getOrderDetails(req, res) {
   console.log(`Recebendo pedidos para o status: ${status}`); // Log para depuração
 
   try {
-    const orders  = await apiService.fetchInvoicesDetails(status);
+    const orders  = await apiService.fetchOrderDetails(status);
 
       // Filtrar por codRep e CNPJ, se fornecidos
       const filteredOrders = orders.filter(order => {
@@ -48,7 +48,7 @@ async function getOrderDetailsById(req, res) {
 
 
   try {
-    const orders = await apiService.fetchOrdersWithdetailsAndRepresentativesWithTransport(status); // Busca todos os pedidos
+    const orders = await apiService.fetchOrderDetails(status); // Busca todos os pedidos
     const order = orders.find((o) => o.id === id); // Filtra o pedido pelo ID fornecido
 
     if (!order) {
