@@ -48,43 +48,79 @@ function getLast30Days() {
   return { dataInicio, dataFim };
 }
 
-// Função para buscar os pedidos de venda
+// Função para buscar os pedidos de venda com paginação
 async function fetchOrderDetails(status = 3) {
   await checkToken();
 
   if (!authToken) {
     console.error('Erro: Token não obtido.');
-    return;
+    return [];
   }
 
   // Calcula as datas dinamicamente
   const { dataInicio, dataFim } = getLast30Days();
-   
+  
   console.log(`Buscando pedidos com status: ${status}, DataPedidoInicio: ${dataInicio}, DataPedidoFim: ${dataFim}`);
 
+  const pageSize = 10; // Tamanho de cada página (lote)
+  const maxRecords = 200; // Limite máximo de registros
+  let currentPage = 1;
+  let allOrders = [];
+  let hasMoreData = true;
 
-  try {
-    const response = await fetch(
-      `https://gateway-ng.dbcorp.com.br:55500/vendas-service/pedido?DataPedidoInicio=${dataInicio}&DataPedidoFim=${dataFim}&status=${status}&EmpresaCodigo=2&PageNumber=1&PageSize=200`, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${authToken}`,
-        'Content-Type': 'application/json'
+  while (hasMoreData && allOrders.length < maxRecords) {
+    try {
+      console.log(`Buscando página ${currentPage} com ${pageSize} registros por página...`);
+      
+      const response = await fetch(
+        `https://gateway-ng.dbcorp.com.br:55500/vendas-service/pedido?DataPedidoInicio=${dataInicio}&DataPedidoFim=${dataFim}&status=${status}&EmpresaCodigo=2&PageNumber=${currentPage}&PageSize=${pageSize}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${authToken}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Erro ao buscar pedidos: ${response.statusText}`);
       }
-    });
 
-    if (!response.ok) {
-      throw new Error(`Erro ao buscar pedidos: ${response.statusText}`);
+      const ordersData = await response.json();
+      const pageData = ordersData.dados || [];
+      
+      console.log(`Recebidos ${pageData.length} pedidos da página ${currentPage}`);
+      
+      // Adiciona os pedidos desta página ao array acumulado
+      allOrders = [...allOrders, ...pageData];
+      
+      // Verifica se há mais páginas para buscar
+      if (pageData.length < pageSize) {
+        // Se recebemos menos registros que o tamanho da página, não há mais dados
+        hasMoreData = false;
+        console.log('Não há mais dados para buscar.');
+      } else {
+        // Avança para a próxima página
+        currentPage++;
+      }
+      
+      // Verifica se atingimos o limite máximo de registros
+      if (allOrders.length >= maxRecords) {
+        console.log(`Limite máximo de ${maxRecords} registros atingido.`);
+        // Trunca o array para o limite máximo, caso tenha ultrapassado
+        allOrders = allOrders.slice(0, maxRecords);
+        break;
+      }
+      
+    } catch (error) {
+      console.error(`Erro ao buscar página ${currentPage}:`, error);
+      hasMoreData = false; // Para o loop em caso de erro
     }
-
-    const ordersData = await response.json();
-    console.log('Pedidos recebidos:', ordersData); // Log dos dados recebidos
-
-    return ordersData.dados || []; // Retorna o array de pedidos
-  } catch (error) {
-    console.error('Erro ao buscar detalhes do pedido:', error);
   }
+
+  console.log(`Total de pedidos recuperados: ${allOrders.length}`);
+  return allOrders;
 }
+
 
 // Função para buscar representantes para cada cliente
 async function fetchOrdersWithRepresentatives(status = 3) {
