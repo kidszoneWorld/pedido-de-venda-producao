@@ -292,7 +292,7 @@ document.getElementById('cnpj').addEventListener('blur', async function (event) 
         }
     } catch (error) {
         console.error('Erro ao buscar cliente na API:', error);
-        alert("Erro ao buscar cliente na API.");
+        alert("Cliente não encontrado por favor verificar com o financeiro.");
     } finally {
         // Oculta a mensagem de feedback após o carregamento
         hideFeedback();
