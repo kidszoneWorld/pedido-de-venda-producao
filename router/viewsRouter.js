@@ -10,6 +10,7 @@ const displayController = require('../controllers/displayController');
 const redesController = require('../controllers/redesController');  
 const sellOutController = require('../controllers/sellOutController');
 const fernandoController = require('../controllers/fernandoController');
+const clientController = require('../controllers/clientController');
 
 const router = express.Router();
 
@@ -93,6 +94,8 @@ router.get('/video',authMiddleware, (req, res) => {
 // Rotas da API de pedidos
 router.get('/api/pedidos', orderController.getOrderDetails); // Pedidos com representantes
 router.get('/api/pedidos/:id', orderController.getOrderDetailsById); // Detalhes do pedido por ID
+router.get('/api/cliente/:cnpj', clientController.getClientDetails); // Detalhes do cliente por cnpj
+router.get('/api/cliente1/:cnpj', clientController.getClientDetailsTest); // Detalhes do cliente por cnpj
 
 
 // Rotas da API de Logistica
