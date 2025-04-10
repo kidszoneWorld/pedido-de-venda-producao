@@ -62,7 +62,27 @@ async function getOrderDetailsById(req, res) {
   }
 }
 
+async function getClientDetailsEndpoint(req, res) {
+
+  const { codPedido } = req.params;
+
+  try {
+      const pedidoCod1 = await apiService.fetchOrderDetailsEndpoint(codPedido);
+
+      if (!pedidoCod1) {
+          res.status(404).json({ message: 'pedido não encontrado' });
+      } else {
+        res.status(200).json(pedidoCod1);
+      }
+
+  } catch (error) {
+      console.error('Erro ao obter detalhes dos clientes:', error);
+      res.status(500).send('Erro ao obter detalhes dos clientes');
+  }
+}
+
 module.exports = { 
     getOrderDetails, 
-    getOrderDetailsById  
+    getOrderDetailsById,
+    getClientDetailsEndpoint    
 };

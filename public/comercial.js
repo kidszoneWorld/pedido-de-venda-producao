@@ -131,7 +131,7 @@ function renderTable(data) {
         const row = document.createElement('tr');
         row.innerHTML = `
             <td class="dataPedido">${order.dataPedido ? new Date(order.dataPedido).toLocaleDateString('pt-BR') : 'N/A'}</td>
-            <td class="codPedido"><a href="detalhes?pedidoId=${order.id}&status=${currentFilters.status}" target="_blank">${order.codigo}</a></td>
+             <td class="codPedido"><a href="detalhes?codPedido=${order.codigo}" target="_blank">${order.codigo}</a></td>
             <td class="statusPedido">${mapStatus(order.status)}</td>
             <td class="statusSeparacao">${mapStatusSeparacao(order.statusSeparacao)}</td>
             <td class="notaFiscal">${order.notas_fiscais?.dados[0].numero || 'Sem Nota'}</td>
@@ -348,4 +348,44 @@ document.getElementById('menuToggle').addEventListener('click', () => {
         menuButton.innerHTML = `<span class="menu-icon">☰</span> Filtros`;
     }
 });
+
+
+async function showOrderDetails(codPedido) {
+    try {
+      const response = await fetch(`/api/pedidos1/${codPedido}`);
+      
+      if (!response.ok) {
+        throw new Error('Erro ao buscar detalhes do pedido');
+      }
+      
+      const detalhes = await response.json();
+      console.log('Detalhes do pedido:', detalhes);
+      
+      // Aqui você pode exibir os detalhes em um modal ou em uma div na página
+      displayOrderDetails(detalhes);
+      
+    } catch (error) {
+      console.error('Erro:', error);
+      alert('Não foi possível carregar os detalhes do pedido.');
+    }
+  }
+  
+  // Função para exibir os detalhes (exemplo)
+  function displayOrderDetails(detalhes) {
+    // Implemente como deseja exibir os detalhes
+    // Por exemplo, em um modal:
+    const modal = document.getElementById('detailsModal');
+    const modalContent = document.getElementById('modalContent');
+    
+    // Preencha o conteúdo do modal com os detalhes
+    modalContent.innerHTML = `
+      <h3>Detalhes do Pedido: ${detalhes.dados[0].codigo}</h3>
+      <p>Cliente: ${detalhes.dados[0].cliente.nomeAbreviado}</p>
+      <p>Status: ${detalhes.dados[0].status}</p>
+      <!-- Adicione mais detalhes conforme necessário -->
+    `;
+    
+    // Exiba o modal
+    modal.style.display = 'block';
+  }
 

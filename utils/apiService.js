@@ -227,6 +227,111 @@ const fetchOrderDetailsById = async (id, status = 3) => {
   }
 };
 
+async function fetchOrderDetailsEndpoint(CodPedido) {
+  await checkToken();
+
+  if (!authToken) {
+    console.error('Erro: Token não obtido.');
+    return null;
+  }
+
+  try {
+    // Endpoints para as requisições
+    const representativeEndpoint = 'https://gateway-ng.dbcorp.com.br:55500/pessoa-service/representante/cliente/';
+    const orderDetailsEndpoint = 'https://gateway-ng.dbcorp.com.br:55500/vendas-service/pedido/';
+    const transportEndpoint = 'https://gateway-ng.dbcorp.com.br:55500/pessoa-service/transportadora/codigo/';
+    const detailsOrderEndpoint = `https://gateway-ng.dbcorp.com.br:55500/vendas-service/pedido?PedidoCodigo=${CodPedido}`;
+
+    // 1. Buscar dados básicos do pedido
+    const detailsOrderResponse = await fetch(detailsOrderEndpoint, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${authToken}`,
+        'Content-Type': 'application/json',
+        'Origin': 'https://kidszone-ng.dbcorp.com.br'
+      }
+    });
+
+    if (!detailsOrderResponse.ok) {
+      console.warn(`Erro ao buscar pedido: ${detailsOrderResponse.statusText}`);
+      return null;
+    }
+
+    const detailsOrderData = await detailsOrderResponse.json();
+    
+    if (!detailsOrderData || detailsOrderData.length === 0) {
+      console.warn('Nenhum dado de pedido encontrado');
+      return null;
+    }
+
+    const order = detailsOrderData || []
+
+    // 2. Buscar representante
+    let representante = null;
+    try {
+      const repResponse = await fetch(`${representativeEndpoint}${order.dados[0].cliente.codigo}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${authToken}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      if (repResponse.ok) {
+       console.log(`esta é teste repre ${repResponse}`)
+        representante = await repResponse.json();
+      }
+    } catch (error) {
+      console.error(`Erro ao buscar representante para cliente ${order.codigo}:`, error);
+    }
+
+    // 3. Buscar detalhes do pedido
+    let detalhes = null;
+    try {
+      const detailsResponse = await fetch(`${orderDetailsEndpoint}${order.dados[0].id}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${authToken}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      if (detailsResponse.ok) {
+        detalhes = await detailsResponse.json();
+      }
+    } catch (error) {
+      console.error(`Erro ao buscar detalhes para o pedido com ID ${order.dados[0].id}:`, error);
+    }
+
+    // 4. Buscar detalhes da transportadora
+    let detalhes_transporte = null;
+    try {
+      const transportResponse = await fetch(`${transportEndpoint}${order.dados[0].transportadoraCodigo}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${authToken}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      if (transportResponse.ok) {
+        detalhes_transporte = await transportResponse.json();
+      }
+    } catch (error) {
+      console.error(`Erro ao buscar detalhes da transportadora ${order.transportadoraCodigo}:`, error);
+    }
+
+    // Retornar o pedido com todos os detalhes
+    return {
+      ...order,
+      representante,
+      detalhes,
+      detalhes_transporte,
+    };
+
+  } catch (error) {
+    console.error('Erro ao processar pedido:', error);
+    return null;
+  }
+}
+
 setInterval(checkToken, 60 * 60 * 1000);  // Verifica o token a cada 1 hora
 
 // Exportar as funções
@@ -234,5 +339,6 @@ module.exports = {
   authenticate,
   checkToken,
   fetchOrderDetails,
-  fetchOrderDetailsById
+  fetchOrderDetailsById,
+  fetchOrderDetailsEndpoint
 };
