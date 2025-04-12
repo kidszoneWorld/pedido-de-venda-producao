@@ -52,7 +52,7 @@ function getLast30Days(userDataInicio = null, userDataFim = null) {
 
 
 // Função para buscar os pedidos de venda com paginação e todos os detalhes relacionados
-async function fetchOrderDetails(status = 3, userDataInicio = null, userDataFim = null, userStatusSeparacao = null) {
+async function fetchOrderDetails(status = 3, userDataInicio = null, userDataFim = null, userStatusSeparacao = null , usercodCliente = null) {
   await checkToken();
 
   if (!authToken) {
@@ -86,6 +86,9 @@ async function fetchOrderDetails(status = 3, userDataInicio = null, userDataFim 
       let url = `https://gateway-ng.dbcorp.com.br:55500/vendas-service/pedido?DataPedidoInicio=${dataInicio}&DataPedidoFim=${dataFim}&status=${status}&EmpresaCodigo=2&PageNumber=${currentPage}&PageSize=${pageSize}`;
       if (userStatusSeparacao !== null) {
         url += `&StatusSeparacao=${userStatusSeparacao}`;
+      }
+      if (usercodCliente !== null) {
+        url += `&ClienteCodigo=${usercodCliente}`;
       }
 
       const response = await fetch(url, {
@@ -223,18 +226,6 @@ async function fetchOrderDetails(status = 3, userDataInicio = null, userDataFim 
 }
 
 
-const fetchOrderDetailsById = async (id, status = 3) => {
-  try {
-    const response = await fetch(`/api/pedidos/${id}?status=${status}`);
-    if (!response.ok) throw new Error(`Erro ao carregar pedido ${id}: ${response.statusText}`);
-    const data = await response.json();
-    return data;
-  } catch (error) {
-    console.error(`Erro ao buscar detalhes do pedido com ID ${id}:`, error);
-    throw error;
-  }
-};
-
 async function fetchOrderDetailsEndpoint(CodPedido) {
   await checkToken();
 
@@ -347,6 +338,5 @@ module.exports = {
   authenticate,
   checkToken,
   fetchOrderDetails,
-  fetchOrderDetailsById,
   fetchOrderDetailsEndpoint
 };

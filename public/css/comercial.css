@@ -417,8 +417,15 @@ button:hover{
     animation: modalAnimationOut 0.70s forwards; /* Aplica a animação de saída */
 }
 
+#codClientFilter{
+    width:70px;
+}
 
-@media (min-width: 769px) and (max-width: 929px) {
+#clienteCNPJFilter{
+    width:140px;
+}
+
+@media (min-width: 769px) and (max-width: 987px) {
    
     .filter-buttons{
         display: flex;

@@ -3,6 +3,7 @@ let ordersData = [];
 let currentFilters = {
     representante: '',
     clienteCNPJ: '',
+    ClienteCodigo: '',
     status: '',
     dataInicio: '',
     dataFim: '',
@@ -97,6 +98,7 @@ async function loadOrderDetails(status = currentFilters.status) {
         status: currentFilters.status,
         codRep: currentFilters.representante || '',
         clienteCNPJ: currentFilters.clienteCNPJ || '',
+        ClienteCodigo: currentFilters.ClienteCodigo || '',
         DataPedidoInicio: formatDate(currentFilters.dataInicio) || '',
         DataPedidoFim: formatDate(currentFilters.dataFim) || '',
         statusSeparacao: currentFilters.statusSeparacao || ''
@@ -213,6 +215,7 @@ async function applyFilters() {
     // Atualizar filtros globais com valores do DOM
     currentFilters.representante = document.getElementById('representanteFilter').value.trim();
     currentFilters.clienteCNPJ = document.getElementById('clienteCNPJFilter').value.trim();
+    currentFilters.ClienteCodigo = document.getElementById('codClientFilter').value;
     currentFilters.status = document.getElementById('statusFilter').value;
     currentFilters.dataInicio = document.getElementById('dataPedidoInicioFilter').value;
     currentFilters.dataFim = document.getElementById('dataPedidoFimFilter').value;
@@ -233,6 +236,7 @@ async function clearFilters() {
 
     // Limpar os campos do formulário
     document.getElementById('clienteCNPJFilter').value = '';
+    document.getElementById('codClientFilter').value = '';
     document.getElementById('dataPedidoInicioFilter').value = '';
     document.getElementById('dataPedidoFimFilter').value = '';
     document.getElementById('statusFilter').value = '3';
@@ -244,6 +248,7 @@ async function clearFilters() {
     currentFilters = {
         representante: isRep ? currentFilters.representante : '', // Mantém para REP, limpa para outros usuários
         clienteCNPJ: '',
+        ClienteCodigo: '',
         status: '',
         dataInicio: '',
         dataFim: '',
@@ -257,6 +262,7 @@ async function clearFilters() {
 async function areFiltersApplied() {
     currentFilters.representante = document.getElementById('representanteFilter').value.trim();
     currentFilters.clienteCNPJ = document.getElementById('clienteCNPJFilter').value.trim();
+    currentFilters.ClienteCodigo = document.getElementById('codClientFilter').value;
     currentFilters.status = document.getElementById('statusFilter').value;
     currentFilters.dataInicio = document.getElementById('dataPedidoInicioFilter').value;
     currentFilters.dataFim = document.getElementById('dataPedidoFimFilter').value;
@@ -265,6 +271,7 @@ async function areFiltersApplied() {
     return (
         currentFilters.representante !== '' ||
         currentFilters.clienteCNPJ  !== '' ||
+        currentFilters.ClienteCodigo !== '' ||
         currentFilters.status !== '' ||
         currentFilters.dataInicio !== '' ||
         currentFilters.dataFim !== '' ||
@@ -276,6 +283,7 @@ async function areFiltersApplied() {
 async function areFiltersApplied() {
     currentFilters.representante = document.getElementById('representanteFilter').value.trim();
     currentFilters.clienteCNPJ = document.getElementById('clienteCNPJFilter').value.trim();
+    currentFilters.ClienteCodigo = document.getElementById('codClientFilter').value;
     currentFilters.status = document.getElementById('statusFilter').value;
     currentFilters.dataInicio = document.getElementById('dataPedidoInicioFilter').value;
     currentFilters.dataFim = document.getElementById('dataPedidoFimFilter').value;
