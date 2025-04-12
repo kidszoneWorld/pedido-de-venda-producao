@@ -52,7 +52,7 @@ function getLast30Days(userDataInicio = null, userDataFim = null) {
 
 
 // Função para buscar os pedidos de venda com paginação e todos os detalhes relacionados
-async function fetchOrderDetails(status = 3, userDataInicio = null, userDataFim = null) {
+async function fetchOrderDetails(status = 3, userDataInicio = null, userDataFim = null, userStatusSeparacao = null) {
   await checkToken();
 
   if (!authToken) {
@@ -63,7 +63,7 @@ async function fetchOrderDetails(status = 3, userDataInicio = null, userDataFim 
   // Calcula as datas dinamicamente com base nos parâmetros fornecidos ou padrão
   const { dataInicio, dataFim } = getLast30Days(userDataInicio, userDataFim);
   
-  console.log(`Buscando pedidos com status: ${status}, DataPedidoInicio: ${dataInicio}, DataPedidoFim: ${dataFim}`);
+  console.log(`Buscando pedidos com status: ${status}, DataPedidoInicio: ${dataInicio}, DataPedidoFim: ${dataFim}, StatusSeparacao: ${userStatusSeparacao !== null ? userStatusSeparacao : 'todos'}`);
 
   const pageSize = 20; // Tamanho de cada página (lote)
   const maxRecords = 200; // Limite máximo de registros
@@ -82,8 +82,13 @@ async function fetchOrderDetails(status = 3, userDataInicio = null, userDataFim 
       console.log(`Buscando página ${currentPage} com ${pageSize} registros por página...`);
       
       // 1. Buscar pedidos da página atual
-      const response = await fetch(
-        `https://gateway-ng.dbcorp.com.br:55500/vendas-service/pedido?DataPedidoInicio=${dataInicio}&DataPedidoFim=${dataFim}&status=${status}&EmpresaCodigo=2&PageNumber=${currentPage}&PageSize=${pageSize}`, {
+      // Constrói a URL dinamicamente, incluindo StatusSeparacao apenas se fornecido
+      let url = `https://gateway-ng.dbcorp.com.br:55500/vendas-service/pedido?DataPedidoInicio=${dataInicio}&DataPedidoFim=${dataFim}&status=${status}&EmpresaCodigo=2&PageNumber=${currentPage}&PageSize=${pageSize}`;
+      if (userStatusSeparacao !== null) {
+        url += `&StatusSeparacao=${userStatusSeparacao}`;
+      }
+
+      const response = await fetch(url, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${authToken}`,
