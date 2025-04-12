@@ -40,16 +40,19 @@ async function checkToken() {
   }
 }
 
-// Função para calcular as datas de início e fim (últimos 30 dias)
-function getLast30Days() {
+// Função para calcular as datas de início e fim (últimos 60 dias como padrão, se não fornecidas)
+function getLast30Days(userDataInicio = null, userDataFim = null) {
   const hoje = new Date();
-  const dataFim = hoje.toISOString().split('T')[0]; // Data de hoje no formato YYYY-MM-DD
-  const dataInicio = new Date(hoje.setDate(hoje.getDate() - 60)).toISOString().split('T')[0]; // Data 30 dias atrás
+  const dataFim = userDataFim ? new Date(userDataFim).toISOString().split('T')[0] : hoje.toISOString().split('T')[0]; // Usa data fornecida ou hoje
+  const dataInicio = userDataInicio 
+    ? new Date(userDataInicio).toISOString().split('T')[0] 
+    : new Date(hoje.setDate(hoje.getDate() - 60)).toISOString().split('T')[0]; // Usa data fornecida ou 60 dias atrás
   return { dataInicio, dataFim };
 }
 
+
 // Função para buscar os pedidos de venda com paginação e todos os detalhes relacionados
-async function fetchOrderDetails(status = 3) {
+async function fetchOrderDetails(status = 3, userDataInicio = null, userDataFim = null) {
   await checkToken();
 
   if (!authToken) {
@@ -57,8 +60,8 @@ async function fetchOrderDetails(status = 3) {
     return [];
   }
 
-  // Calcula as datas dinamicamente
-  const { dataInicio, dataFim } = getLast30Days();
+  // Calcula as datas dinamicamente com base nos parâmetros fornecidos ou padrão
+  const { dataInicio, dataFim } = getLast30Days(userDataInicio, userDataFim);
   
   console.log(`Buscando pedidos com status: ${status}, DataPedidoInicio: ${dataInicio}, DataPedidoFim: ${dataFim}`);
 

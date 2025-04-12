@@ -12,7 +12,9 @@ async function getOrderDetails(req, res) {
   console.log(`Recebendo pedidos para o status: ${status}`); // Log para depuração
 
   try {
-    const orders  = await apiService.fetchOrderDetails(status);
+    
+    // Passa as datas fornecidas pelo usuário (ou null, para usar padrão)
+    const orders = await apiService.fetchOrderDetails(status, dataInicio, dataFim);
 
       // Filtrar por codRep e CNPJ, se fornecidos
       const filteredOrders = orders.filter(order => {
