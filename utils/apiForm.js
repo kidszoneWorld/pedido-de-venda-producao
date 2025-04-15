@@ -329,7 +329,7 @@ async function fetchPaymentCondition(cnpj) {
   
        const payMethodtId = clientWithPaymentCondition.codigo
   
-       const payMethodEndpoint = `https://gateway-ng.dbcorp.com.br:55500/financeiro-service/forma-de-pagamento?ClienteCodigo=${payMethodtId}`
+       const payMethodEndpoint = `https://gateway-ng.dbcorp.com.br:55500/financeiro-service/forma-de-pagamento?ClienteCodigo=${payMethodtId}&EmpresaCodigo=2`
   
       let payMethodData = [];
   
