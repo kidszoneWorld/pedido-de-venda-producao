@@ -6,10 +6,16 @@ let listaPrecosData;
 let icmsSTData;
 //// Variáveis globais 
 
-// Função para atualizar os caches no navegador
+//Função para atualizar os caches no navegador
 const timestamp = new Date().getTime();
 
 // Função para carregar os JSONs 
+fetch(`/data/cliente.json?cacheBust=${timestamp}`)
+    .then(response => response.json())
+    .then(data => {
+        clientesData = data;
+    });
+
 fetch(`/data/Promocao.json?cacheBust=${timestamp}`)
     .then(response => response.json())
     .then(data => {
@@ -82,7 +88,7 @@ function buscarListaPrecos(cod) {
     return null;
 }
 
-// Função para buscar os dados do cliente pelo CNPJ (mantida como estava)
+// Função para buscar os dados do cliente pelo CNPJ
 function buscarCliente(cnpj) {
     // Ajusta o CNPJ com zeros à esquerda
     cnpj = ajustarCNPJ(cnpj);
@@ -96,10 +102,13 @@ function buscarCliente(cnpj) {
     return null;
 }
 
+
+
 // Função para verificar se o CNPJ é composto apenas de zeros
 function cnpjInvalido(cnpj) {
     return /^0+$/.test(cnpj);
 }
+
 
 // Função para limpar todos os campos relacionados ao cliente
 function limparCamposCliente() {
@@ -129,7 +138,7 @@ const okButton = document.getElementById('okButton');
 const closeButtonBlock = blockModal.querySelector('.close-button');
 
 cnpjInput1.addEventListener('focus', function () {
-    if (cnpjInput1.readOnly) {
+    if (cnpjInput.readOnly) {
         blockModal.style.display = "block";
         const now = new Date();
         const timestamp = now.toLocaleDateString('pt-BR') + ' ' + now.toLocaleTimeString('pt-BR');
@@ -153,27 +162,29 @@ window.addEventListener('click', (event) => {
     }
 });
 
-// Mostrar Feedback
-function showFeedback(message) {
-    const feedback1 = document.getElementById('feedback1'); // Alterado para feedback1 conforme o HTML
-    feedback1.style.display = 'block';
-    feedback1.textContent = message;
+// Função para buscar os dados do cliente pelo CNPJ
+function buscarCliente(cnpj) {
+    // Ajusta o CNPJ com zeros à esquerda
+    cnpj = ajustarCNPJ(cnpj);
+
+    for (let i = 1; i < clientesData.length; i++) {
+        let cnpjCliente = ajustarCNPJ(clientesData[i][1].toString());
+        if (cnpjCliente === cnpj) {
+            return clientesData[i];
+        }
+    }
+    return null;
 }
 
-// Ocultar Feedback
-function hideFeedback() {
-    const feedback1 = document.getElementById('feedback1'); // Alterado para feedback1 conforme o HTML
-    feedback1.style.display = 'none';
-    feedback1.textContent = '';
-}
 
-// Evento para buscar cliente na API quando o usuário sair do campo CNPJ (Enter ou Tab)
-document.getElementById('cnpj').addEventListener('blur', async function (event) {
+// Função para preencher os campos ao digitar o CNPJ
+document.getElementById('cnpj').addEventListener('blur', function () {
+    
     let cnpj = this.value.replace(/\D/g, ''); // Remove caracteres não numéricos
 
     // Verifica se o campo está vazio
     if (cnpj === '') {
-        return; // Sai da função sem buscar dados
+            return; // Sai da função sem buscar dados
     }
 
     // Verifica se o CNPJ é inválido (apenas zeros)
@@ -183,119 +194,45 @@ document.getElementById('cnpj').addEventListener('blur', async function (event) 
         return; // Sai da função sem buscar dados
     }
 
+
     cnpj = ajustarCNPJ(cnpj);
 
     // Aplica a máscara ao CNPJ
     this.value = formatarCNPJ(cnpj);
 
-    // Mostrar mensagem de carregamento
-    showFeedback("Carregando dados do cliente, aguarde...");
+    let cliente = buscarCliente(cnpj);
+    if (cliente) {
+        document.getElementById('razao_social').value = cliente[3];
+        document.getElementById('ie').value = cliente[2];
+        document.getElementById('representante').value = `${cliente[15]} - ${cliente[16]}`;
+        document.getElementById('endereco').value = cliente[8];
+        document.getElementById('bairro').value = cliente[9];
+        document.getElementById('cidade').value = cliente[10];
+        document.getElementById('uf').value = cliente[11];
 
-    try {
-        // Faz a requisição à API
-        const response = await fetch(`/api/cliente/${cnpj}`);
-        if (!response.ok) {
-            throw new Error('Cliente não encontrado');
-        }
+        // Aplica a máscara ao CEP
+        let cep = cliente[12].toString();
+        document.getElementById('cep').value = formatarCEP(cep);
 
-        const clienteApi = await response.json();
+        document.getElementById('telefone').value = cliente[4];
+        document.getElementById('email').value = cliente[6];
+        document.getElementById('email_fiscal').value = cliente[7];
+        document.getElementById('cod_cliente').value = cliente[17];
+        document.getElementById('pay').value = cliente[14];
+        document.getElementById('group').value = cliente[19];
+        document.getElementById('transp').value = cliente[20];
+        document.getElementById('codgroup').value = cliente[18];
+        document.getElementById('representanteId').value = cliente[15];
+        document.getElementById('formPagId').value = cliente[25];
+        document.getElementById('condPagId').value = cliente[27];
+        document.getElementById('PercentualComissaoItem').value = cliente[23];
+        document.getElementById('PercentualComissaoServico').value = cliente[24];
+        document.getElementById('ContatoClienteId').value = cliente[28];
+        document.getElementById('formPagDescricao').value = cliente[26];
+        document.getElementById('email_rep').value = cliente[22];
 
-        // Verifica os campos ATIVO e SUSPENSO antes de prosseguir
-        const ativo = clienteApi["ATIVO"];
-        const suspenso = clienteApi["SUSPENSO"];
-
-        if (ativo === false) {
-            alert("Cliente inativo.");
-            limparCamposCliente(); // Limpa os campos para evitar preenchimento
-            return; // Interrompe o processo
-        }
-
-        if (suspenso === true) {
-            alert("Cliente suspenso.");
-            limparCamposCliente(); // Limpa os campos para evitar preenchimento
-            return; // Interrompe o processo
-        }
-
-        // Simula o formato do clientesData como um array de arrays
-        clientesData = [
-            null, // Índice 0 não era usado no JSON antigo
-            [
-                null, // Índice 0 interno não usado
-                clienteApi["CNPJ"],
-                clienteApi["INSC. ESTADUAL"],
-                clienteApi["RAZÃO SOCIAL"],
-                clienteApi["TELEFONE"],
-                clienteApi["LISTA NOME"],
-                clienteApi["EMAIL COMERCIAL"],
-                clienteApi["EMAIL FISCAL"],
-                clienteApi["ENDEREÇO"],
-                clienteApi["BAIRRO"],
-                clienteApi["CIDADE"],
-                clienteApi["UF"],
-                clienteApi["CEP"],
-                clienteApi["NOME CONTATO"],
-                clienteApi["COND. DE PAGTO"],
-                clienteApi["REPRESENTANTE"],
-                clienteApi["REPRESENTANTE NOME"],
-                clienteApi["COD CLIENTE 2"],
-                clienteApi["LISTA"],
-                clienteApi["LISTA NOME1"],
-                clienteApi["TRANSPORTADORA"],
-                clienteApi["CliDataHoraIncl"],
-                clienteApi["REPRESENTANTE E-MAIL"],
-                clienteApi["REP COMISSAO ITEM"],
-                clienteApi["REP COMISSAO SERVICO"],
-                clienteApi["FORMA DE PAGAMENTO ID"],
-                clienteApi["FORMA DE PAGAMENTO DESCRICAO"],
-                clienteApi["ID COND. DE PAGTO"],
-                clienteApi["ID NOME CONTATO"],
-                clienteApi["NOME GRUPO CLIENTE"],
-                clienteApi["GRUPO CLIENTE"],
-                clienteApi["ATIVO"],
-                clienteApi["SUSPENSO"]
-            ]
-        ];
-
-        // Busca o cliente no formato esperado pela função original
-        let cliente = buscarCliente(cnpj);
-        if (cliente) {
-            document.getElementById('razao_social').value = cliente[3];
-            document.getElementById('ie').value = cliente[2];
-            document.getElementById('representante').value = `${cliente[15]} - ${cliente[16]}`;
-            document.getElementById('endereco').value = cliente[8];
-            document.getElementById('bairro').value = cliente[9];
-            document.getElementById('cidade').value = cliente[10];
-            document.getElementById('uf').value = cliente[11];
-
-            // Aplica a máscara ao CEP
-            let cep = cliente[12].toString();
-            document.getElementById('cep').value = formatarCEP(cep);
-
-            document.getElementById('telefone').value = cliente[4];
-            document.getElementById('email').value = cliente[6];
-            document.getElementById('email_fiscal').value = cliente[7];
-            document.getElementById('cod_cliente').value = cliente[17];
-            document.getElementById('pay').value = cliente[14];
-            document.getElementById('group').value = cliente[19];
-            document.getElementById('transp').value = cliente[20];
-            document.getElementById('codgroup').value = cliente[18];
-            document.getElementById('representanteId').value = cliente[15];
-            document.getElementById('formPagId').value = cliente[25];
-            document.getElementById('condPagId').value = cliente[27];
-            document.getElementById('PercentualComissaoItem').value = cliente[23];
-            document.getElementById('PercentualComissaoServico').value = cliente[24];
-            document.getElementById('ContatoClienteId').value = cliente[28];
-            document.getElementById('formPagDescricao').value = cliente[26];
-            document.getElementById('email_rep').value = cliente[22];
-        } else {
-            alert("Cliente não encontrado.");
-        }
-    } catch (error) {
-        console.error('Erro ao buscar cliente na API:', error);
-        alert("Cliente não encontrado por favor verificar com o financeiro.");
-    } finally {
-        // Oculta a mensagem de feedback após o carregamento
-        hideFeedback();
+    } else {
+        alert("Cliente não encontrado.");
     }
 });
 
@@ -314,14 +251,15 @@ function zerarCamposPedido() {
 }
 
 // Adiciona o evento para zerar os campos quando o tipo de pedido for alterado
+
 document.getElementById('tipo_pedido').addEventListener('change', function () {
     zerarCamposPedido();
     let tipoPedido1 = this.value;
     if (tipoPedido1 === 'Bonificação') {
         document.getElementById('referencia').value = 'BONIFICAÇÃO';
     } else {
-        document.getElementById('referencia').value = '';
-    }
+        document.getElementById('referencia').value = '';
+    }
 });
 
 // Função para atualizar o total com imposto de todas as linhas
@@ -485,6 +423,7 @@ function preencherLinha(tr, listaPrecos, promocao = null, ufCliente) {
     let cells = tr.getElementsByTagName('td');
     let codProduto = cells[0].querySelector('input').value;
     
+
     if (verificarCodigoDuplicado(codProduto)) {
         alert(`O código "${codProduto}" já existe na lista. Por favor, digite outro código.`);
         cells[0].querySelector('input').value = '';
@@ -550,18 +489,6 @@ function preencherLinha(tr, listaPrecos, promocao = null, ufCliente) {
         cells[9].querySelector('input').value = listaPrecos[13];
     }
 
-    if (cells[6].querySelector('input').value == 0 || cells[6].querySelector('input').value == '') {
-        alert("Item não disponível para este cliente no momento, por favor verificar com Edmundo");
-        cells[0].querySelector('input').value = '';
-        cells[1].querySelector('input').value = '';
-        cells[2].querySelector('input').value = '';
-        cells[3].querySelector('input').value = '';
-        cells[4].querySelector('input').value = '';
-        cells[5].querySelector('input').value = '';
-        cells[7].querySelector('input').value = '';
-        cells[8].querySelector('input').value = '';
-    }
-
     function atualizarValorTotal() {
         if (codProduto) {
             let quantidade = Number(cells[1].querySelector('input').value);
@@ -598,6 +525,7 @@ function preencherLinha(tr, listaPrecos, promocao = null, ufCliente) {
     cells[8].querySelector('input').addEventListener('input', atualizarTotalComImposto);
 }
 
+
 //--inicio-----envio de dados para o sistema DBCorp-----------------------------------------------------------------------------------------////
 
 const btSistema = document.getElementById('button_sistema');
@@ -633,6 +561,7 @@ confirmButton.addEventListener("click", async () => {
     cnpjInput.readOnly = false; // Habilita o campo CNPJ
 
     try {
+
         // Captura as linhas da tabela
         const tableRows = document.querySelectorAll('#dadosPedido tbody tr');
 
@@ -656,7 +585,7 @@ confirmButton.addEventListener("click", async () => {
                                 DataPrevista: new Date().toISOString(),
                                 Quantidade: quantidade,
                             }
-                    ],
+                        ],
                         ItemId: itemId,
                         Quantidade: quantidade,
                     };
@@ -713,7 +642,7 @@ confirmButton.addEventListener("click", async () => {
         console.error("Erro de conexão:", error);
         alert("Erro ao conectar com o servidor.");
     } finally {
-        limparCamposCliente();
+        limparCamposCliente()
         // Oculta a mensagem de feedback
         feedbackDiv.style.display = "none";
     }
@@ -744,3 +673,12 @@ document.addEventListener("DOMContentLoaded", () => {
     // Fechar modal ao clicar no overlay
     overlay.addEventListener('click', closeHelpModal);
 });
+
+
+
+
+
+
+
+
+
