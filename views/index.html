@@ -12,7 +12,17 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.2/html2pdf.bundle.min.js"></script>
 
-    <link rel="stylesheet" href="/css/styles2.css?v=1744732455730">
+    <link rel="stylesheet" href="/css/styles2.css?v=1744770078984">
+
+    <link rel="stylesheet" href="/css/theme-toggle.css?v=1744770078984">
+    <!-- Script inline para aplicar o tema imediatamente -->
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.classList.add(savedTheme + '-theme');
+        })();
+    </script>
+
 </head>
 
 <body id="corpo">
@@ -279,6 +289,13 @@
 
     <footer>
         <div class="link_sites">
+
+            <!-- Toggle switch -->
+            <label class="theme-switch">
+                <input type="checkbox" id="themeToggle">
+                <span class="slider"></span>
+            </label>
+
            <button id="logoutButton2">Sair</button>
            <a target="_blank" href="/admin">Área T.I.</a>
            <a target="_blank" href="/comercial">Área Comercial</a>
@@ -289,8 +306,9 @@
         
     </footer>
     
-    <script src="/script.js?v=1744732455730"></script>
+    <script src="/script.js?v=1744770078984"></script>
     <script  src="/pdf.js?v=1742259354185"></script>
+    <script src="/theme-toggle.js?v=1744770078984"></script>
 
     <script>
          // Função para limpar dados do usuário e redirecionar para a página de login
@@ -311,6 +329,6 @@
             window.location.href = '/login2';
         });
     </script>
-    
+
 </body>
 </html>
