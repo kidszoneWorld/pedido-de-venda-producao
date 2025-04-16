@@ -12,7 +12,7 @@
     --button-hover-bg-light: rgba(225, 0, 152);
     --button-hover-text-light: rgb(250, 242, 247);
 
-    --background-color-dark: #1a1a1a;
+    --background-color-dark: #333333;
     --container-bg-dark: #2a2a2a;
     --header-bg-dark: #4e4c4c;
     --text-color-dark: #e0e0e0;
@@ -23,6 +23,10 @@
     --button-text-dark: #e0e0e0;
     --button-hover-bg-dark: rgba(225, 0, 152);
     --button-hover-text-dark: rgb(250, 242, 247);
+    --imput-bg-dark: #333333;
+    --imput-text-dark: #e0e0e0;
+    --imput-bg-light: #ffffff;
+    --imput-text-light: #000000;
 }
 
 /* Tema claro (padrão) */
@@ -70,13 +74,18 @@ body.light-theme button:hover {
     color: var(--button-hover-text-light);
 }
 
+body.light-theme input , select option {
+    background-color: var(--imput-bg-light);
+    color: var(--imput-text-light);
+}
+
 /* Tema escuro */
 body.dark-theme {
     background-color: var(--background-color-dark);
 }
 
 body.dark-theme .container {
-    background-color: #e7c8df;
+    background-color: #705b6c;
 }
 
 body.dark-theme .header-container {
@@ -113,8 +122,12 @@ body.dark-theme button {
 body.dark-theme button:hover {
     background-color: var(--button-hover-bg-dark);
     color: var(--button-hover-text-dark);
-}
+    }
 
+body.dark-theme input , select {
+    background-color: var(--imput-bg-dark);
+    color: var(--imput-text-dark);
+}       
 
 @keyframes modalAnimation {
     from{
@@ -652,6 +665,8 @@ button:hover{
     .filter-item select {
         width: 100%;
         max-width: 200px;
+        background-color: #ffffff; /* Cor de fundo clara para os inputs */
+        color: #000000; /* Cor do texto escuro para contraste */
     }
 
     #representanteFilter1 {
