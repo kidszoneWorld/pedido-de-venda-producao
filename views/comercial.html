@@ -11,6 +11,15 @@
     <link rel="manifest" href="/images/site.webmanifest">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <link rel="stylesheet" href="/css/comercial.css?v=1744770078975">
+
+    <link rel="stylesheet" href="/css/theme-toggle.css?v=1744770078984">
+    <!-- Script inline para aplicar o tema imediatamente -->
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.classList.add(savedTheme + '-theme');
+        })();
+    </script>
     
 </head>
 
@@ -28,6 +37,11 @@
                     </div>
                     <h3 class="header-title">Detalhes do pedido de venda</h3>
                 </div>
+            <!-- Toggle switch -->
+            <label class="theme-switch">
+                <input type="checkbox" id="themeToggle">
+                <span class="slider"></span>
+            </label>
             </header>
         </div>
 
@@ -132,6 +146,7 @@
         </div>
     </div>
     <script src="/comercial.js?v=1744770078975"></script>
+    <script src="/theme-toggle.js?v=1744770078984"></script>
 </body>
 
 </html>

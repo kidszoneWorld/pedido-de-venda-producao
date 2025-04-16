@@ -1,3 +1,179 @@
+/* Definindo variáveis de cor para os temas claro e escuro */
+:root {
+    --background-color-light: #caccc6;
+    --container-bg-light: #ffffff;
+    --header-bg-light: #ffffff;
+    --text-color-light: #333;
+    --table-bg-light: #ffffff;
+    --table-header-bg-light: #333;
+    --table-text-color-light: #ffffff;
+    --button-bg-light: #333;
+    --button-text-light: #ffffff;
+    --button-hover-bg-light: linear-gradient(90deg, rgba(225, 0, 152) 0%, #f18fc7 100%);
+    --button-hover-text-light: #fafcfa;
+
+    --background-color-dark: #1a1a1a;
+    --container-bg-dark: #2a2a2a;
+    --header-bg-dark: #2a2a2a;
+    --text-color-dark: #bbb5b5;
+    --table-bg-dark: #333;
+    --table-header-bg-dark: #1e1e1e;
+    --table-text-color-dark: #e0e0e0;
+    --button-bg-dark: #838181;
+    --button-text-dark: #ffffff;
+    --button-hover-bg-dark: linear-gradient(90deg, rgba(225, 0, 152) 0%, #f18fc7 100%);
+    --button-hover-text-dark: #fafcfa;
+    --input-bg-dark:#999595;
+}
+
+/* Tema claro (padrão) */
+body.light-theme {
+    background-color: var(--background-color-light);
+}
+
+body.light-theme .container {
+    background-color: var(--container-bg-light);
+}
+
+body.light-theme .header {
+    background-color: var(--table-header-bg-dark);
+    color: var(--table-text-color-dark);
+}
+
+body.light-theme .section-title,
+body.light-theme .obs-title,
+body.light-theme .payment-conditions label {
+    background-color: var(--table-header-bg-light);
+    color: var(--table-text-color-light);
+}
+
+body.light-theme .table th {
+    background-color: var(--table-header-bg-light);
+    color: var(--table-text-color-light);
+}
+
+body.light-theme .table td {
+    background-color: var(--table-bg-light);
+}
+
+body.light-theme .button-group button,
+body.light-theme .no-print button,
+body.light-theme footer {
+    background-color: var(--button-bg-light);
+    color: var(--button-text-light);
+}
+
+body.light-theme .button-group button:hover,
+body.light-theme .no-print button:hover {
+    background: var(--button-hover-bg-light);
+    color: var(--button-hover-text-light);
+}
+
+
+
+
+/* Tema escuro */
+body.dark-theme {
+    background-color: var(--background-color-dark);
+}
+
+body.dark-theme .container {
+    background-color: var(--container-bg-dark);
+}
+
+body.dark-theme .header {
+    background-color: rgb(78, 77, 77);
+    color: rgb(252, 249, 249);
+}
+
+
+body.dark-theme .info-caixa-master,
+body.dark-theme .info-display ,
+body.dark-theme .info-unidade ,
+body.dark-theme .calculo-palete {
+    background-color: rgb(114, 112, 112);
+    color: var(--table-text-color-dark);
+}
+
+body.dark-theme .descricao {
+    background-color: rgb(114, 112, 112);
+    color: var(--table-text-color-dark);
+}
+
+body.dark-theme #descricao {
+    background-color: rgb(114, 112, 112);
+    color: rgb(243, 119, 187);
+}
+
+body.dark-theme .table th {
+    background-color: var(--table-header-bg-dark);
+    color: var(--table-text-color-dark);
+}
+
+body.dark-theme .table td {
+    background-color: var(--table-bg-dark);
+}
+
+body.dark-theme .button-group button,
+body.dark-theme .no-print button,
+body.dark-theme footer {
+    background-color: var(--button-bg-dark);
+    color: var(--button-text-dark);
+}
+
+body.dark-theme .button-group button:hover,
+body.dark-theme .no-print button:hover {
+    background: var(--button-hover-bg-dark);
+    color: var(--button-hover-text-dark);
+}
+
+body.dark-theme .date{
+    color: var(--table-text-color-dark);
+}
+
+body.dark-theme input{
+    background-color: var(--input-bg-dark);
+    color: var(--button-hover-text-dark);
+}
+
+body.dark-theme ::placeholder{
+    color:#3d3d3d;
+}
+
+body.dark-theme .form-group label{
+    color:#ccc8c8;
+}
+
+body.dark-theme #observation , #observacoes , #observacoes1{
+    background-color:var(--input-bg-dark);
+    color: var(--button-hover-text-dark);
+}
+
+body.dark-theme select{
+    background-color:var(--input-bg-dark);
+    color: var(--button-hover-text-dark);
+}
+
+body.dark-theme #dadosPedido tbody tr td{
+    background-color:var(--table-bg-dark);
+    color: var(--button-hover-text-dark);
+}
+
+body.dark-theme #dadosPedido tbody tr td input{
+    background-color:var(--table-bg-dark);
+    color: var(--button-hover-text-dark);
+    border:none;
+}
+
+body.dark-theme .codigo-item label{
+    color: var(--button-hover-text-dark); 
+}
+
+body.dark-theme .codigo-item #codigo{
+    background-color: rgb(114, 112, 112);
+    color: rgb(243, 119, 187);
+}
+
 
 /* Animação de inversão de lado */
 @keyframes inverterLado {
@@ -70,9 +246,14 @@ body {
     margin: 15px 0;
     font-size: 1.2em;
     font-weight: bold;
+  
 }
 
 .codigo-item label {
+    margin-right: 10px;
+}
+
+.codigo-item , .theme-switch{
     margin-right: 10px;
 }
 
@@ -83,6 +264,7 @@ body {
     text-align: center;
     border: 1px solid #242323;
     border-radius: 4px;
+
 }
 
 .descricao, .info-caixa-master, .info-display, .info-unidade, .calculo-palete {

@@ -70,6 +70,9 @@ body.light-theme .no-print button:hover {
     color: var(--button-hover-text-light);
 }
 
+
+
+
 /* Tema escuro */
 body.dark-theme {
     background-color: var(--background-color-dark);
@@ -130,7 +133,7 @@ body.dark-theme .form-group label{
     color:#ccc8c8;
 }
 
-body.dark-theme #observation{
+body.dark-theme #observation , #observacoes , #observacoes1{
     background-color:var(--input-bg-dark);
     color: var(--button-hover-text-dark);
 }
@@ -139,6 +142,18 @@ body.dark-theme select{
     background-color:var(--input-bg-dark);
     color: var(--button-hover-text-dark);
 }
+
+body.dark-theme #dadosPedido tbody tr td{
+    background-color:var(--table-bg-dark);
+    color: var(--button-hover-text-dark);
+}
+
+body.dark-theme #dadosPedido tbody tr td input{
+    background-color:var(--table-bg-dark);
+    color: var(--button-hover-text-dark);
+    border:none;
+}
+
 
 
  /* Definição da animação */

@@ -15,6 +15,15 @@
     
     <link rel="stylesheet" href="/css/detalhesProdutos.css?v=1744770078978">
 
+    <link rel="stylesheet" href="/css/theme-toggle.css?v=1744770078984">
+    <!-- Script inline para aplicar o tema imediatamente -->
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.classList.add(savedTheme + '-theme');
+        })();
+    </script>
+
 </head>
 <body>
     <div class="container">
@@ -30,7 +39,16 @@
         <div class="codigo-item">
             <label for="codigo">CÓDIGO ITEM:</label>
             <input type="text" id="codigo" placeholder="Digite o código">
+
+          
+
         </div>
+
+        <!-- Toggle switch -->
+        <label class="theme-switch">
+            <input type="checkbox" id="themeToggle">
+            <span class="slider"></span>
+        </label>
 
         
            <!-- Mensagem de feedback -->
@@ -122,6 +140,7 @@
     </div>
 
     <script src="/detalhesProdutos.js?v=1744770078978"></script>
+    <script src="/theme-toggle.js?v=1744770078984"></script>
    
 </body>
 </html>

@@ -1,3 +1,121 @@
+/* Definindo variáveis de cor para os temas claro e escuro */
+:root {
+    --background-color-light: #caccc6;
+    --container-bg-light: #e7c8df;
+    --header-bg-light: #333;
+    --text-color-light: #ffffff;
+    --table-bg-light: #f9f9f9;
+    --table-header-bg-light: #333;
+    --table-text-color-light: #f9f9f9;
+    --button-bg-light: #333;
+    --button-text-light: #ffffff;
+    --button-hover-bg-light: rgba(225, 0, 152);
+    --button-hover-text-light: rgb(250, 242, 247);
+
+    --background-color-dark: #1a1a1a;
+    --container-bg-dark: #2a2a2a;
+    --header-bg-dark: #4e4c4c;
+    --text-color-dark: #e0e0e0;
+    --table-bg-dark: #b4afaf;
+    --table-header-bg-dark: #1e1e1e;
+    --table-text-color-dark: #e0e0e0;
+    --button-bg-dark: #444;
+    --button-text-dark: #e0e0e0;
+    --button-hover-bg-dark: rgba(225, 0, 152);
+    --button-hover-text-dark: rgb(250, 242, 247);
+}
+
+/* Tema claro (padrão) */
+body.light-theme {
+    background-color: var(--background-color-light);
+}
+
+body.light-theme .container {
+    background-color: var(--container-bg-light);
+}
+
+body.light-theme .header-container {
+    background-color: var(--header-bg-light);
+    color: var(--text-color-light);
+}
+
+body.light-theme .header-title,
+body.light-theme .header-right h4,
+body.light-theme .link-label {
+    color: var(--text-color-light);
+}
+
+body.light-theme table thead th {
+    background-color: var(--table-header-bg-light);
+    color: var(--table-text-color-light);
+}
+
+body.light-theme table th,
+body.light-theme table td {
+    background-color: var(--table-bg-light);
+}
+
+body.light-theme table th {
+    background-color: var(--table-header-bg-light);
+    color: var(--table-text-color-light);
+}
+
+body.light-theme button {
+    background-color: var(--button-bg-light);
+    color: var(--button-text-light);
+}
+
+body.light-theme button:hover {
+    background-color: var(--button-hover-bg-light);
+    color: var(--button-hover-text-light);
+}
+
+/* Tema escuro */
+body.dark-theme {
+    background-color: var(--background-color-dark);
+}
+
+body.dark-theme .container {
+    background-color: #e7c8df;
+}
+
+body.dark-theme .header-container {
+    background-color: var(--header-bg-dark);
+    color: var(--text-color-dark);
+}
+
+body.dark-theme .header-title,
+body.dark-theme .header-right h4,
+body.dark-theme .link-label {
+    color: var(--text-color-dark);
+}
+
+body.dark-theme table thead th {
+    background-color: var(--table-header-bg-dark);
+    color: var(--table-text-color-dark);
+}
+
+body.dark-theme table th,
+body.dark-theme table td {
+    background-color: var(--table-bg-dark);
+}
+
+body.dark-theme table th {
+    background-color: var(--table-header-bg-dark);
+    color: var(--table-text-color-dark);
+}
+
+body.dark-theme button {
+    background-color: var(--button-bg-dark);
+    color: var(--button-text-dark);
+}
+
+body.dark-theme button:hover {
+    background-color: var(--button-hover-bg-dark);
+    color: var(--button-hover-text-dark);
+}
+
+
 @keyframes modalAnimation {
     from {
         opacity: 0;
