@@ -90,6 +90,11 @@ router.get('/video',authMiddleware, (req, res) => {
     res.sendFile(path.join(__dirname, '..', 'views', 'video.html'));
 });
 
+// Rota para a página (cadastroCliente.html)
+router.get('/cadastroCliente',authMiddleware, (req, res) => {
+    res.sendFile(path.join(__dirname, '..', 'views', 'cadastroCliente.html'));
+});
+
 
 // Rotas da API de pedidos
 router.get('/api/pedidos', orderController.getOrderDetails); // Pedidos com representantes

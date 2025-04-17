@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FICHA DE CADASTRO</title>
+    <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+    <link rel="icon"  type="image/png" sizes="32x32" href="/images/favicon-32x32.png" >
+    <link rel="icon"  type="image/png" sizes="16x16" href="/images/favicon-16x16.png" >
+    <link rel="manifest" href="/images/site.webmanifest">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.2/html2pdf.bundle.min.js"></script>
+
+    <link rel="stylesheet" href="/css/cadastroCliente.css?v=1744915280469">
+
+    <link rel="stylesheet" href="/css/theme-toggle.css?v=1744915280469">
+    <!-- Script inline para aplicar o tema imediatamente -->
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.classList.add(savedTheme + '-theme');
+        })();
+    </script>
+</head>
+
+<body>
+<div class="container">
+
+        <div id="customModal" class="modal">
+            <div class="modal-content">
+              <span class="close-button">&times;</span>
+              <h2>Aviso!</h2>
+              <p>Você deseja realmente enviar para o sistema?</p>
+              <button id="confirmButton">Sim</button>
+              <button id="cancelButton">Não</button>
+            </div>
+          </div>
+
+          <div id="customModal1" class="modal1">
+            <div class="modal-content1">
+              <span class="close-button1">&times;</span>
+              <h2>Aviso!</h2>
+              <p>Você deseja realmente enviar o e-mail?</p>
+              <button id="confirmButton1">Sim</button>
+              <button id="cancelButton1">Não</button>
+            </div>
+          </div>
+
+          <div id="blockModal" class="modal">
+            <div class="modal-content">
+              <span class="close-button">&times;</span>
+              <h2>Aviso!</h2>
+              <p>Por favor enviar o pedido para o sistema para liberar um novo cadastro.</p>
+              <p id="timestamp"></p>
+              <button id="okButton">OK</button>
+            </div>
+          </div>
+
+          <div class="header">
+            <div class="header-logo">
+                <a href="https://kidszoneworld.com.br/portal-do-representante/">
+                    <img class="img_link" src="/images/logo.png" alt="Imagem KidsZone">
+                </a>
+            </div>
+            <h3>KIDS ZONE - FICHA DE CADASTRO DE CLIENTES</h3>
+                <!-- Toggle switch -->
+                <label class="theme-switch">
+                    <input type="checkbox" id="themeToggle">
+                    <span class="slider"></span>
+                </label>
+
+            <div class="button-group">
+                <button id="button_pdf">SALVAR EM PDF E ENVIAR E-MAIL </button>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">DADOS DO CLIENTE</div>
+            <form class="form-group">
+
+                <label for="razao_social" >RAZÃO SOCIAL:</label> 
+                <input type="text" id="razao_social" placeholder="Razão Social" >
+
+                <label for="representante" class="label-espaco-esquerda">REPRESENTANTE:</label> 
+                <input type="text" id="representante" placeholder="Representante" >
+
+                <label class="IE" for="ie">NOME FANTASIA:</label> 
+                <input type="text" id="ie" placeholder="Inscrição Estadual" >
+
+                <label for="cod_cliente" class="label-espaco-esquerda">CNPJ:</label> 
+                <input type="text" id="cod_cliente" placeholder="Di" >
+
+                <label for="endereco">ENDEREÇO:</label> 
+                <input type="text" id="endereco" placeholder="Endereço">
+
+                <label class="IE label-espaco-esquerda" for="ie">INSCRIÇÃO ESTADUAL:</label> 
+                <input type="text" id="ie" placeholder="Inscrição Estadual">
+
+              
+
+                <label for="cidade">CIDADE:</label> 
+                <input type="text" id="cidade" placeholder="Cidade">
+
+                <label for="bairro" class="label-espaco-esquerda">BAIRRO:</label> 
+                <input type="text" id="bairro" placeholder="Bairro" >
+
+                <label for="cep">CEP:</label> 
+                <input type="text" id="cep" placeholder="CEP" readonly>
+
+                <label for="telefone" class="label-espaco-esquerda">TELEFONE:</label> 
+                <input type="text" id="telefone" placeholder="Telefone">
+
+                <label for="email">E-MAIL ARQUIVO XML:</label> 
+                <input type="text" id="email" placeholder="E-mail" >
+
+                <label for="email_fiscal" class="label-espaco-esquerda">E-MAIL COMPRADOR:</label> 
+                <input type="text" id="email_fiscal" placeholder="E-mail Fiscal" >
+
+                <label for="pay">E-MAIL AGENDAMENTO:</label> 
+                <input type="text" id="pay" placeholder=" Condição de pagamento" >
+
+                <label for="transp" class="label-espaco-esquerda" >E-MAIL FINANCEIRO:</label> 
+                <input type="text" id="transp" placeholder="Transportadora" >
+
+                <label for="group">CONTATO FINANCEIRO:</label> 
+                <input type="text" id="contat" placeholder="Contato" >
+
+             
+                <label class="label-espaco-esquerda" for="group">CANAL:</label> 
+                <input type="text" id="group" placeholder="Descrição Grupo" >
+
+                <label  for="formPagDescricao">SEGMENTO:</label> 
+                <input type="text" id="formPagDescricao" placeholder="Forma de Pagamento" >
+
+                <label class="label-espaco-esquerda"  for="codgroup">TABELA PREÇOS:</label> 
+                <input type="text" id="codgroup" placeholder="Código Tabela" >
+
+
+            </form>
+        </div>
+
+
+        <!-- Seção de Observações -->
+        <div class="observations">
+            <div class="obs-title">ANEXAR (OBRIGATÓRIO)*</div>
+            <textarea
+              id="observation"
+              placeholder="Escreva alguma observação"
+              rows="10"
+              style="
+                height: 250px;
+                font-size: 1.1rem;   /* tamanho de fonte maior */
+                color: red;           /* texto em vermelho */
+                resize: vertical;
+                overflow: auto;
+                padding-top: 40px;
+              "
+            >
+          * Apresentação
+          * Cópia do Contrato Social
+          * Última Alteração do Contrato Social
+          * DRE
+          * Último Balanço Patrimonial Atualizado
+          * Sintegra
+          * CNPJ
+          * Referências Comerciais
+          * Suframa
+          * Regime Especial, quando houver o documento
+            </textarea>
+          </div>
+          
+    </div>
+
+
+    
+    <script src="/script.js?v=1744915280469"></script>
+    <script  src="/pdf.js?v=1742259354185"></script>
+    <script src="/theme-toggle.js?v=1744915280469"></script>
+
+    <script>
+         // Função para limpar dados do usuário e redirecionar para a página de login
+        document.getElementById('logoutButton2').addEventListener('click', async () => {
+            // Limpa os dados locais
+            sessionStorage.clear();
+            localStorage.clear();
+
+            // Faz a requisição ao servidor para destruir a sessão
+            await fetch('/logout', { method: 'POST' });
+
+            // Limpa cookies manualmente (como precaução)
+            document.cookie.split(";").forEach(cookie => {
+                document.cookie = cookie.split("=")[0] + "=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/";
+            });
+
+            // Redireciona para a página de login
+            window.location.href = '/login2';
+        });
+    </script>
+    
+</body>
+</html>
