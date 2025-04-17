@@ -23,7 +23,7 @@
     --button-text-dark: #ffffff;
     --button-hover-bg-dark: linear-gradient(90deg, rgba(225, 0, 152) 0%, #f18fc7 100%);
     --button-hover-text-dark: #fafcfa;
-    --input-bg-dark:#999595;
+    --input-bg-dark:#141414
 }
 
 /* Tema claro (padrão) */
@@ -91,18 +91,18 @@ body.dark-theme .info-caixa-master,
 body.dark-theme .info-display ,
 body.dark-theme .info-unidade ,
 body.dark-theme .calculo-palete {
-    background-color: rgb(114, 112, 112);
+    background-color: rgb(66, 66, 66);
     color: var(--table-text-color-dark);
 }
 
 body.dark-theme .descricao {
-    background-color: rgb(114, 112, 112);
+    background-color: rgb(66, 66, 66);
     color: var(--table-text-color-dark);
 }
 
 body.dark-theme #descricao {
     background-color: rgb(114, 112, 112);
-    color: rgb(243, 119, 187);
+    color: rgb(248, 112, 187);
 }
 
 body.dark-theme .table th {
@@ -172,6 +172,15 @@ body.dark-theme .codigo-item label{
 body.dark-theme .codigo-item #codigo{
     background-color: rgb(114, 112, 112);
     color: rgb(243, 119, 187);
+}
+
+body.dark-theme .descricao h3 ,
+body.dark-theme .info-caixa-master h3 ,
+body.dark-theme .info-display h3 ,
+body.dark-theme .info-unidade h3 ,
+body.dark-theme .calculo-palete h3 {
+    background-color: rgb(112, 112, 112);
+    color: rgb(243, 239, 241);
 }
 
 
