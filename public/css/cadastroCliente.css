@@ -154,6 +154,9 @@ body.dark-theme #dadosPedido tbody tr td input{
     border:none;
 }
 
+body.dark-theme .tribu {
+    color: var(--button-text-dark);
+}
 
 
  /* Definição da animação */
@@ -852,6 +855,15 @@ label[for="referencia"]::after {
     color: black;
     text-decoration: none;
     cursor: pointer;
+}
+
+.tribu{
+    height: 250px;
+    font-size: 1.1rem;   /* tamanho de fonte maior */
+    color: black;          /* texto em vermelho */
+    resize: vertical;
+    overflow: auto;
+    padding-top: 40px;
 }
 
 
