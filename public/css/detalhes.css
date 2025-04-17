@@ -15,6 +15,14 @@ body.dark-theme  #observacoes1{
     background-color:var(--input-bg-dark);
     color: var(--button-hover-text-dark);
 }
+
+
+body.dark-theme input{
+    background-color: var(--input-bg-dark);
+    color: var(--button-hover-text-dark);
+}
+
+
 /* Customizações específicas para a página de detalhes */
 .observations {
     margin-top: 20px;
