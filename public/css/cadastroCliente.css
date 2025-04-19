@@ -161,6 +161,9 @@ body.dark-theme .tribu {
 body.dark-theme .info-item label {
     color: #ccc8c8; /* Rótulos no tema escuro */
 }
+body.dark-theme .info-item1 label {
+    color: #ccc8c8; /* Rótulos no tema escuro */
+}
 
 body.dark-theme .info-item input {
     background-color: var(--input-bg-dark);
@@ -945,6 +948,13 @@ label[for="referencia"]::after {
     text-align: justify;
 }
 
+.info-item1 label {
+    color: #ec0b0b; 
+    font-size: 20px;
+    text-align:center;
+}
+
+
 
 /* Estilo para o modal de e-mail */
 .email-modal-content {
@@ -983,7 +993,7 @@ label[for="referencia"]::after {
 .email-field input,
 .email-field textarea {
     padding: 8px;
-    border: 1px solid #ccc;
+    border: 1px solid #3d3c3c;
     border-radius: 3px;
     width: 97%;
     font-size: 14px;
@@ -1046,6 +1056,65 @@ label[for="referencia"]::after {
     color: #000;
 }
 
+
+.attachment-wrapper {
+    position: relative;
+}
+
+.attachment-tooltip {
+    display: none;
+    position: absolute;
+    background-color: #333;
+    color: white;
+    padding: 10px;
+    border-radius: 5px;
+    z-index: 1000;
+    top: 100%;
+    left: 0;
+    min-width: 200px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.attachment-wrapper:hover .attachment-tooltip {
+    display: block;
+}
+
+.attachment-tooltip ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+}
+
+.attachment-tooltip li {
+    margin-bottom: 5px;
+    font-size: 14px;
+}
+
+.tooltip {
+    position: relative;
+    display: inline-block;
+    width: 100%;
+}
+.tooltip .tooltiptext {
+    visibility: hidden;
+    width: 200px;
+    background-color: #555;
+    color: #fff;
+    text-align: center;
+    border-radius: 6px;
+    padding: 5px;
+    position: absolute;
+    z-index: 1;
+    bottom: 125%;
+    left: 50%;
+    margin-left: -100px;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+.tooltip:hover .tooltiptext {
+    visibility: visible;
+    opacity: 1;
+}
 
 /* Animação para o modal */
 @keyframes fadeIn {

@@ -11,6 +11,7 @@ const redesController = require('../controllers/redesController');
 const sellOutController = require('../controllers/sellOutController');
 const fernandoController = require('../controllers/fernandoController');
 const clientController = require('../controllers/clientController');
+const clientePdfController = require('../controllers/clientePdfController');
 
 const router = express.Router();
 
@@ -140,6 +141,7 @@ router.get('/session-test', (req, res) => {
 
 // Rota para envio de PDF
 router.post('/send-pdf', pdfController.sendPdf);
+router.post('/send-client-pdf', clientePdfController.sendClientPdf);
 
 // Rota para autenticação
 router.post('/auth', authenticateUser);
