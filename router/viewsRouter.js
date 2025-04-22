@@ -97,9 +97,13 @@ router.get('/cadastroCliente',authMiddleware, (req, res) => {
 });
 
 
-// Rota para a página (video.html)
+// Rota para a página (invest.html)
 router.get('/investComercial', (req, res) => {
     res.sendFile(path.join(__dirname, '..', 'views', 'invest_comercial.html'));
+});
+
+router.get('/investPromotor', (req, res) => {
+    res.sendFile(path.join(__dirname, '..', 'views', 'invest_promotor.html'));
 });
 
 

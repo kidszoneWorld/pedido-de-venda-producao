@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KIDSZONE - Solicitação de Investimento Comercial</title>
+    <title>KIDSZONE - INVESTIMENTOS DE PROMOTOR </title>
     <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
     <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
     <link rel="manifest" href="/images/site.webmanifest">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.2/html2pdf.bundle.min.js"></script>
-    <link rel="stylesheet" href="/css/invest_comercial.css?v=1745291895172">
-    <link rel="stylesheet" href="/css/theme-toggle.css?v=1745291895172">
+    <link rel="stylesheet" href="/css/invest_promotor.css?v=1745291895173">
+    <link rel="stylesheet" href="/css/theme-toggle.css?v=1745291895173">
     <script>
         (function() {
             const savedTheme = localStorage.getItem('theme') || 'light';
@@ -42,7 +42,7 @@
         </div>
 
         <div class="section">
-            <div class="section-title">SOLICITAÇÃO DE INVESTIMENTO COMERCIAL - KZ</div>
+            <div class="section-title">INVESTIMENTOS DE PROMOTOR - KZ</div>
             <div class="form-grid">
                 <div>
                     <label for="cliente">CLIENTE:</label>
@@ -102,13 +102,8 @@
             </p>
         </div>
 
-        <div class="acao-solicitada-container">
-            <label class="acao_solicita" for="acaoSolicita">TIPO DE AÇÃO SOLICITADA:</label>
-            <input type="text" id="acaoSolicita">
-        </div>
-
         <div class="section">
-            <div class="section-title investimento">INVESTIMENTOS</div>
+            <div class="section-title investimento">INVESTIMENTOS PROMOTOR</div>
             
             <div class="form-grid">
                 <div>
@@ -123,76 +118,49 @@
             </div>
 
             <div class="action-table-container">
+
+                <div class="section-title investimento visita">VISITA PROMOTOR</div>
                 <table class="action-table" border="1">
                     <thead>
                         <tr>
-                            <th>TIPO</th>
+                            <th>DIA DA SEMANA</th>
                             <th>SELECIONAR</th>
-                            <th>VALOR</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr>
-                            <td>Bonificação</td>
+                            <td>Segunda-feira</td>
                             <td><input type="checkbox" id="bonificacao"></td>
-                            <td><input type="text" id="percentual_bonificacao" placeholder="%"></td>
                         </tr>
                         <tr>
-                            <td>Desconto em Duplicata</td>
+                            <td>Terça-feira</td>
                             <td><input type="checkbox" id="desconto_duplicata"></td>
-                            <td><input type="text" id="percentual_desconto" placeholder="%"></td>
                         </tr>
                         <tr>
-                            <td>Rebaixa de Preço</td>
+                            <td>Quarta-feira</td>
                             <td><input type="checkbox" id="rebaixa_preco"></td>
-                            <td><input type="text" id="percentual_rebaixa" placeholder="%"></td>
                         </tr>
                         <tr>
-                            <td>Devolução</td>
+                            <td>Quinta-feira</td>
                             <td><input type="checkbox" id="devolucao"></td>
-                            <td><input type="text" id="percentual_devolucao" placeholder="%"></td>
                         </tr>
                         <tr>
-                            <td>Acordo Comercial</td>
+                            <td>Sexta-feira</td>
                             <td><input type="checkbox" id="acordo_comercial"></td>
-                            <td><input type="text" id="percentual_acordo" placeholder="%"></td>
                         </tr>
-                        <tr>
-                            <td>Prazo de Pagamento</td>
-                            <td><input type="checkbox" id="prazo_pagamento"></td>
-                            <td><input type="text" id="dias_pagamento" value="60"></td>
-                        </tr>
+                     
                     </tbody>
                 </table>
             </div>
         </div>
 
         <div class="section">
-            <div class="investment-table-container">
-                <table class="investment-table" border="1">
-                    <thead>
-                        <tr>
-                            <th class="parcela">Parcela</th>
-                            <th class="valor">Valor</th>
-                            <th class="valor-pago">Pagto</th>
-                        </tr>
-                    </thead>
-                    <tbody id="investment-table-body">
-                        <tr>
-                            <td class="parcela"><input type="text" placeholder="Parcela"></td>
-                            <td class="valor"><input type="text" placeholder="Valor"></td>
-                            <td class="valor-pago"><input type="text" placeholder="Valor Pago"></td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-            <div class="no-print">
-                <button type="button" id="adicionarLinhaInvestimento">Adicionar Linha</button>
-                <button type="button" id="excluirLinhaInvestimento">Remover Linha</button>
-            </div>
             <div class="payment-conditions">
                 <label for="valor_total">VALOR TOTAL DO INVESTIMENTO:</label>
                 <input type="text" id="valor_total" >
+
+                <label for="valor_total">PAGAMENTO:</label>
+                <input type="text" id="valor_total" value="Mensal" >
             </div>
         </div>
 
@@ -228,6 +196,7 @@
 
     <footer>
         <div class="link_sites">
+        
             <button id="logoutButton2">Sair</button>
             <a target="_blank" href="/admin">Área T.I.</a>
             <a target="_blank" href="/comercial">Área Comercial</a>
@@ -237,9 +206,9 @@
         </div>
     </footer>
 
-    <script src="/script.js?v=1745291895172"></script>
-    <script src="/pdf.js?v=1745291895172"></script>
-    <script src="/theme-toggle.js?v=1745291895172"></script>
+    <script src="/script.js?v=1745291895173"></script>
+    <script src="/pdf.js?v=1745291895173"></script>
+    <script src="/theme-toggle.js?v=1745291895173"></script>
     <script>
         document.getElementById('logoutButton2').addEventListener('click', async () => {
             sessionStorage.clear();
@@ -251,24 +220,7 @@
             window.location.href = '/login2';
         });
 
-        // Função para adicionar e remover linhas na tabela de investimentos
-        const tableBody = document.getElementById('investment-table-body');
-        document.getElementById('adicionarLinhaInvestimento').addEventListener('click', () => {
-            const newRow = document.createElement('tr');
-            newRow.innerHTML = `
-                <td class="parcela"><input type="text" placeholder="Parcela"></td>
-                <td class="valor"><input type="text" placeholder="Valor"></td>
-                <td class="valor-pago"><input type="text" placeholder="Valor Pago"></td>
-            `;
-            tableBody.appendChild(newRow);
-        });
-
-        document.getElementById('excluirLinhaInvestimento').addEventListener('click', () => {
-            if (tableBody.rows.length > 1) {
-                tableBody.deleteRow(tableBody.rows.length - 1);
-            }
-        });
-
+    
         // Função para salvar em PDF
         document.getElementById('button_pdf').addEventListener('click', () => {
             const element = document.querySelector('.container');
