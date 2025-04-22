@@ -81,7 +81,30 @@ document.addEventListener("DOMContentLoaded", () => {
         const totalSizeMB = calcularTamanhoTotal();
         totalSizeDisplay.textContent = `Tamanho total: ${totalSizeMB} MB`;
     }
+    
 
+        // Função para verificar se todos os campos obrigatórios estão preenchidos
+        function verificarCamposObrigatorios() {
+            const campos = [
+                'razao_social',
+                'cod_cliente',
+                'regime_especial',
+                'agendamento',
+                'dados_responsavel',
+                'paletizada',
+                'horario_entrega',
+                'numero_nf'
+            ];
+    
+            for (let campo of campos) {
+                const input = document.getElementById(campo);
+                if (!input.value.trim()) {
+                    return false;
+                }
+            }
+            return true;
+        }
+    
     // Função para gerar o PDF automaticamente
     async function gerarPDF() {
         const content = document.querySelector('.container');
@@ -258,8 +281,12 @@ function atualizarListaAnexos() {
         atualizarAnexos();
     });
 
-    // Ao clicar no botão "ENVIAR E-MAIL COM ANEXOS", gera o PDF e abre o modal
+    // Ao clicar no botão "ENVIAR E-MAIL COM ANEXOS", verifica os campos obrigatórios antes de gerar o PDF e abrir o modal
     buttonPdf.addEventListener('click', async () => {
+        if (!verificarCamposObrigatorios()) {
+            alert('Por favor, preencha todos os campos obrigatórios na seção "INFORMAÇÕES NECESSÁRIAS"');
+            return;
+        }
         await gerarPDF();
         if (generatedPdfFile) {
             additionalFiles = [];

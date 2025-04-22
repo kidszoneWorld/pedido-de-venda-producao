@@ -100,11 +100,11 @@ router.get('/cadastroCliente',authMiddleware, (req, res) => {
 
 
 // Rota para a página (invest.html)
-router.get('/investComercial', (req, res) => {
+router.get('/investComercial',authMiddleware, (req, res) => {
     res.sendFile(path.join(__dirname, '..', 'views', 'invest_comercial.html'));
 });
 
-router.get('/investPromotor', (req, res) => {
+router.get('/investPromotor',authMiddleware, (req, res) => {
     res.sendFile(path.join(__dirname, '..', 'views', 'invest_promotor.html'));
 });
 

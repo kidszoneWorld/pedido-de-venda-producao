@@ -3,6 +3,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const clienteInput = document.getElementById('cliente');
     const cnpjInput = document.getElementById('cnpj');
     const responsavelInput = document.getElementById('responsavel');
+    const valor = document.getElementById('valor');
 
     // Criar modal dinamicamente
     const modal = document.createElement('div');
@@ -42,8 +43,8 @@ document.addEventListener("DOMContentLoaded", () => {
         console.log('Botão de PDF clicado');
 
         // Validação básica
-        if (!clienteInput.value || !cnpjInput.value || !responsavelInput.value) {
-            alert('Por favor, preencha os campos Cliente, CNPJ e Responsável.');
+        if (!clienteInput.value || !cnpjInput.value || !responsavelInput.value || !valor.value) {
+            alert('Por favor, preencha os campos Cliente, CNPJ,Responsável e Valor .');
             return;
         }
 

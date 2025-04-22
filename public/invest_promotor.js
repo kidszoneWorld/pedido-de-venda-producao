@@ -1,3 +1,38 @@
+document.addEventListener('DOMContentLoaded', async () => {
+    try {
+        // Faz a requisição para obter os dados da sessão
+        const response = await fetch('/session-data');
+        if (!response.ok) throw new Error('Erro ao buscar dados da sessão');
+
+        const sessionData = await response.json();
+
+        // Define os dados no front-end
+        if (sessionData.isAuthenticated) {
+            window.sessionData = sessionData;
+
+            // Verifica se o atributo dadogr está presente no objeto user
+            const hasDadogr = sessionData.user?.dadogr !== undefined;
+
+            // Seleciona os checkboxes
+            const aprovadoCheckbox = document.getElementById('aprovado');
+            const reprovadoCheckbox = document.getElementById('reprovado');
+
+            // Desabilita os checkboxes se o atributo dadogr não estiver presente
+            if (!hasDadogr) {
+                aprovadoCheckbox.disabled = true;
+                reprovadoCheckbox.disabled = true;
+            }
+        } else {
+            console.warn('Usuário não autenticado');
+            window.location.href = '/login2'; // Redireciona para a página de login
+        }
+    } catch (error) {
+        console.error('Erro ao carregar os dados da sessão:', error);
+        window.location.href = '/login2'; // Redireciona para login em caso de erro
+    }
+});
+
+
 document.getElementById('logoutButton2').addEventListener('click', async () => {
     sessionStorage.clear();
     localStorage.clear();
