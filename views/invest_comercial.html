@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KIDSZONE - Solicitação de Investimento Comercial</title>
+    <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+    <link rel="manifest" href="/images/site.webmanifest">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.2/html2pdf.bundle.min.js"></script>
+    <link rel="stylesheet" href="/css/invest_comercial.css?v=1745281021834">
+    <link rel="stylesheet" href="/css/theme-toggle.css?v=1745281021834">
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.classList.add(savedTheme + '-theme');
+        })();
+    </script>
+</head>
+<body id="corpo">
+    <div class="container">
+        <div class="header">
+            <a href="https://kidszoneworld.com.br/portal-do-representante/"><img src="/images/logo.png" alt="Imagem KidsZone"></a>
+            <div class="date"></div>
+            <script>
+                function atualizarDataHora() {
+                    const elementoData = document.querySelector('.date');
+                    const agora = new Date();
+                    const dataFormatada = agora.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                    const horaFormatada = agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                    elementoData.textContent = `${dataFormatada} ${horaFormatada}`;
+                    elementoData.style.fontSize = "105%";
+                }
+                atualizarDataHora();
+                setInterval(atualizarDataHora, 1000);
+            </script>
+        </div>
+
+        <div class="button-group">
+            <button id="button_pdf">SALVAR EM PDF</button>
+        </div>
+
+        <div class="section">
+            <div class="section-title">SOLICITAÇÃO DE INVESTIMENTO COMERCIAL - KZ</div>
+            <div class="form-grid">
+                <div>
+                    <label for="cliente">CLIENTE:</label>
+                    <input type="text" id="cliente" >
+                </div>
+                <div>
+                    <label for="cnpj">CNPJ:</label>
+                    <input type="text" id="cnpj" >
+                </div>
+                <div>
+                    <label for="endereco">ENDEREÇO:</label>
+                    <input type="text" id="endereco" >
+                </div>
+                <div>
+                    <label for="telefone">TELEFONE:</label>
+                    <input type="text" id="telefone" >
+                </div>
+                <div>
+                    <label for="responsavel">RESPONSÁVEL:</label>
+                    <input type="text" id="responsavel" >
+                </div>
+                <div>
+                    <label for="cargo">CARGO:</label>
+                    <input type="text" id="cargo" >
+                </div>
+            </div>
+
+            <div class="form-grid">
+                <div>
+                    <label for="empresa">EMPRESA:</label>
+                    <input type="text" id="empresa" value="KIDS ZONE IMPORTAÇÃO E COM. DE BRINQ. LTDA" readonly>
+                </div>
+                <div>
+                    <label for="empresa_cnpj">CNPJ:</label>
+                    <input type="text" id="empresa_cnpj" value="33.551.721/0002-20" readonly>
+                </div>
+                <div>
+                    <label for="empresa_endereco">ENDEREÇO:</label>
+                    <input type="text" id="empresa_endereco" value="César Augusto Dalçóquio - Nº 500" readonly>
+                </div>
+                <div>
+                    <label for="empresa_telefone">TELEFONE:</label>
+                    <input type="text" id="empresa_telefone" value="(11) 3065-4372" readonly>
+                </div>
+                <div>
+                    <label for="empresa_responsavel">RESPONSÁVEL:</label>
+                    <input type="text" id="empresa_responsavel" value="MARCOS M. SANCOVSKY" readonly>
+                </div>
+                <div>
+                    <label for="empresa_cargo">CARGO:</label>
+                    <input type="text" id="empresa_cargo" value="CEO" readonly>
+                </div>
+            </div>
+
+            <p class="textwarning">
+                Esse presente instrumento, tem por finalidade um acordo entre a KIDS ZONE e seu parceiro conforme segue abaixo:
+            </p>
+        </div>
+
+        <div class="acao-solicitada-container">
+            <label class="acao_solicita" for="acaoSolicita">TIPO DE AÇÃO SOLICITADA:</label>
+            <input type="text" id="acaoSolicita">
+        </div>
+
+        <div class="section">
+            <div class="section-title investimento">INVESTIMENTOS</div>
+            
+
+            <div class="form-grid">
+                <div>
+                    <label for="vigencia_inicial">VIGÊNCIA INICIAL:</label>
+                    <input type="text" id="vigencia_inicial" placeholder="Agosto">
+                </div>
+                <div>
+                    <label for="vigencia_final">VIGÊNCIA FINAL:</label>
+                    <input type="text" id="vigencia_final" placeholder="Agosto">
+                </div>
+                <div></div> <!-- Div vazia para ocupar a terceira coluna -->
+            </div>
+
+            <div class="action-table-container">
+                <table class="action-table" border="1">
+                    <thead>
+                        <tr>
+                            <th>TIPO</th>
+                            <th>SELECIONAR</th>
+                            <th>VALOR</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Bonificação</td>
+                            <td><input type="checkbox" id="bonificacao"></td>
+                            <td><input type="text" id="percentual_bonificacao" placeholder="%"></td>
+                        </tr>
+                        <tr>
+                            <td>Desconto em Duplicata</td>
+                            <td><input type="checkbox" id="desconto_duplicata"></td>
+                            <td><input type="text" id="percentual_desconto" placeholder="%"></td>
+                        </tr>
+                        <tr>
+                            <td>Rebaixa de Preço</td>
+                            <td><input type="checkbox" id="rebaixa_preco"></td>
+                            <td><input type="text" id="percentual_rebaixa" placeholder="%"></td>
+                        </tr>
+                        <tr>
+                            <td>Devolução</td>
+                            <td><input type="checkbox" id="devolucao"></td>
+                            <td><input type="text" id="percentual_devolucao" placeholder="%"></td>
+                        </tr>
+                        <tr>
+                            <td>Acordo Comercial</td>
+                            <td><input type="checkbox" id="acordo_comercial"></td>
+                            <td><input type="text" id="percentual_acordo" placeholder="%"></td>
+                        </tr>
+                        <tr>
+                            <td>Prazo de Pagamento</td>
+                            <td><input type="checkbox" id="prazo_pagamento"></td>
+                            <td><input type="text" id="dias_pagamento" value="60"></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="section">
+          
+            
+            <div class="investment-table-container">
+                <table class="investment-table" border="1">
+                    <thead>
+                        <tr>
+                            <th class="parcela">Parcela</th>
+                            <th class="valor">Valor</th>
+                            <th class="valor-pago">Pagto</th>
+                        </tr>
+                    </thead>
+                    <tbody id="investment-table-body">
+                        <tr>
+                            <td class="parcela"><input type="text" placeholder="Parcela"></td>
+                            <td class="valor"><input type="text" placeholder="Valor"></td>
+                            <td class="valor-pago"><input type="text" placeholder="Valor Pago"></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="no-print">
+                <button type="button" id="adicionarLinhaInvestimento">Adicionar Linha</button>
+                <button type="button" id="excluirLinhaInvestimento">Remover Linha</button>
+            </div>
+            <div class="payment-conditions">
+                <label for="valor_total">VALOR TOTAL DO INVESTIMENTO:</label>
+                <input type="text" id="valor_total" >
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="form-grid">
+                <div class="checkbox-group">
+                    <label for="avaliacao">Avaliação Gerentes de Vendas Edmundo / Marchezim / Pedro</label>
+                </div>
+                <div class="checkbox-group">
+                    <label for="aprovado">Aprovado</label>
+                    <input type="checkbox" id="aprovado" checked>
+                </div>
+                <div class="checkbox-group">
+                    <label for="reprovado">Reprovado</label>
+                    <input type="checkbox" id="reprovado">
+                </div>
+            </div>
+            <div class="form-grid">
+                <div>
+                    <label for="responsavel_aprovacao">Responsável:</label>
+                    <input type="text" id="responsavel_aprovacao" value="MARCOS" readonly>
+                    <label for="assinatura">Assinatura</label>
+                    <input type="text" id="assinatura">
+                </div>
+            </div>
+        </div>
+
+        <div class="observations">
+            <div class="obs-title">OBSERVAÇÕES:</div>
+            <textarea id="observacoes" placeholder="Escreva suas observações aqui..." style="height: 170px;"></textarea>
+        </div>
+    </div>
+
+    <footer>
+        <div class="link_sites">
+          
+            <button id="logoutButton2">Sair</button>
+            <a target="_blank" href="/admin">Área T.I.</a>
+            <a target="_blank" href="/comercial">Área Comercial</a>
+            <a target="_blank" href="/logistica03">Área logística</a>
+            <a target="_blank" href="/detalhesProdutos">Detalhes do Produto</a>
+            <a target="_blank" href="/cadastroCliente">Cadastrar Cliente</a>
+        </div>
+    </footer>
+
+    <script src="/script.js?v=1745281021834"></script>
+    <script src="/pdf.js?v=1745281021834"></script>
+    <script src="/theme-toggle.js?v=1745281021834"></script>
+    <script>
+        document.getElementById('logoutButton2').addEventListener('click', async () => {
+            sessionStorage.clear();
+            localStorage.clear();
+            await fetch('/logout', { method: 'POST' });
+            document.cookie.split(";").forEach(cookie => {
+                document.cookie = cookie.split("=")[0] + "=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/";
+            });
+            window.location.href = '/login2';
+        });
+
+        // Função para adicionar e remover linhas na tabela de investimentos
+        const tableBody = document.getElementById('investment-table-body');
+        document.getElementById('adicionarLinhaInvestimento').addEventListener('click', () => {
+            const newRow = document.createElement('tr');
+            newRow.innerHTML = `
+                <td class="parcela"><input type="text" placeholder="Parcela"></td>
+                <td class="valor"><input type="text" placeholder="Valor"></td>
+                <td class="valor-pago"><input type="text" placeholder="Valor Pago"></td>
+            `;
+            tableBody.appendChild(newRow);
+        });
+
+        document.getElementById('excluirLinhaInvestimento').addEventListener('click', () => {
+            if (tableBody.rows.length > 1) {
+                tableBody.deleteRow(tableBody.rows.length - 1);
+            }
+        });
+
+        // Função para salvar em PDF
+        document.getElementById('button_pdf').addEventListener('click', () => {
+            const element = document.querySelector('.container');
+            html2pdf().from(element).save('solicitacao_investimento_comercial.pdf');
+        });
+
+        // Seleciona os checkboxes
+        const aprovadoCheckbox = document.getElementById('aprovado');
+        const reprovadoCheckbox = document.getElementById('reprovado');
+
+        // Função para garantir que apenas um checkbox esteja marcado
+        function handleCheckboxSelection() {
+            // Quando "Aprovado" é marcado, desmarca "Reprovado"
+            aprovadoCheckbox.addEventListener('change', function () {
+                if (this.checked) {
+                    reprovadoCheckbox.checked = false;
+                }
+            });
+
+            // Quando "Reprovado" é marcado, desmarca "Aprovado"
+            reprovadoCheckbox.addEventListener('change', function () {
+                if (this.checked) {
+                    aprovadoCheckbox.checked = false;
+                }
+            });
+        }
+
+        // Chama a função para inicializar o comportamento
+        handleCheckboxSelection();
+    </script>
+</body>
+</html>

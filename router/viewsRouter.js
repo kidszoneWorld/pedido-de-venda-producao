@@ -97,6 +97,12 @@ router.get('/cadastroCliente',authMiddleware, (req, res) => {
 });
 
 
+// Rota para a página (video.html)
+router.get('/investComercial', (req, res) => {
+    res.sendFile(path.join(__dirname, '..', 'views', 'invest_comercial.html'));
+});
+
+
 // Rotas da API de pedidos
 router.get('/api/pedidos', orderController.getOrderDetails); // Pedidos com representantes
 router.get('/api/pedidos1/:codPedido', orderController.getClientDetailsEndpoint); // Detalhes do pedido por codPedido
