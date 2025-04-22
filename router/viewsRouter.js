@@ -13,6 +13,7 @@ const fernandoController = require('../controllers/fernandoController');
 const clientController = require('../controllers/clientController');
 const clientePdfController = require('../controllers/clientePdfController');
 const pdfInvestComercialController = require('../controllers/pdf_invest_comercialController');
+const pdfInvestPromotorController = require('../controllers/pdf_invest_promotorController');
 
 const router = express.Router();
 
@@ -154,6 +155,7 @@ router.get('/session-test', (req, res) => {
 router.post('/send-pdf', pdfController.sendPdf);
 router.post('/send-client-pdf', clientePdfController.sendClientPdf);
 router.post('/send-pdf-investComercial', pdfInvestComercialController.sendPdf);
+router.post('/send-pdf-investPromotor', pdfInvestPromotorController.sendPdf);
 
 
 // Rota para autenticação

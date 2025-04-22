@@ -24,8 +24,8 @@ exports.sendClientPdf = async (req, res) => {
         const transporter = nodemailer.createTransport({
             service: 'gmail',
             auth: {
-                user: process.env.GMAIL_USER,
-                pass: process.env.GMAIL_APP_PASSWORD
+                user: process.env.GMAIL_USER1,
+                pass: process.env.GMAIL_APP_PASSWORD1
             },
             tls: { rejectUnauthorized: false }
         });
@@ -61,7 +61,7 @@ exports.sendClientPdf = async (req, res) => {
 
         // Envia o e-mail
         await transporter.sendMail({
-            from: 'Pedidos KidsZone <kidzonekidszonemail@gmail.com>',
+            from: 'Cadastro clientes KidsZone <kidszoneworldinvestimento@gmail.com>',
             to: emailTo.split(',').map(email => email.trim()), // Suporta múltiplos e-mails no "Para"
             cc: ccEmails, // Adiciona os e-mails do "Cc"
             subject: subject,

@@ -9,11 +9,6 @@ document.getElementById('logoutButton2').addEventListener('click', async () => {
 });
 
 
-// Função para salvar em PDF
-document.getElementById('button_pdf').addEventListener('click', () => {
-    const element = document.querySelector('.container');
-    html2pdf().from(element).save('solicitacao_investimento_comercial.pdf');
-});
 
 // Seleciona os checkboxes
 const aprovadoCheckbox = document.getElementById('aprovado');
