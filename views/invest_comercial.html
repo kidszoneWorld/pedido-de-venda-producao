@@ -9,8 +9,8 @@
     <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
     <link rel="manifest" href="/images/site.webmanifest">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.2/html2pdf.bundle.min.js"></script>
-    <link rel="stylesheet" href="/css/invest_comercial.css?v=1745281021834">
-    <link rel="stylesheet" href="/css/theme-toggle.css?v=1745281021834">
+    <link rel="stylesheet" href="/css/invest_comercial.css?v=1745281919897">
+    <link rel="stylesheet" href="/css/theme-toggle.css?v=1745281919897">
     <script>
         (function() {
             const savedTheme = localStorage.getItem('theme') || 'light';
@@ -110,7 +110,6 @@
         <div class="section">
             <div class="section-title investimento">INVESTIMENTOS</div>
             
-
             <div class="form-grid">
                 <div>
                     <label for="vigencia_inicial">VIGÊNCIA INICIAL:</label>
@@ -169,8 +168,6 @@
         </div>
 
         <div class="section">
-          
-            
             <div class="investment-table-container">
                 <table class="investment-table" border="1">
                     <thead>
@@ -206,7 +203,7 @@
                 </div>
                 <div class="checkbox-group">
                     <label for="aprovado">Aprovado</label>
-                    <input type="checkbox" id="aprovado" checked>
+                    <input type="checkbox" id="aprovado">
                 </div>
                 <div class="checkbox-group">
                     <label for="reprovado">Reprovado</label>
@@ -231,7 +228,10 @@
 
     <footer>
         <div class="link_sites">
-          
+            <label class="theme-switch">
+                <input type="checkbox" id="themeToggle">
+                <span class="slider"></span>
+            </label>
             <button id="logoutButton2">Sair</button>
             <a target="_blank" href="/admin">Área T.I.</a>
             <a target="_blank" href="/comercial">Área Comercial</a>
@@ -241,9 +241,9 @@
         </div>
     </footer>
 
-    <script src="/script.js?v=1745281021834"></script>
-    <script src="/pdf.js?v=1745281021834"></script>
-    <script src="/theme-toggle.js?v=1745281021834"></script>
+    <script src="/script.js?v=1745281919897"></script>
+    <script src="/pdf.js?v=1745281919897"></script>
+    <script src="/theme-toggle.js?v=1745281919897"></script>
     <script>
         document.getElementById('logoutButton2').addEventListener('click', async () => {
             sessionStorage.clear();
@@ -303,5 +303,5 @@
         // Chama a função para inicializar o comportamento
         handleCheckboxSelection();
     </script>
-</body>
+
 </html>
