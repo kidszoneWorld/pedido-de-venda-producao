@@ -26,6 +26,8 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
 
+
+
 // Adicionar esta linha para configurar o proxy
 app.set('trust proxy', 1); // Necessário para cookies seguros em proxies (como Vercel)
 
@@ -82,10 +84,12 @@ mongoose.connect(process.env.MONGO_URI, {
 
 
 app.use((req, res, next) => {
-    res.setHeader('Access-Control-Allow-Origin', 'https://pedido-venda-teste.vercel.app'); // Substitua pela URL do seu site
+    res.setHeader('Access-Control-Allow-Origin', 'https://pedido-de-venda-producao.vercel.app'); // Substitua pela URL do seu site
     res.setHeader('Access-Control-Allow-Credentials', 'true');
     next();
 });
+
+
 
 // Iniciar o servidor
 app.listen(PORT, () => {

@@ -197,4 +197,5 @@ router.post('/api/sellOut/salvar', sellOutController.salvarSellOut);
 router.delete('/api/sellOut/remover', sellOutController.removerLinhaSellOut);
 
 
+
 module.exports = router;

@@ -20,6 +20,14 @@ function carregarDados() {
         });
 }
 
+// Função para carregar os JSONs 
+fetch(`/data/item_ativos_detalhes.json?cacheBust=${timestamp1}`)
+    .then(response => response.json())
+    .then(data => {
+        itemData = data;
+    });
+
+
 // Função para buscar os dados do produto pelo código
 function buscarProduto(codigo) {
     if (!detalhesProdutosData || !imgProdutosData) return null;
@@ -409,3 +417,59 @@ document.getElementById("button_pdf1").addEventListener("click", async () => {
         feedbackDiv.textContent = 'Erro ao salvar o PDF.';
     });
 });
+
+
+// Função para formatar a data atual no formato YYYY-MM-DD
+function getCurrentDateFormatted() {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0'); // +1 porque os meses começam em 0
+    const day = String(today.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
+// Função para exportar os dados para Excel
+function exportToExcel(data) {
+    // O primeiro array do JSON é o cabeçalho
+    const headers = data[0];
+    
+    // Os arrays subsequentes são os dados dos produtos
+    const exportData = data.slice(1).map(row => {
+        let rowData = {};
+        headers.forEach((header, index) => {
+            rowData[header] = row[index] || ''; // Substitui null/undefined por string vazia
+        });
+        return rowData;
+    });
+
+    // Criar uma nova planilha e worksheet
+    const worksheet = XLSX.utils.json_to_sheet(exportData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Produtos");
+
+    // Ajustar a largura das colunas (opcional)
+    worksheet['!cols'] = headers.map(() => ({ wch: 20 })); // Define largura de 20 para todas as colunas
+
+    // Definir o nome do arquivo com a data atual
+    const currentDate = getCurrentDateFormatted();
+    const fileName = `Produtos_Kids_Zone_${currentDate}.xlsx`;
+
+    // Exportar o arquivo
+    XLSX.writeFile(workbook, fileName);
+}
+
+// Evento para exportar para Excel
+document.getElementById('exportExcel1').addEventListener('click', async () => {
+    if (!itemData || itemData.length === 0) {
+        const feedbackDiv = document.getElementById('feedback1');
+        feedbackDiv.textContent = 'Nenhum dado disponível para exportar.';
+        feedbackDiv.style.display = 'block';
+        setTimeout(() => {
+            feedbackDiv.style.display = 'none';
+        }, 3000);
+        return;
+    }
+
+    exportToExcel(itemData);
+});
+

@@ -12,10 +12,11 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.2/html2pdf.bundle.min.js" integrity="sha512-MpDFIChbcXl2QgipQrt1VcPHMldRILetapBl5MPCA9Y8r7qvlwx1/Mc9hNTzY+kS5kX6PdoDq41ws1HiVNLdZA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     
-    <link rel="stylesheet" href="/css/detalhesProdutos.css?v=1745497863273">
+    <link rel="stylesheet" href="/css/detalhesProdutos.css?v=1745507677160">
 
-    <link rel="stylesheet" href="/css/theme-toggle.css?v=1745497863273">
+    <link rel="stylesheet" href="/css/theme-toggle.css?v=1745507677160">
     <!-- Script inline para aplicar o tema imediatamente -->
     <script>
         (function() {
@@ -41,6 +42,12 @@
             <input type="text" id="codigo" placeholder="Digite o código">
 
             <a target="_blank" class="catalogo" href="https://kidszoneworld.com.br/wp-content/uploads/2024/07/Catalogo-2023-2024.pdf" >Vizualizar Catálogo</a>
+            <div class="tooltip-container excel-tooltip">
+                <a id="exportExcel1">
+                    <img class="img_link_excel" src="/images/excel.png" alt="exportar para excel">
+                </a>
+                <span class="tooltip">Baixar planilha com todos itens ativos</span>
+            </div>
 
         </div>
 
@@ -139,8 +146,8 @@
         </div>
     </div>
 
-    <script src="/detalhesProdutos.js?v=1745497863273"></script>
-    <script src="/theme-toggle.js?v=1745497863273"></script>
+    <script src="/detalhesProdutos.js?v=1745507677160"></script>
+    <script src="/theme-toggle.js?v=1745507677160"></script>
    
 </body>
 </html>
