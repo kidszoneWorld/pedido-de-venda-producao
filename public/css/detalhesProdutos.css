@@ -255,6 +255,7 @@ body {
     margin: 15px 0;
     font-size: 1.2em;
     font-weight: bold;
+    gap: 10px;
   
 }
 
@@ -274,6 +275,11 @@ body {
     border: 1px solid #242323;
     border-radius: 4px;
 
+}
+
+.codigo-item a{
+    text-decoration: none;
+    color:rgba(225,0,152);
 }
 
 .descricao, .info-caixa-master, .info-display, .info-unidade, .calculo-palete {
