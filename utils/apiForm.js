@@ -235,8 +235,8 @@ async function fetchClientsWithdetailsAndRepresentativesWithTransport(cnpj) {
   
       const codClientId = clientOld.codigo;
   
-      const priceListtEndpoint = `https://gateway-ng.dbcorp.com.br:55500/vendas-service/listapreco/cliente/${codClientId}`;
-  
+      const priceListtEndpoint = `https://gateway-ng.dbcorp.com.br:55500/vendas-service/lista-preco?ClienteCodigo=${codClientId}`;
+      console.log(`Codigo do Cliente: ${codClientId}`);
       let priceListData = [];
   
       try {
@@ -261,7 +261,7 @@ async function fetchClientsWithdetailsAndRepresentativesWithTransport(cnpj) {
   
       return {
         ...clientOld,
-        listaPreco: priceListData || []
+        listaPreco: priceListData.dados || []
       };
   
     } catch (error) {

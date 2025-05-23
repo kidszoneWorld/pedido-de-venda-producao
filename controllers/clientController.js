@@ -58,7 +58,7 @@ function treatClientData(clientData) {
     // Obtém o número da UF e converte para a sigla
     const ufNumber = clientData.enderecos?.[0]?.cidade?.uf || 0;
     const ufSigla = ufMap[ufNumber] || "Nenhum"; // Caso o número não exista no mapeamento, retorna "Nenhum"
-
+    debugger;
     // Mapeamento dos campos
     const treatedData = {
         "COD CLIENTE": clientData.codigo || 0 ,
@@ -66,7 +66,7 @@ function treatClientData(clientData) {
         "INSC. ESTADUAL": clientData.documentoEstadual?.numero || "",
         "RAZÃO SOCIAL": clientData.razaoSocial || "",
         "TELEFONE": `${clientData.clienteDataOld?.Result?.TelefoneDDD || ""}${clientData.clienteDataOld?.Result?.TelefoneNumero || ""}`,
-        "LISTA NOME": clientData.listaPreco?.[0].descricao || "",
+        "LISTA NOME": clientData.listaPreco?.[0]?.descricao || "",
         "EMAIL COMERCIAL": clientData.email?.[0]?.emailCompleto || "",
         "EMAIL FISCAL": clientData.emailFiscal?.[0]?.emailCompleto || "",
         "ENDEREÇO": `${clientData.enderecos?.[0]?.logradouro || ""}, ${clientData.enderecos?.[0]?.numero || ""} ${clientData.enderecos?.[0]?.complemento || ""}`.trim(),
@@ -79,8 +79,8 @@ function treatClientData(clientData) {
         "REPRESENTANTE": clientData.representantes?.[0]?.id || 0,
         "REPRESENTANTE NOME": clientData.representantes?.[0]?.nomeAbreviado || "",
         "COD CLIENTE 2": clientData.representantes?.[0]?.clienteId || "",
-        "LISTA": clientData.listaPreco?.[0].id || 0 ,
-        "LISTA NOME1": clientData.listaPreco?.[0].descricao || "",
+        "LISTA": clientData.listaPreco?.[0]?.id || 0 ,
+        "LISTA NOME1": clientData.listaPreco?.[0]?.descricao || "",
         "TRANSPORTADORA": clientData.transportadora?.nomeAbreviado || "",
         "CliDataHoraIncl": clientData.dataCriacao || "",
         "REPRESENTANTE E-MAIL": getRepresentativeEmail(clientData.representantes?.[0]?.id) || "",
