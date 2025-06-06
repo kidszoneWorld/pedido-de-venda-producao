@@ -65,8 +65,8 @@ async function fetchOrderDetails(status = 3, userDataInicio = null, userDataFim 
   
   console.log(`Buscando pedidos com status: ${status}, DataPedidoInicio: ${dataInicio}, DataPedidoFim: ${dataFim}, StatusSeparacao: ${userStatusSeparacao !== null ? userStatusSeparacao : 'todos'}`);
 
-  const pageSize = 20; // Tamanho de cada página (lote)
-  const maxRecords = 200; // Limite máximo de registros
+  const pageSize = 10; // Tamanho de cada página (lote)
+  const maxRecords = 50; // Limite máximo de registros
   let currentPage = 1;
   let allOrders = [];
   let hasMoreData = true;
