@@ -52,7 +52,7 @@ function getLast30Days(userDataInicio = null, userDataFim = null) {
 
 
 // Função para buscar os pedidos de venda com paginação e todos os detalhes relacionados
-async function fetchOrderDetails(status = 3, userDataInicio = null, userDataFim = null, userStatusSeparacao = null , usercodCliente = null) {
+async function fetchOrderDetails(status = 6, userDataInicio = null, userDataFim = null, userStatusSeparacao = null , usercodCliente = null) {
   await checkToken();
 
   if (!authToken) {
