@@ -236,7 +236,7 @@ async function fetchOrderDetailsEndpoint(CodPedido) {
 
   try {
     // Endpoints para as requisições
-    const representativeEndpoint = 'https://gateway-ng.dbcorp.com.br:55500/pessoa-service/representante/cliente/';
+    const representativeEndpoint = 'https://gateway-ng.dbcorp.com.br:55500/pessoa-service/representante?ClienteCodigo=';
     const orderDetailsEndpoint = 'https://gateway-ng.dbcorp.com.br:55500/vendas-service/pedido/';
     const transportEndpoint = 'https://gateway-ng.dbcorp.com.br:55500/pessoa-service/transportadora/codigo/';
     const detailsOrderEndpoint = `https://gateway-ng.dbcorp.com.br:55500/vendas-service/pedido?PedidoCodigo=${CodPedido}`;
