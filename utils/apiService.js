@@ -72,7 +72,7 @@ async function fetchOrderDetails(status = 6, userDataInicio = null, userDataFim 
   let hasMoreData = true;
 
   // Endpoints para as requisições adicionais
-  const representativeEndpoint = 'https://gateway-ng.dbcorp.com.br:55500/pessoa-service/representante/cliente/';
+  const representativeEndpoint = 'https://gateway-ng.dbcorp.com.br:55500/pessoa-service/representante?ClienteCodigo=';
   const orderDetailsEndpoint = 'https://gateway-ng.dbcorp.com.br:55500/vendas-service/pedido/';
   const transportEndpoint = 'https://gateway-ng.dbcorp.com.br:55500/pessoa-service/transportadora/codigo/';
   const invoiceEndpoint = 'https://gateway-ng.dbcorp.com.br:55500/documentos-fiscais-service/nota-fiscal?PedidoDeVendaCodigo=';
@@ -123,7 +123,7 @@ async function fetchOrderDetails(status = 6, userDataInicio = null, userDataFim 
             });
             if (repResponse.ok) {
               const repData = await repResponse.json();
-              representante = repData[0] || null;
+              representante = repData.dados[0] || null;
             }
           } catch (error) {
             console.error(`Erro ao buscar representante para cliente ${order.cliente.codigo}:`, error);
@@ -278,6 +278,7 @@ async function fetchOrderDetailsEndpoint(CodPedido) {
       if (repResponse.ok) {
        console.log(`esta é teste repre ${repResponse}`)
         representante = await repResponse.json();
+        
       }
     } catch (error) {
       console.error(`Erro ao buscar representante para cliente ${order.codigo}:`, error);
@@ -295,6 +296,9 @@ async function fetchOrderDetailsEndpoint(CodPedido) {
       });
       if (detailsResponse.ok) {
         detalhes = await detailsResponse.json();
+        console.log(detalhes.representante[0]?.nomeAbreviado)
+        console.log(detalhes.representante[0]?.id)
+        
       }
     } catch (error) {
       console.error(`Erro ao buscar detalhes para o pedido com ID ${order.dados[0].id}:`, error);

@@ -99,7 +99,7 @@ async function fetchClientsWithRepresentatives(cnpj) {
       const clienteId = clientData.codigo;
   
       // 2. Buscar os representantes desse cliente
-      const representativeEndpoint = `https://gateway-ng.dbcorp.com.br:55500/pessoa-service/representante/cliente/${clienteId}`;
+      const representativeEndpoint = `https://gateway-ng.dbcorp.com.br:55500/pessoa-service/representante?ClienteCodigo=${clienteId}`;
       
       const repResponse = await fetch(representativeEndpoint, {
         method: 'GET',

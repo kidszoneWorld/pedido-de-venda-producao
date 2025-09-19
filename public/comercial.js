@@ -52,7 +52,7 @@ function exportToExcel(data) {
         "Nota Fiscal": order.notas_fiscais?.dados[0].numero || 'Sem Nota',// Nova coluna no Excel
         "Cliente": order.cliente.nomeAbreviado || "",
         "Cliente CNPJ": order.cliente.documento.numeroTexto?.replace(/[\.\-\/]/g, '') || "",
-        "Cód Rep": order.representante?.id || "",
+        "Cód Rep": order.representante?.codigo || "",
         "representante": order.representante?.nomeAbreviado || "",
         "valorTotal": order.detalhes?.valor?.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) || "",
         "Transportadora": order.detalhes_transporte?.nomeAbreviado || "",
@@ -140,7 +140,7 @@ function renderTable(data) {
             <td class="codCliente">${order.cliente.codigo}</td>
             <td class="cliente">${order.cliente.nomeAbreviado}</td>
             <td class="clienteCNPJ">${order.cliente.documento.numeroTexto}</td>
-            <td class="codRep">${order.representante?.id || 'Não informado'}</td>
+            <td class="codRep">${order.representante?.codigo || 'Não informado'}</td>
             <td class="representante">${order.representante?.nomeAbreviado || 'Não informado'}</td>
             <td class="valorTotal">${order.detalhes?.valor?.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) || 'N/A'}</td>
             <td class="transportadora">${order.detalhes_transporte?.nomeAbreviado || 'Não informado'}</td>
@@ -367,10 +367,11 @@ async function showOrderDetails(codPedido) {
       }
       
       const detalhes = await response.json();
-      console.log('Detalhes do pedido:', detalhes);
+     
       
       // Aqui você pode exibir os detalhes em um modal ou em uma div na página
       displayOrderDetails(detalhes);
+      console.log(detalhes)
       
     } catch (error) {
       console.error('Erro:', error);

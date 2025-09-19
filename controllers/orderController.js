@@ -19,7 +19,7 @@ async function getOrderDetails(req, res) {
 
       // Filtrar por codRep e CNPJ, se fornecidos
       const filteredOrders = orders.filter(order => {
-        const matchRep = !codRep || (order.representante?.id?.toString() === codRep.toString());
+        const matchRep = !codRep || (order.representante?.codigo?.toString() === codRep.toString());
         const matchCNPJ = !cnpj || (order.cliente?.documento?.numeroTexto === cnpj);
         const matchCodCliente = !codCliente  || (order.cliente?.codigo === codCliente);
         const matchDataInicio = !dataInicio || new Date(order.dataPedido) >= dataInicio;
