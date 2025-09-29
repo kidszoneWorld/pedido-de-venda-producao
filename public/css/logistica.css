@@ -11,8 +11,8 @@
     --button-text-light: #ffffff;
     --button-hover-bg-light: rgba(225, 0, 152);
     --button-hover-text-light: rgb(250, 242, 247);
-
-    --background-color-dark: #1a1a1a;
+ 
+     --background-color-dark: #333333;
     --container-bg-dark: #2a2a2a;
     --header-bg-dark: #4e4c4c;
     --text-color-dark: #e0e0e0;
@@ -23,6 +23,10 @@
     --button-text-dark: #e0e0e0;
     --button-hover-bg-dark: rgba(225, 0, 152);
     --button-hover-text-dark: rgb(250, 242, 247);
+    --imput-bg-dark: #333333;
+    --imput-text-dark: #e0e0e0;
+    --imput-bg-light: #ffffff;
+    --imput-text-light: #000000;
 }
 
 /* Tema claro (padrão) */
@@ -69,6 +73,7 @@ body.light-theme button:hover {
     background-color: var(--button-hover-bg-light);
     color: var(--button-hover-text-light);
 }
+
 
 /* Tema escuro */
 body.dark-theme {
@@ -131,6 +136,8 @@ body.dark-theme input , select {
     }
     
 }
+
+
 
 @keyframes modalAnimation {
     from {
