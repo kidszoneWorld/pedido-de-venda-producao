@@ -43,10 +43,10 @@ document.addEventListener("DOMContentLoaded", () => {
         console.log('Botão de PDF clicado');
 
         // Validação básica
-        //if (!clienteInput.value || !cnpjInput.value || !responsavelInput.value || !valor.value) {
-            //alert('Por favor, preencha os campos Cliente, CNPJ,Responsável e Valor .');
-          //  return;
-        //}
+        if (!clienteInput.value || !cnpjInput.value || !responsavelInput.value || !valor.value) {
+            alert('Por favor, preencha os campos Cliente, CNPJ,Responsável e Valor .');
+          return;
+        }
 
         // Ocultar elementos que não devem aparecer no PDF
         const elementsToHide = document.querySelectorAll('.no-print, .button-group');
