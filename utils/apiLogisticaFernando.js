@@ -45,7 +45,7 @@ async function getAccessToken() {
 async function getSpreadsheetData(driveId, itemId, sheetName) {
     const token = await getAccessToken()
         const url = `${graphBaseUrl}/drives/${driveId}/items/${itemId}/workbook/worksheets('${sheetName}')/range(address='A1:Q5000')`;
-    console.log(url)
+    
     try {
         const response = await axios.get(url, {
             headers: {
@@ -53,7 +53,7 @@ async function getSpreadsheetData(driveId, itemId, sheetName) {
             },
            
         });
-         console.log(response);
+         
         // Filtrar os últimos 4 meses
         const now = new Date();
         const fourMonthsAgo = new Date();
