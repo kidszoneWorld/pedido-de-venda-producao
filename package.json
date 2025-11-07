@@ -5,10 +5,7 @@
   "main": "app.js",
   "scripts": {
     "start": "node app.js",
-    "dev": "nodemon app.js",
-    "build": "echo 'Build completed'",
-    "vercel-build": "echo 'Vercel build completed'",
-    "postinstall": "echo 'Dependencies installed successfully'"
+    "dev": "nodemon app.js"
   },
   "author": "",
   "license": "ISC",
