@@ -22,7 +22,7 @@ exports.sendPdf = async (req, res) => {
             service: 'gmail',
             auth: {
                 user: process.env.GMAIL_USER1,
-                pass: process.env.GMAIL_APP_PASSWORD1
+                pass: process.env.GMAIL_APP_PASSWORD
             },
             tls: { rejectUnauthorized: false }
         });
