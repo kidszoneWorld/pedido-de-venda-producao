@@ -176,9 +176,24 @@ function buscarCliente(cnpj) {
     return null;
 }
 
+// Mostrar Feedback
+function showFeedback(message) {
+    const feedback1 = document.getElementById('feedback1'); // Alterado para feedback1 conforme o HTML
+    feedback1.style.display = 'block';
+    feedback1.textContent = message;
+}
+
+
+// Ocultar Feedback
+function hideFeedback() {
+    const feedback1 = document.getElementById('feedback1'); // Alterado para feedback1 conforme o HTML
+    feedback1.style.display = 'none';
+    feedback1.textContent = '';
+}
+
 
 // Função para preencher os campos ao digitar o CNPJ
-document.getElementById('cnpj').addEventListener('blur', function () {
+document.getElementById('cnpj').addEventListener('blur', async function (event) {
     
     let cnpj = this.value.replace(/\D/g, ''); // Remove caracteres não numéricos
 
@@ -200,42 +215,152 @@ document.getElementById('cnpj').addEventListener('blur', function () {
     // Aplica a máscara ao CNPJ
     this.value = formatarCNPJ(cnpj);
 
-    let cliente = buscarCliente(cnpj);
-    if (cliente) {
-        document.getElementById('razao_social').value = cliente[3];
-        document.getElementById('ie').value = cliente[2];
-        document.getElementById('representante').value = `${cliente[15]} - ${cliente[16]}`;
-        document.getElementById('endereco').value = cliente[8];
-        document.getElementById('bairro').value = cliente[9];
-        document.getElementById('cidade').value = cliente[10];
-        document.getElementById('uf').value = cliente[11];
+////////////////////////////////////////////////
 
-        // Aplica a máscara ao CEP
-        let cep = cliente[12].toString();
-        document.getElementById('cep').value = formatarCEP(cep);
+    try {
+        // Faz a requisição à API
+        const response = await fetch(`/api/cliente/${cnpj}`);
+        if (!response.ok) {
+            throw new Error('Cliente não encontrado');
+        }
 
-        document.getElementById('telefone').value = cliente[4];
-        document.getElementById('email').value = cliente[6];
-        document.getElementById('email_fiscal').value = cliente[7];
-        document.getElementById('cod_cliente').value = cliente[17];
-        document.getElementById('pay').value = cliente[14];
-        document.getElementById('group').value = cliente[19];
-        document.getElementById('transp').value = cliente[20];
-        document.getElementById('codgroup').value = cliente[18];
-        document.getElementById('representanteId').value = cliente[15];
-        document.getElementById('formPagId').value = cliente[25];
-        document.getElementById('condPagId').value = cliente[27];
-        document.getElementById('PercentualComissaoItem').value = cliente[23];
-        document.getElementById('PercentualComissaoServico').value = cliente[24];
-        document.getElementById('ContatoClienteId').value = cliente[28];
-        document.getElementById('formPagDescricao').value = cliente[26];
-        document.getElementById('email_rep').value = cliente[22];
+        const clienteApi = await response.json();
 
-    } else {
-        alert("Cliente não encontrado.");
+        // Verifica os campos ATIVO e SUSPENSO antes de prosseguir
+        const ativo = clienteApi["ATIVO"];
+        const suspenso = clienteApi["SUSPENSO"];
+
+        if (ativo === false) {
+            alert("Cliente inativo.");
+            limparCamposCliente(); // Limpa os campos para evitar preenchimento
+            return; // Interrompe o processo
+        }
+
+        if (suspenso === true) {
+            alert("Cliente suspenso.");
+            limparCamposCliente(); // Limpa os campos para evitar preenchimento
+            return; // Interrompe o processo
+        }
+
+        // Simula o formato do clientesData como um array de arrays
+        clientesData = [
+            null, // Índice 0 não era usado no JSON antigo
+            [
+                null, // Índice 0 interno não usado
+                clienteApi["CNPJ"],
+                clienteApi["INSC. ESTADUAL"],
+                clienteApi["RAZÃO SOCIAL"],
+                clienteApi["TELEFONE"],
+                clienteApi["LISTA NOME"],
+                clienteApi["EMAIL COMERCIAL"],
+                clienteApi["EMAIL FISCAL"],
+                clienteApi["ENDEREÇO"],
+                clienteApi["BAIRRO"],
+                clienteApi["CIDADE"],
+                clienteApi["UF"],
+                clienteApi["CEP"],
+                clienteApi["NOME CONTATO"],
+                clienteApi["COND. DE PAGTO"],
+                clienteApi["REPRESENTANTE"],
+                clienteApi["REPRESENTANTE NOME"],
+                clienteApi["COD CLIENTE 2"],
+                clienteApi["LISTA"],
+                clienteApi["LISTA NOME1"],
+                clienteApi["TRANSPORTADORA"],
+                clienteApi["CliDataHoraIncl"],
+                clienteApi["REPRESENTANTE E-MAIL"],
+                clienteApi["REP COMISSAO ITEM"],
+                clienteApi["REP COMISSAO SERVICO"],
+                clienteApi["FORMA DE PAGAMENTO ID"],
+                clienteApi["FORMA DE PAGAMENTO DESCRICAO"],
+                clienteApi["ID COND. DE PAGTO"],
+                clienteApi["ID NOME CONTATO"],
+                clienteApi["NOME GRUPO CLIENTE"],
+                clienteApi["GRUPO CLIENTE"],
+                clienteApi["ATIVO"],
+                clienteApi["SUSPENSO"]
+            ]
+        ];
+
+        // Busca o cliente no formato esperado pela função original
+        let cliente = buscarCliente(cnpj);
+        if (cliente) {
+            document.getElementById('razao_social').value = cliente[3];
+            document.getElementById('ie').value = cliente[2];
+            document.getElementById('representante').value = `${cliente[15]} - ${cliente[16]}`;
+            document.getElementById('endereco').value = cliente[8];
+            document.getElementById('bairro').value = cliente[9];
+            document.getElementById('cidade').value = cliente[10];
+            document.getElementById('uf').value = cliente[11];
+
+            // Aplica a máscara ao CEP
+            let cep = cliente[12].toString();
+            document.getElementById('cep').value = formatarCEP(cep);
+
+            document.getElementById('telefone').value = cliente[4];
+            document.getElementById('email').value = cliente[6];
+            document.getElementById('email_fiscal').value = cliente[7];
+            document.getElementById('cod_cliente').value = cliente[17];
+            document.getElementById('pay').value = cliente[14];
+            document.getElementById('group').value = cliente[19];
+            document.getElementById('transp').value = cliente[20];
+            document.getElementById('codgroup').value = cliente[18];
+            document.getElementById('representanteId').value = cliente[15];
+            document.getElementById('formPagId').value = cliente[25];
+            document.getElementById('condPagId').value = cliente[27];
+            document.getElementById('PercentualComissaoItem').value = cliente[23];
+            document.getElementById('PercentualComissaoServico').value = cliente[24];
+            document.getElementById('ContatoClienteId').value = cliente[28];
+            document.getElementById('formPagDescricao').value = cliente[26];
+            document.getElementById('email_rep').value = cliente[22];
+        } else {
+            alert("Cliente não encontrado.");
+        }
+    } catch (error) {
+        console.error('Erro ao buscar cliente na API:', error);
+        alert("Cliente não encontrado por favor verificar com o financeiro.");
+    } finally {
+        // Oculta a mensagem de feedback após o carregamento
+        hideFeedback();
     }
-});
 
+////////////////////////////////////////
+/// Busca o cliente no formato original JSON.
+    // let cliente = buscarCliente(cnpj);
+    // if (cliente) {
+    //     document.getElementById('razao_social').value = cliente[3];
+    //     document.getElementById('ie').value = cliente[2];
+    //     document.getElementById('representante').value = `${cliente[15]} - ${cliente[16]}`;
+    //     document.getElementById('endereco').value = cliente[8];
+    //     document.getElementById('bairro').value = cliente[9];
+    //     document.getElementById('cidade').value = cliente[10];
+    //     document.getElementById('uf').value = cliente[11];
+
+    //     // Aplica a máscara ao CEP
+    //     let cep = cliente[12].toString();
+    //     document.getElementById('cep').value = formatarCEP(cep);
+
+    //     document.getElementById('telefone').value = cliente[4];
+    //     document.getElementById('email').value = cliente[6];
+    //     document.getElementById('email_fiscal').value = cliente[7];
+    //     document.getElementById('cod_cliente').value = cliente[17];
+    //     document.getElementById('pay').value = cliente[14];
+    //     document.getElementById('group').value = cliente[19];
+    //     document.getElementById('transp').value = cliente[20];
+    //     document.getElementById('codgroup').value = cliente[18];
+    //     document.getElementById('representanteId').value = cliente[15];
+    //     document.getElementById('formPagId').value = cliente[25];
+    //     document.getElementById('condPagId').value = cliente[27];
+    //     document.getElementById('PercentualComissaoItem').value = cliente[23];
+    //     document.getElementById('PercentualComissaoServico').value = cliente[24];
+    //     document.getElementById('ContatoClienteId').value = cliente[28];
+    //     document.getElementById('formPagDescricao').value = cliente[26];
+    //     document.getElementById('email_rep').value = cliente[22];
+
+    // } else {
+    //     alert("Cliente não encontrado.");
+    // }
+});
 // Função para zerar os campos da tabela "DADOS PEDIDO"
 function zerarCamposPedido() {
     const linhas = document.querySelectorAll('#dadosPedido tbody tr');
