@@ -166,3 +166,62 @@ Estrutura do projeto:
 |-package.json
 |-README.md
 |-vercel.json
+
+Requisitos:
+conexão com a internet (obrigatorio :)
+
+Variáveis de Ambiente:
+GMAIL_USER - endereço de email para envio de E-mails
+GMAIL_APP_PASSWORD - Senha criptografada do email
+
+GMAIL_USER1 - endereço de email para envio de E-mails
+GMAIL_APP_PASSWORD1- Senha criptografada do email
+
+PASSWORD_KZ - Senha do site da area de TI
+
+TENANTID - id sharepoint Sul e sudeste
+CLIENTID - id Cliente sharepoint Sul e sudeste
+CLIENTSECRET - Id Secreto Sharepoint Sul e sudeste
+
+TENANTID1 - id sharepoint Norte, Nordeste e Centro-Oeste (Fernando)
+CLIENTID1 - id Cliente sharepoint  Norte, Nordeste e Centro-Oeste (Fernando)
+CLIENTSECRET1 - Id Secreto Sharepoint  Norte, Nordeste e Centro-Oeste (Fernando)
+
+MONGO_URI - Não faço ideia, mas foi descontinuado (momentáriamente)
+
+ARQUITETURA
+
+
+Rotas
+Rotas publicas
+
+Rotas protegidas
+
+estrutura Front-end
+
+Estrutura do Back-end
+
+integrações
+(apis)
+
+Banco de dados
+
+autenticação e autorização
+(como funciona as autenticações e fluxos de login)
+
+Segurança (proteções implementadas)
+
+Testes (tipos de testes e ferramentas)
+
+Logs e Monitoramento
+
+Deploy(homologação e produção com passo a passo de publicação)
+
+Manutenção e Boas práticas (Padrões)
+(versionamento)
+
+Problemas Conhecidos
+
+Histórico de Versões
+
+Contato e suporte
