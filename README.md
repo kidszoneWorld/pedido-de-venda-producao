@@ -135,3 +135,34 @@ Estrutura do projeto:
 |   |-danfe_simplificada.txt
 |   |-htm_backup.txt
 |   |-javascript_backup.txt
+|-/views
+|   |-admin.html
+|   |-cadastroCliente.html
+|   |-comercial.html
+|   |-Detalhes dos produtos.html
+|   |-detalhes.html
+|   |-display.html
+|   |-eficiencia.html
+|   |-error-401.html
+|   |-error-404.html
+|   |-index.html
+|   |-invest_comercial.html
+|   |-invest_promotor.html
+|   |-login.html
+|   |-login2.html
+|   |-logistica.html
+|   |-logisticaFernando.html
+|   |-logisticaJoao.html
+|   |-redes.html
+|   |-sellOut.html
+|   |-test.html
+|   |-video.html
+|-.env
+|-.gitattributes
+|-.gitignore
+|-add-cache-bust.js
+|-app.js
+|-package-lock.json
+|-package.json
+|-README.md
+|-vercel.json
