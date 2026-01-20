@@ -220,7 +220,8 @@ Deploy(homologação e produção com passo a passo de publicação)
 Manutenção e Boas práticas (Padrões)
 (versionamento)
 
-Problemas Conhecidos
+Problemas Conhecidos e planos para o futuro
+- adicionar campo de estoque no pedido de item 
 
 Histórico de Versões
 
