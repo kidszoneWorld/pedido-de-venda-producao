@@ -76,13 +76,13 @@ body {
 }
 
 .section {
-    margin-top: 20px;
+    margin-top: 10px;
 }
 
 .section-title {
     background-color: #333;
     color: #ffffff;
-    padding: 5px;
+    padding: 3px;
     font-weight: bold;
     text-align: center;
 }
@@ -275,7 +275,7 @@ div.acao-solicitada-container {
 }
 
 .payment-conditions input {
-    padding: 5px;
+    padding: 3px;
 }
 
 .observations {
