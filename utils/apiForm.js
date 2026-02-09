@@ -416,60 +416,9 @@ async function fetchPaymentCondition(cnpj) {
     }
   }
   
-//Buscar lista de preço:
-async function fetchPriceListItems(codigoLista) {
-  const endpoint = `http://kidszone-api-integracao.dbcorp.com.br/v1/ListaPreco/BuscarItemPorId/${codigoLista}`;
-
-  try {
-    const response = await fetch(endpoint, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'ApplicationToken': ApplicationToken,
-        'CompanyToken': CompanyToken
-      }
-    });
-
-    if (!response.ok) {
-      console.warn(`Erro ao buscar itens da lista de preço: ${response.statusText}`);
-      return [];
-    }
-
-    const data = await response.json();
-    console.log('Itens da lista de preço recebidos:', data);
-
-    return data.Result || [];
-  } catch (error) {
-    console.error('Erro ao buscar itens da lista de preço:', error);
-    return [];
-  }
-}
-
-
-//função composta para pegar o lista de preço
-async function fetchClientWithPriceListItems(cnpj) {
-  const client = await fetchcontat(cnpj);
-
-  if (!client?.listaPreco?.[0]?.codigo) {
-    return client;
-  }
-
-  const listaId = client.listaPreco[0].codigo;
-
-  const itensLista = await fetchPriceListItems(listaId);
-
-  return {
-    ...client,
-    itensListaPreco: itensLista
-  };
-}
-
-
-
-
-
 
 setInterval(checkToken, 60 * 60 * 1000);  // Verifica o token a cada 1 hora
+
 
 
 // Exportar as funções
@@ -482,7 +431,8 @@ module.exports = {
     fetchAllClientsWithPriceList,
     fetchPaymentCondition,
     fetchPaymentMethod,
-    fetchcontat,
-    fetchPriceListItems 
+    fetchcontat
+
+
   };
   

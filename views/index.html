@@ -12,9 +12,9 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.2/html2pdf.bundle.min.js"></script>
 
-    <link rel="stylesheet" href="/css/styles2.css?v=1770303399145">
+    <link rel="stylesheet" href="/css/styles2.css?v=1770663209104">
 
-    <link rel="stylesheet" href="/css/theme-toggle.css?v=1770303399145">
+    <link rel="stylesheet" href="/css/theme-toggle.css?v=1770663209104">
     <!-- Script inline para aplicar o tema imediatamente -->
     <script>
         (function() {
@@ -206,8 +206,8 @@
         <div class="section">
             <div class="section-title">DADOS PEDIDO</div>
             <div class="no-print">
-             <button type="button" id="adicionarLinha" hidden>Adicionar Linha</button>  
-                <button type="button"   id="excluirLinha" hidden>Remover Linha</button>
+                <button type="button" id="adicionarLinha">Adicionar Linha</button>
+                <button type="button"   id="excluirLinha">Remover Linha</button>
             </div>
             <div class="table-container">
                 <table id="dadosPedido" border="1" class="table">
@@ -216,15 +216,19 @@
                             <th class="cod">CÓD</th>
                             <th class="qtd">QTD</th>
                             <th class="uv" >UV</th>
-                            <th class="pack">Excluir linha</th>
+                            <th class="pack">PACK</th>
                             <th class="descricao">DESCRIÇÃO</th>
+                            <th class="ipi">IPI</th>
                             <th class="unit">R$ UNIT.</th>
+                            <th class="vipi">R$ C/ IPI</th>
                             <th class="total" >TOTAL R$</th>
                             <th class="itemId" id="esconder">Item ID</th>
                         </tr>
                     </thead>
                     <tbody>
-
+                        <tr class = "tr_td">
+                             <!-- Linhas do pedido serão adicionadas dinamicamente -->
+                        </tr>
                     </tbody>
                 </table>
             </div>
@@ -233,13 +237,15 @@
 
         <!-- Seção de Condição de Pagamento -->
         <div class="payment-conditions">
-            <center>
+
                 <label for="volume">VOLUMES:</label> 
                 <input type="text" id="volume" readonly>
-                
+
                 <label for="total">TOTAL PRODUTOS:</label> 
                 <input type="text" id="total" readonly>
-            </center>
+
+                <label for="total_imp">TOTAL C/IMP:</label> 
+                <input type="text" id="total_imp" readonly>
 
         </div>
 
@@ -302,9 +308,9 @@
         
     </footer>
     
-    <script src="/script.js?v=1770303399145"></script>
+    <script src="/script.js?v=1770663209104"></script>
     <script  src="/pdf.js?v=1742259354185"></script>
-    <script src="/theme-toggle.js?v=1770303399145"></script>
+    <script src="/theme-toggle.js?v=1770663209104"></script>
 
     <script>
          // Função para limpar dados do usuário e redirecionar para a página de login

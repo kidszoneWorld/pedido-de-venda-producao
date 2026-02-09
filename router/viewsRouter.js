@@ -14,8 +14,6 @@ const clientController = require('../controllers/clientController');
 const clientePdfController = require('../controllers/clientePdfController');
 const pdfInvestComercialController = require('../controllers/pdf_invest_comercialController');
 const pdfInvestPromotorController = require('../controllers/pdf_invest_promotorController');
-const productController = require('../controllers/productController');
-
 
 const router = express.Router();
 
@@ -178,7 +176,6 @@ router.post('/logout', (req, res) => {
 //Rota post para pedidos
 
 router.post('/api/pedidos/input', inputOrdersController.fetchImputOrders)
-router.get('/api/lista-preco/:listaId', productController.getListaPreco);
 
 
 /////banco de dados mogondb atlas

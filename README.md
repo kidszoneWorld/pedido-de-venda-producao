@@ -221,9 +221,8 @@ Manutenção e Boas práticas (Padrões)
 (versionamento)
 
 Problemas Conhecidos e planos para o futuro
-- adicionar campo de estoque no pedido de item 
+- oferecer opção de Puxar Cliente pelo ID 
 - adicionar funcionalidade para observar a nota na Área Comercial semelhante aos detalhes
--adicionar aprovação financeira no comercial
 
 Histórico de Versões
 
