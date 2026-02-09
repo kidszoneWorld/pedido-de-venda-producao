@@ -188,7 +188,6 @@ cnpjInput1.addEventListener('blur', async function () {
 // ======================================================================
 function atualizarTotais() {
     atualizarTotalProdutos();
-    atualizarTotalComImposto();
     atualizarTotalVolumes();
 }
 
@@ -226,9 +225,7 @@ function zerarCamposPedido() {
         primeiraLinha?.cells[0]?.querySelector('input')?.focus();
     }, 0);
 
-    atualizarTotalComImposto();
-    atualizarTotalVolumes();
-    atualizarTotalProdutos();
+    atualizarTotais();
 }
 
 
@@ -247,23 +244,10 @@ document.getElementById('tipo_pedido').addEventListener('change', function () {
 
 
 // Função para atualizar o total com imposto de todas as linhas
-function atualizarTotalComImposto() {
-    let total = 0;
-    const linhas = document.querySelectorAll('#dadosPedido tbody tr');
-    
-    linhas.forEach(tr => {
-        const cell = tr.cells[8]?.querySelector('input');
-        if (cell && cell.value) {
-            const cellValue = cell.value.replace("R$", "").replace(/\./g, "").replace(",", ".");
-            const valor = parseFloat(cellValue);
-            if (!isNaN(valor)) {
-                total += valor;
-            }
-        }
-    });
+
     
     document.getElementById('total_imp').value = total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-}
+
 
 // Função para atualizar o total de volumes (quantidades) de todas as linhas
 function atualizarTotalVolumes() {
@@ -290,7 +274,7 @@ function atualizarTotalProdutos() {
 
     linhas.forEach(tr => {
         const quantidadeCell = tr.cells[1]?.querySelector('input');
-        const valorUnitarioCell = tr.cells[6]?.querySelector('input');
+        const valorUnitarioCell = tr.cells[5]?.querySelector('input');
         if (quantidadeCell && valorUnitarioCell && quantidadeCell.value && valorUnitarioCell.value) {
             const quantidade = parseFloat(quantidadeCell.value.replace(",", "."));
             const valorUnitario = parseFloat(valorUnitarioCell.value.replace("R$", "").replace(/\./g, "").replace(",", "."));
@@ -308,11 +292,11 @@ function adicionarNovaLinha() {
     const tbody = document.querySelector('#dadosPedido tbody');
     const tr = document.createElement('tr');
 
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < 8; i++) {
         const td = document.createElement('td');
 
         // 🔴 coluna oculta (ItemId)
-        if (i === 9) {
+        if (i === 7) {
             td.style.display = 'none';
         }
 
@@ -332,9 +316,7 @@ function adicionarNovaLinha() {
 
             btn.addEventListener('click', () => {
                 tr.remove();
-                atualizarTotalProdutos();
-                atualizarTotalComImposto();
-                atualizarTotalVolumes();
+                atualizarTotais();
                 garantirLinhaInicial();
             });
 
@@ -458,39 +440,32 @@ if (i === 0) {
 
             const item = data[0];
             const preco = Number(item.PrecoVenda);
-            const ipi = 0.0325;
+            
 
             cells[2].value = 'CX';
             cells[3].value = item.ItemDescricao;
-            cells[5].value = preco.toLocaleString('pt-BR', {
+            cells[4].value = preco.toLocaleString('pt-BR', {
                 style: 'currency',
                 currency: 'BRL'
             });
-            cells[4].value = '3,25%';
+  
 
             cells[1].readOnly = false;
             cells[1].focus();
 
             cells[1].addEventListener('input', () => {
                 const qtd = parseFloat(cells[1].value.replace(',', '.')) || 0;
-                const precoIpi = preco * (1 + ipi);
-                const totalLinha = qtd * precoIpi;
+                const totalLinha = qtd * preco;
 
-                cells[6].value = precoIpi.toLocaleString('pt-BR', {
-                    style: 'currency',
-                    currency: 'BRL'
-                });
 
-                cells[7].value = totalLinha.toLocaleString('pt-BR', {
+                cells[5].value = totalLinha.toLocaleString('pt-BR', {
                     style: 'currency',
                     currency: 'BRL'
                 });
 
                 tr.dataset.itemId = item.ItemId;
 
-                atualizarTotalProdutos();
-                atualizarTotalComImposto();
-                atualizarTotalVolumes();
+                atualizarTotais();
             });
 
         } catch (error) {
@@ -515,9 +490,7 @@ document.getElementById('excluirLinha').addEventListener('click', function () {
     let tbody = document.querySelector('#dadosPedido tbody');
     if (tbody.rows.length > 0) {
         tbody.deleteRow(tbody.rows.length - 1);
-        atualizarTotalComImposto();
-        atualizarTotalVolumes();
-        atualizarTotalProdutos();
+        atualizarTotais();  
     } else {
         alert("Nenhuma linha para remover");
     }
