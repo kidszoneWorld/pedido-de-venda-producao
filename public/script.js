@@ -1,101 +1,78 @@
-//// Variáveis globais 
+const timestamp = Date.now();
+// ======================================================================
+// 🌍 VARIÁVEIS GLOBAIS
+// ======================================================================
 let clientesData;
 let promocaoData;
 let foraDeLinhaData;
 let listaPrecosData;
 let icmsSTData;
-//// Variáveis globais 
+let listaPrecosIpiData;
 
-//Função para atualizar os caches no navegador
-const timestamp = new Date().getTime();
 
-// Função para carregar os JSONs 
-fetch(`/data/cliente.json?cacheBust=${timestamp}`)
-    .then(response => response.json())
-    .then(data => {
-        clientesData = data;
-    });
 
-fetch(`/data/Promocao.json?cacheBust=${timestamp}`)
-    .then(response => response.json())
-    .then(data => {
-        promocaoData = data;
-    });
+// Helper DOM
+const el = id => document.getElementById(id);
 
-fetch(`/data/Fora de linha.json?cacheBust=${timestamp}`)
-    .then(response => response.json())
-    .then(data => {
-        foraDeLinhaData = data;
-    });
+// ======================================================================
+// 📦 CACHE / FETCH DE DADOS INICIAIS
+// ======================================================================
 
 fetch(`/data/Lista-precos.json?cacheBust=${timestamp}`)
-    .then(response => response.json())
-    .then(data => {
-        listaPrecosData = data;
-    });
+  .then(r => r.json())
+  .then(d => listaPrecosIpiData = d);
+
+fetch(`/data/cliente.json?cacheBust=${timestamp}`)
+  .then(r => r.json())
+  .then(d => clientesData = d);
+
+fetch(`/data/Promocao.json?cacheBust=${timestamp}`)
+  .then(r => r.json())
+  .then(d => promocaoData = d);
+
+fetch(`/data/Fora de linha.json?cacheBust=${timestamp}`)
+  .then(r => r.json())
+  .then(d => foraDeLinhaData = d);
 
 fetch(`/data/ICMS-ST.json?cacheBust=${timestamp}`)
-    .then(response => response.json())
-    .then(data => {
-        icmsSTData = data;
-    });
+  .then(r => r.json())
+  .then(d => icmsSTData = d);
 
-// Função para formatar o CNPJ com máscara
-function formatarCNPJ(cnpj) {
-    return cnpj.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, "$1.$2.$3/$4-$5");
+
+
+async function carregarListaPrecos(listaId) {
+    const response = await fetch(`/api/lista-preco/${listaId}`);
+    listaPrecosData = await response.json();
+    console.log('LISTA DE PREÇOS CARREGADA:', Array.isArray(listaPrecosData) ? listaPrecosData.length : listaPrecosData);
 }
 
-// Função para formatar o CEP com máscara
-function formatarCEP(cep) {
-    return cep.replace(/^(\d{5})(\d{3})$/, "$1-$2");
-}
+console.log('script.js carregado');
 
-// Função para ajustar o CNPJ com zeros à esquerda, se necessário
+// ======================================================================
+// 🔧 FUNÇÕES UTILITÁRIAS
+// ======================================================================
+const formatarCNPJ = cnpj =>
+    cnpj.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, "$1.$2.$3/$4-$5");
+
+const formatarCEP = cep =>
+    cep.replace(/^(\d{5})(\d{3})$/, "$1-$2");
+
 function ajustarCNPJ(cnpj) {
-    while (cnpj.length < 14) {
-        cnpj = '0' + cnpj;
-    }
+    while (cnpj.length < 14) cnpj = '0' + cnpj;
     return cnpj;
 }
 
-// Função para buscar o produto em promoção
-function buscarPromocao(cod) {
-    for (let i = 1; i < promocaoData.length; i++) {
-        if (promocaoData[i][0] == cod) {
-            return promocaoData[i];
-        }
-    }
-    return null;
-}
+const cnpjInvalido = cnpj => /^0+$/.test(cnpj);
 
-// Função para verificar se o código está fora de linha
-function verificarForaDeLinha(cod) {
-    for (let i = 1; i < foraDeLinhaData.length; i++) {
-        if (foraDeLinhaData[i][0] == cod) {
-            return true;
-        }
-    }
-    return false;
-}
-
-// Função para buscar dados na Lista de Preços
-function buscarListaPrecos(cod) {
-    for (let i = 1; i < listaPrecosData.length; i++) {
-        if (listaPrecosData[i][2] == cod) {
-            return listaPrecosData[i];
-        }
-    }
-    return null;
-}
-
-// Função para buscar os dados do cliente pelo CNPJ
+// ======================================================================
+// 🔍 BUSCAS EM CACHE
+// ======================================================================
 function buscarCliente(cnpj) {
-    // Ajusta o CNPJ com zeros à esquerda
-    cnpj = ajustarCNPJ(cnpj);
+    if (!Array.isArray(clientesData)) return null;
 
+    cnpj = ajustarCNPJ(cnpj);
     for (let i = 1; i < clientesData.length; i++) {
-        let cnpjCliente = ajustarCNPJ(clientesData[i][1].toString());
-        if (cnpjCliente === cnpj) {
+        if (ajustarCNPJ(clientesData[i][1].toString()) === cnpj) {
             return clientesData[i];
         }
     }
@@ -103,282 +80,186 @@ function buscarCliente(cnpj) {
 }
 
 
-
-// Função para verificar se o CNPJ é composto apenas de zeros
-function cnpjInvalido(cnpj) {
-    return /^0+$/.test(cnpj);
+function buscarPromocao(cod) {
+    for (let i = 1; i < promocaoData.length; i++) {
+        if (promocaoData[i][0] == cod) return promocaoData[i];
+    }
+    return null;
 }
 
+function verificarForaDeLinha(cod) {
+    for (let i = 1; i < foraDeLinhaData.length; i++) {
+        if (foraDeLinhaData[i][0] == cod) return true;
+    }
+    return false;
+}
 
-// Função para limpar todos os campos relacionados ao cliente
+// ======================================================================
+// 👤 CLIENTE / CNPJ
+// ======================================================================
 function limparCamposCliente() {
-    document.getElementById('razao_social').value = '';
-    document.getElementById('ie').value = '';
-    document.getElementById('representante').value = '';
-    document.getElementById('endereco').value = '';
-    document.getElementById('bairro').value = '';
-    document.getElementById('cidade').value = '';
-    document.getElementById('uf').value = '';
-    document.getElementById('cep').value = '';
-    document.getElementById('telefone').value = '';
-    document.getElementById('email').value = '';
-    document.getElementById('email_fiscal').value = '';
-    document.getElementById('cod_cliente').value = '';
-    document.getElementById('pay').value = '';
-    document.getElementById('group').value = '';
-    document.getElementById('transp').value = '';
-    document.getElementById('codgroup').value = '';
-    document.getElementById('email_rep').value = '';
+    [
+        'razao_social','ie','representante','endereco','bairro','cidade','uf',
+        'cep','telefone','email','email_fiscal','cod_cliente','pay','group',
+        'transp','codgroup','email_rep'
+    ].forEach(id => el(id).value = '');
 }
 
-// Adiciona o evento de focus no campo CNPJ
-const cnpjInput1 = document.getElementById('cnpj');
-const blockModal = document.getElementById('blockModal');
-const okButton = document.getElementById('okButton');
-const closeButtonBlock = blockModal.querySelector('.close-button');
+// Feedback
+const showFeedback = msg => { el('feedback1').style.display = 'block'; el('feedback1').textContent = msg; };
+const hideFeedback = () => { el('feedback1').style.display = 'none'; el('feedback1').textContent = ''; };
 
-cnpjInput1.addEventListener('focus', function () {
+// Modal bloqueio CNPJ
+const cnpjInput1 = el('cnpj');
+const blockModal = el('blockModal');
+el('okButton').onclick = () => blockModal.style.display = "none";
+blockModal.querySelector('.close-button').onclick = () => blockModal.style.display = "none";
+
+cnpjInput1.addEventListener('focus', () => {
     if (cnpjInput1.readOnly) {
         blockModal.style.display = "block";
-        const now = new Date();
-        const timestamp = now.toLocaleDateString('pt-BR') + ' ' + now.toLocaleTimeString('pt-BR');
-        document.getElementById('timestamp').textContent = timestamp;
+        el('timestamp').textContent = new Date().toLocaleString('pt-BR');
         return;
     }
     limparCamposCliente();
 });
 
-okButton.addEventListener('click', () => {
-    blockModal.style.display = "none";
-});
-
-closeButtonBlock.addEventListener('click', () => {
-    blockModal.style.display = "none";
-});
-
-window.addEventListener('click', (event) => {
-    if (event.target == blockModal) {
-        blockModal.style.display = "none";
-    }
-});
-
-// Função para buscar os dados do cliente pelo CNPJ
-function buscarCliente(cnpj) {
-    // Ajusta o CNPJ com zeros à esquerda
-    cnpj = ajustarCNPJ(cnpj);
-
-    for (let i = 1; i < clientesData.length; i++) {
-        let cnpjCliente = ajustarCNPJ(clientesData[i][1].toString());
-        if (cnpjCliente === cnpj) {
-            return clientesData[i];
-        }
-    }
-    return null;
-}
-
-// Mostrar Feedback
-function showFeedback(message) {
-    const feedback1 = document.getElementById('feedback1'); // Alterado para feedback1 conforme o HTML
-    feedback1.style.display = 'block';
-    feedback1.textContent = message;
-}
-
-
-// Ocultar Feedback
-function hideFeedback() {
-    const feedback1 = document.getElementById('feedback1'); // Alterado para feedback1 conforme o HTML
-    feedback1.style.display = 'none';
-    feedback1.textContent = '';
-}
-
-
-// Função para preencher os campos ao digitar o CNPJ
-document.getElementById('cnpj').addEventListener('blur', async function (event) {
-    
-    let cnpj = this.value.replace(/\D/g, ''); // Remove caracteres não numéricos
-
-    // Verifica se o campo está vazio
-    if (cnpj === '') {
-            return; // Sai da função sem buscar dados
-    }
-
-    // Verifica se o CNPJ é inválido (apenas zeros)
-    if (cnpjInvalido(cnpj)) {
-        alert("CNPJ inválido.");
-        this.value = ''; // Limpa o campo CNPJ
-        return; // Sai da função sem buscar dados
-    }
-
+// ======================================================================
+// 🔄 BLUR CNPJ → API CLIENTE
+// ======================================================================
+cnpjInput1.addEventListener('blur', async function () {
+    let cnpj = this.value.replace(/\D/g, '');
+    if (!cnpj || cnpjInvalido(cnpj)) return alert("CNPJ inválido.");
 
     cnpj = ajustarCNPJ(cnpj);
-
-    // Aplica a máscara ao CNPJ
     this.value = formatarCNPJ(cnpj);
 
-////////////////////////////////////////////////
+    showFeedback('Carregando cliente...');
+    this.readOnly = true;
+
+    let clienteApi;
 
     try {
-        // Faz a requisição à API
-        const response = await fetch(`/api/cliente/${cnpj}`);
-        if (!response.ok) {
-            throw new Error('Cliente não encontrado');
+        const res = await fetch(`/api/cliente/${cnpj}`);
+        if (!res.ok) throw new Error();
+        clienteApi = await res.json();
+
+        if (!clienteApi.ATIVO || clienteApi.SUSPENSO) {
+            alert('Cliente inativo ou suspenso.');
+            return limparCamposCliente();
         }
 
-        const clienteApi = await response.json();
+        clientesData = [null, [
+            null,
+            clienteApi["CNPJ"], clienteApi["INSC. ESTADUAL"], clienteApi["RAZÃO SOCIAL"],
+            clienteApi["TELEFONE"], clienteApi["LISTA NOME"], clienteApi["EMAIL COMERCIAL"],
+            clienteApi["EMAIL FISCAL"], clienteApi["ENDEREÇO"], clienteApi["BAIRRO"],
+            clienteApi["CIDADE"], clienteApi["UF"], clienteApi["CEP"],
+            clienteApi["NOME CONTATO"], clienteApi["COND. DE PAGTO"],
+            clienteApi["REPRESENTANTE"], clienteApi["REPRESENTANTE NOME"],
+            clienteApi["COD CLIENTE 2"], clienteApi["LISTA"], clienteApi["LISTA NOME1"],
+            clienteApi["TRANSPORTADORA"], clienteApi["CliDataHoraIncl"],
+            clienteApi["REPRESENTANTE E-MAIL"], clienteApi["REP COMISSAO ITEM"],
+            clienteApi["REP COMISSAO SERVICO"], clienteApi["FORMA DE PAGAMENTO ID"],
+            clienteApi["FORMA DE PAGAMENTO DESCRICAO"], clienteApi["ID COND. DE PAGTO"],
+            clienteApi["ID NOME CONTATO"], clienteApi["NOME GRUPO CLIENTE"],
+            clienteApi["GRUPO CLIENTE"], clienteApi["ATIVO"], clienteApi["SUSPENSO"]
+        ]];
 
-        // Verifica os campos ATIVO e SUSPENSO antes de prosseguir
-        const ativo = clienteApi["ATIVO"];
-        const suspenso = clienteApi["SUSPENSO"];
+        const c = buscarCliente(cnpj);
+        if (!c) return alert('Cliente não encontrado.');
 
-        if (ativo === false) {
-            alert("Cliente inativo.");
-            limparCamposCliente(); // Limpa os campos para evitar preenchimento
-            return; // Interrompe o processo
-        }
+        el('razao_social').value = c[3];
+        el('ie').value = c[2];
+        el('representante').value = `${c[15]} - ${c[16]}`;
+        el('endereco').value = c[8];
+        el('bairro').value = c[9];
+        el('cidade').value = c[10];
+        el('uf').value = c[11];
+        el('cep').value = formatarCEP(c[12].toString());
+        el('telefone').value = c[4];
+        el('email').value = c[6];
+        el('email_fiscal').value = c[7];
+        el('cod_cliente').value = c[17];
+        el('pay').value = c[14];
+        el('group').value = c[19];
+        el('transp').value = c[20];
+        el('codgroup').value = c[18];
+        el('representanteId').value = c[15];
+        el('formPagId').value = c[25];
+        el('condPagId').value = c[27];
+        el('PercentualComissaoItem').value = c[23];
+        el('PercentualComissaoServico').value = c[24];
+        el('ContatoClienteId').value = c[28];
+        el('formPagDescricao').value = c[26];
+        el('email_rep').value = c[22];
 
-        if (suspenso === true) {
-            alert("Cliente suspenso.");
-            limparCamposCliente(); // Limpa os campos para evitar preenchimento
-            return; // Interrompe o processo
-        }
+        if (clienteApi.LISTA) await carregarListaPrecos(clienteApi.LISTA);
 
-        // Simula o formato do clientesData como um array de arrays
-        clientesData = [
-            null, // Índice 0 não era usado no JSON antigo
-            [
-                null, // Índice 0 interno não usado
-                clienteApi["CNPJ"],
-                clienteApi["INSC. ESTADUAL"],
-                clienteApi["RAZÃO SOCIAL"],
-                clienteApi["TELEFONE"],
-                clienteApi["LISTA NOME"],
-                clienteApi["EMAIL COMERCIAL"],
-                clienteApi["EMAIL FISCAL"],
-                clienteApi["ENDEREÇO"],
-                clienteApi["BAIRRO"],
-                clienteApi["CIDADE"],
-                clienteApi["UF"],
-                clienteApi["CEP"],
-                clienteApi["NOME CONTATO"],
-                clienteApi["COND. DE PAGTO"],
-                clienteApi["REPRESENTANTE"],
-                clienteApi["REPRESENTANTE NOME"],
-                clienteApi["COD CLIENTE 2"],
-                clienteApi["LISTA"],
-                clienteApi["LISTA NOME1"],
-                clienteApi["TRANSPORTADORA"],
-                clienteApi["CliDataHoraIncl"],
-                clienteApi["REPRESENTANTE E-MAIL"],
-                clienteApi["REP COMISSAO ITEM"],
-                clienteApi["REP COMISSAO SERVICO"],
-                clienteApi["FORMA DE PAGAMENTO ID"],
-                clienteApi["FORMA DE PAGAMENTO DESCRICAO"],
-                clienteApi["ID COND. DE PAGTO"],
-                clienteApi["ID NOME CONTATO"],
-                clienteApi["NOME GRUPO CLIENTE"],
-                clienteApi["GRUPO CLIENTE"],
-                clienteApi["ATIVO"],
-                clienteApi["SUSPENSO"]
-            ]
-        ];
-
-        // Busca o cliente no formato esperado pela função original
-        let cliente = buscarCliente(cnpj);
-        if (cliente) {
-            document.getElementById('razao_social').value = cliente[3];
-            document.getElementById('ie').value = cliente[2];
-            document.getElementById('representante').value = `${cliente[15]} - ${cliente[16]}`;
-            document.getElementById('endereco').value = cliente[8];
-            document.getElementById('bairro').value = cliente[9];
-            document.getElementById('cidade').value = cliente[10];
-            document.getElementById('uf').value = cliente[11];
-
-            // Aplica a máscara ao CEP
-            let cep = cliente[12].toString();
-            document.getElementById('cep').value = formatarCEP(cep);
-
-            document.getElementById('telefone').value = cliente[4];
-            document.getElementById('email').value = cliente[6];
-            document.getElementById('email_fiscal').value = cliente[7];
-            document.getElementById('cod_cliente').value = cliente[17];
-            document.getElementById('pay').value = cliente[14];
-            document.getElementById('group').value = cliente[19];
-            document.getElementById('transp').value = cliente[20];
-            document.getElementById('codgroup').value = cliente[18];
-            document.getElementById('representanteId').value = cliente[15];
-            document.getElementById('formPagId').value = cliente[25];
-            document.getElementById('condPagId').value = cliente[27];
-            document.getElementById('PercentualComissaoItem').value = cliente[23];
-            document.getElementById('PercentualComissaoServico').value = cliente[24];
-            document.getElementById('ContatoClienteId').value = cliente[28];
-            document.getElementById('formPagDescricao').value = cliente[26];
-            document.getElementById('email_rep').value = cliente[22];
-        } else {
-            alert("Cliente não encontrado.");
-        }
-    } catch (error) {
-        console.error('Erro ao buscar cliente na API:', error);
-        alert("Cliente não encontrado por favor verificar com o financeiro.");
+    } catch {
+        alert("Cliente não encontrado, verificar com o financeiro.");
     } finally {
-        // Oculta a mensagem de feedback após o carregamento
         hideFeedback();
+        this.readOnly = false;
+        garantirLinhaInicial();
+        setTimeout(() => document.querySelector('#dadosPedido tbody tr input')?.focus(), 0);
     }
-
-////////////////////////////////////////
-/// Busca o cliente no formato original JSON.
-    // let cliente = buscarCliente(cnpj);
-    // if (cliente) {
-    //     document.getElementById('razao_social').value = cliente[3];
-    //     document.getElementById('ie').value = cliente[2];
-    //     document.getElementById('representante').value = `${cliente[15]} - ${cliente[16]}`;
-    //     document.getElementById('endereco').value = cliente[8];
-    //     document.getElementById('bairro').value = cliente[9];
-    //     document.getElementById('cidade').value = cliente[10];
-    //     document.getElementById('uf').value = cliente[11];
-
-    //     // Aplica a máscara ao CEP
-    //     let cep = cliente[12].toString();
-    //     document.getElementById('cep').value = formatarCEP(cep);
-
-    //     document.getElementById('telefone').value = cliente[4];
-    //     document.getElementById('email').value = cliente[6];
-    //     document.getElementById('email_fiscal').value = cliente[7];
-    //     document.getElementById('cod_cliente').value = cliente[17];
-    //     document.getElementById('pay').value = cliente[14];
-    //     document.getElementById('group').value = cliente[19];
-    //     document.getElementById('transp').value = cliente[20];
-    //     document.getElementById('codgroup').value = cliente[18];
-    //     document.getElementById('representanteId').value = cliente[15];
-    //     document.getElementById('formPagId').value = cliente[25];
-    //     document.getElementById('condPagId').value = cliente[27];
-    //     document.getElementById('PercentualComissaoItem').value = cliente[23];
-    //     document.getElementById('PercentualComissaoServico').value = cliente[24];
-    //     document.getElementById('ContatoClienteId').value = cliente[28];
-    //     document.getElementById('formPagDescricao').value = cliente[26];
-    //     document.getElementById('email_rep').value = cliente[22];
-
-    // } else {
-    //     alert("Cliente não encontrado.");
-    // }
 });
+
+// ======================================================================
+// 📦 PEDIDO / TABELA
+// ======================================================================
+
+
+
+function atualizarTotais() {
+    atualizarTotalProdutos();
+    atualizarTotalVolumes();
+    atualizarTotalComImposto();
+}
+
+function garantirLinhaInicial() {
+    const tbody = el('dadosPedido').querySelector('tbody');
+    tbody.querySelectorAll('tr').forEach(tr => !tr.querySelector('input') && tr.remove());
+    if (!tbody.querySelector('tr')) adicionarNovaLinha();
+}
+
+// (demais funções de tabela permanecem exatamente como estão)
+
+// ======================================================================
+// 🚀 ENVIO DO PEDIDO
+// ======================================================================
+// (mantido igual, apenas usando atualizarTotais() onde aplicável)
+
+
+
 // Função para zerar os campos da tabela "DADOS PEDIDO"
 function zerarCamposPedido() {
     const linhas = document.querySelectorAll('#dadosPedido tbody tr');
+
     linhas.forEach(tr => {
-        const inputs = tr.querySelectorAll('input');
-        inputs.forEach(input => input.value = ''); // Zera o valor de cada input
+        tr.querySelectorAll('input').forEach(input => {
+            input.value = '';
+            input.readOnly = false;
+        });
     });
 
-    // Atualiza os totais após zerar os campos
-    atualizarTotalComImposto();
-    atualizarTotalVolumes();
-    atualizarTotalProdutos();
+    garantirLinhaInicial();
+
+    // 🔥 foco automático no código do item
+    setTimeout(() => {
+        const primeiraLinha = document.querySelector('#dadosPedido tbody tr');
+        primeiraLinha?.cells[0]?.querySelector('input')?.focus();
+    }, 0);
+
+    atualizarTotais();
 }
+
 
 // Adiciona o evento para zerar os campos quando o tipo de pedido for alterado
 
 document.getElementById('tipo_pedido').addEventListener('change', function () {
-    zerarCamposPedido();
+ 
     let tipoPedido1 = this.value;
     if (tipoPedido1 === 'Bonificação') {
         document.getElementById('referencia').value = 'BONIFICAÇÃO';
@@ -386,6 +267,52 @@ document.getElementById('tipo_pedido').addEventListener('change', function () {
         document.getElementById('referencia').value = '';
     }
 });
+
+
+
+
+// Função para atualizar o total de volumes (quantidades) de todas as linhas
+function atualizarTotalVolumes() {
+    let totalVolumes = 0;
+    const linhas = document.querySelectorAll('#dadosPedido tbody tr');
+
+    linhas.forEach(tr => {
+        const cell = tr.cells[1]?.querySelector('input');
+        if (cell && cell.value) {
+            const quantidade = parseFloat(cell.value.replace(",", "."));
+            if (!isNaN(quantidade)) {
+                totalVolumes += quantidade;
+                console.log('Quantidade adicionada:', quantidade);
+                console.log('Total de volumes até agora:', totalVolumes);
+            }
+        }
+    });
+
+    document.getElementById('volume').value = totalVolumes;
+}
+
+
+
+
+// Função para atualizar o total de produtos (quantidade * valor unitário)
+function atualizarTotalProdutos() {
+    let totalProdutos = 0;
+    const linhas = document.querySelectorAll('#dadosPedido tbody tr');
+
+    linhas.forEach(tr => {
+        const quantidadeCell = tr.cells[1]?.querySelector('input');
+        const valorUnitarioCell = tr.cells[5]?.querySelector('input');
+        if (quantidadeCell && valorUnitarioCell && quantidadeCell.value && valorUnitarioCell.value) {
+            const quantidade = parseFloat(quantidadeCell.value.replace(",", "."));
+            const valorUnitario = parseFloat(valorUnitarioCell.value.replace("R$", "").replace(/\./g, "").replace(",", "."));
+            if (!isNaN(quantidade) && !isNaN(valorUnitario)) {
+                totalProdutos += quantidade * valorUnitario;
+            }
+        }
+    });
+
+    document.getElementById('total').value = totalProdutos.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+}
 
 // Função para atualizar o total com imposto de todas as linhas
 function atualizarTotalComImposto() {
@@ -402,127 +329,257 @@ function atualizarTotalComImposto() {
             }
         }
     });
-    
-    document.getElementById('total_imp').value = total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+}
+////////////////////////////////////////////////////////////////////////////// garantido até aqui
+
+//Buscar IPI pelo código do item
+function buscarIpiDoItem(codigoItem) {
+    if (!Array.isArray(listaPrecosIpiData) || listaPrecosIpiData.length < 2) {
+        return 0;
+    }
+
+    const header = listaPrecosIpiData[0];
+    const idxCodigo = header.indexOf("ITEM COD");
+    const idxIpi = header.indexOf("IPI");
+
+    if (idxCodigo === -1 || idxIpi === -1) {
+        console.warn('Coluna ITEM COD ou IPI não encontrada');
+        return 0;
+    }
+
+    const linha = listaPrecosIpiData.find(
+        (row, index) =>
+            index > 0 &&
+            String(row[idxCodigo]).trim().toUpperCase() ===
+            String(codigoItem).trim().toUpperCase()
+    );
+
+    if (!linha) return 0;
+
+    const ipi = Number(linha[idxIpi]);
+    return isNaN(ipi) ? 0 : ipi;
 }
 
-// Função para atualizar o total de volumes (quantidades) de todas as linhas
-function atualizarTotalVolumes() {
-    let totalVolumes = 0;
-    const linhas = document.querySelectorAll('#dadosPedido tbody tr');
 
-    linhas.forEach(tr => {
-        const cell = tr.cells[1]?.querySelector('input');
-        if (cell && cell.value) {
-            const quantidade = parseFloat(cell.value.replace(",", "."));
-            if (!isNaN(quantidade)) {
-                totalVolumes += quantidade;
-            }
-        }
-    });
 
-    document.getElementById('volume').value = totalVolumes;
-}
 
-// Função para atualizar o total de produtos (quantidade * valor unitário)
-function atualizarTotalProdutos() {
-    let totalProdutos = 0;
-    const linhas = document.querySelectorAll('#dadosPedido tbody tr');
 
-    linhas.forEach(tr => {
-        const quantidadeCell = tr.cells[1]?.querySelector('input');
-        const valorUnitarioCell = tr.cells[6]?.querySelector('input');
-        if (quantidadeCell && valorUnitarioCell && quantidadeCell.value && valorUnitarioCell.value) {
-            const quantidade = parseFloat(quantidadeCell.value.replace(",", "."));
-            const valorUnitario = parseFloat(valorUnitarioCell.value.replace("R$", "").replace(/\./g, "").replace(",", "."));
-            if (!isNaN(quantidade) && !isNaN(valorUnitario)) {
-                totalProdutos += quantidade * valorUnitario;
-            }
-        }
-    });
-
-    document.getElementById('total').value = totalProdutos.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-}
 
 // Função para adicionar uma nova linha à tabela
-document.getElementById('adicionarLinha').addEventListener('click', function () {
-    let tbody = document.querySelector('#dadosPedido tbody');
-    let tr = document.createElement('tr');
+function adicionarNovaLinha() {
+    const tbody = document.querySelector('#dadosPedido tbody');
+    const tr = document.createElement('tr');
 
     for (let i = 0; i < 10; i++) {
-        let td = document.createElement('td');
-        let input = document.createElement('input');
+        const td = document.createElement('td');
+
+        // 🔴 coluna oculta (ItemId)
+        if (i === 9) {
+            td.style.display = 'none';
+        }
+
+        // 🗑 BOTÃO REMOVER LINHA
+        if (i === 3) {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.classList.add('btn-remover-linha');
+            btn.textContent = 'REMOVER';
+
+
+                btn.gradient = 'linear-gradient(90deg,rgba(225,0,152) 0%,#f18fc7 100%)';
+                btn.color = '#fafcfa';
+            
+            btn.innerText = 'Excluir';
+            
+
+            btn.addEventListener('click', () => {
+                tr.remove();
+                atualizarTotais();
+                garantirLinhaInicial();
+            });
+
+            td.appendChild(btn);
+            tr.appendChild(td);
+            continue; // ⬅️ CRÍTICO
+        }
+
+        // ✏️ INPUT NORMAL
+        const input = document.createElement('input');
         input.type = 'text';
+        
+        // TAB só código e quantidade
+        input.tabIndex = (i === 0 || i === 1) ? 0 : -1;
+
         input.style.padding = '5px';
         input.style.width = '100%';
         input.style.boxSizing = 'border-box';
-        input.style.marginLeft = '-0px';
-        
-        // Oculta dinamicamente a coluna "Item ID" (10ª coluna)
-        if (i === 9) {
-            td.style.display = 'none'; // Oculta a célula visualmente
-        }
-
-        // Se for o primeiro input (CÓD), adiciona conversão para maiúsculas
-        if (i === 0) {
-            // Evento para converter para maiúsculas em tempo real
-            input.addEventListener('input', function () {
-                this.value = this.value.toUpperCase();
-            });
-
-            // Evento blur para validação do código
-            input.addEventListener('blur', function () {
-                let tipoPedido = document.getElementById('tipo_pedido').value;
-                let cod = this.value; // O valor já estará em maiúsculas devido ao evento 'input'
-                let ufCliente = document.getElementById('uf').value;
-
-                if (verificarForaDeLinha(cod)) {
-                    alert("Item fora de linha, favor digitar outro item");
-                    this.value = '';
-                    return;
-                }
-
-                let promocao = buscarPromocao(cod);
-                let listaPrecos = buscarListaPrecos(cod);
-
-                if (tipoPedido === 'Promoção') {
-                    if (promocao) {
-                        preencherLinha(tr, listaPrecos, promocao, ufCliente);
-                    } else {
-                        alert("Item não está em promoção, digite outro item");
-                        this.value = '';
-                    }
-                } else if (tipoPedido === 'Venda' || tipoPedido === 'Bonificação') {
-                    if (promocao) {
-                        alert("Item está em promoção, favor mudar o tipo para promoção");
-                        this.value = '';
-                    } else if (listaPrecos) {
-                        preencherLinha(tr, listaPrecos, null, ufCliente);
-                    } else {
-                        alert("Item não encontrado na lista de preços.");
-                        this.value = '';
-                    }
-                }
-            });
-        }
 
         td.appendChild(input);
         tr.appendChild(td);
+
+        // =========================
+        // NAVEGAÇÃO ↑ ↓ TAB
+        // =========================
+        input.addEventListener('keydown', (e) => {
+            const linhas = Array.from(tbody.querySelectorAll('tr'));
+            const linhaAtual = linhas.indexOf(tr);
+
+            if (e.key === 'ArrowUp' && linhaAtual > 0) {
+                e.preventDefault();
+                linhas[linhaAtual - 1].cells[i]?.querySelector('input')?.focus();
+            }
+
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+
+                if (linhaAtual === linhas.length - 1 && i === 1) {
+                    adicionarNovaLinha();
+                    setTimeout(() => {
+                        tbody.lastChild.cells[0].querySelector('input').focus();
+                    }, 0);
+                } else {
+                    linhas[linhaAtual + 1]?.cells[i]?.querySelector('input')?.focus();
+                }
+            }
+
+            if (e.key === 'Tab' && !e.shiftKey && i === 1 && linhaAtual === linhas.length - 1) {
+                e.preventDefault();
+                setTimeout(() => {
+                    tbody.lastChild.cells[0].querySelector('input').focus();
+                }, 0);
+            }
+            //enter = tab
+            if ((e.key === 'Tab' || e.key === 'Enter') && !e.shiftKey) {
+    e.preventDefault();
+
+    // se estiver na QUANTIDADE (coluna 1)
+    if (i === 1) {
+        if (linhaAtual === linhas.length - 1) {
+            // última linha → cria nova
+            adicionarNovaLinha();
+            setTimeout(() => {
+                tbody.lastChild.cells[0].querySelector('input')?.focus();
+            }, 0);
+        } else {
+            // próxima linha
+            linhas[linhaAtual + 1]?.cells[0]?.querySelector('input')?.focus();
+        }
     }
+
+    // se estiver no CÓDIGO (coluna 0)
+    if (i === 0) {
+        tr.cells[1]?.querySelector('input')?.focus();
+    }
+}
+
+
+        });
+
+        // =========================
+        // CÓDIGO DO ITEM
+        // =========================
+       // =========================
+
+if (i === 0) {
+    input.addEventListener('blur', async function () {
+        const cod = this.value.trim().toUpperCase();
+        if (!cod) return;
+
+        // 🚫 VERIFICA DUPLICIDADE
+        if (verificarCodigoDuplicadoNaTabela(cod, tr)) {
+            alert('Este item já foi adicionado ao pedido.');
+            this.value = '';
+            this.focus();
+            return;
+        }
+
+        const listaId = document.getElementById('codgroup').value;
+        const cells = tr.querySelectorAll('td input');
+
+        // 🔄 FEEDBACK VISUAL
+        cells[3].value = 'Carregando item, por favor aguarde...';
+        this.readOnly = true;
+        cells[1].readOnly = true;
+
+        try {
+            const response = await fetch(
+                `/api/lista-preco/${listaId}?codigo=${encodeURIComponent(cod)}`
+            );
+
+            if (!response.ok) {
+                const erro = await response.json();
+                throw new Error(erro.message || 'Item não disponível');
+            }
+
+            const data = await response.json();
+            if (!data.length) {
+                throw new Error('Item não encontrado');
+            }
+
+            const item = data[0];
+            const preco = Number(item.PrecoVenda);
+
+            // ✅ IPI DINÂMICO
+            const ipi = buscarIpiDoItem(cod);
+            const ipiMult = 1 + ipi;
+
+            cells[2].value = 'CX';
+            cells[3].value = item.ItemDescricao;
+            cells[4].value = (ipi * 100).toFixed(2) + '%';
+
+            const precoComIpi = preco * ipiMult;
+
+            cells[5].value = preco.toLocaleString('pt-BR', {
+                style: 'currency',
+                currency: 'BRL'
+            });
+
+            cells[6].value = precoComIpi.toLocaleString('pt-BR', {
+                style: 'currency',
+                currency: 'BRL'
+            });
+
+            cells[1].readOnly = false;
+            cells[1].focus();
+
+            cells[1].addEventListener('input', () => {
+                const qtd = parseFloat(cells[1].value.replace(',', '.')) || 0;
+                const totalLinha = qtd * preco;
+                const totalComIpi = totalLinha * ipiMult;
+
+                cells[7].value = totalComIpi.toLocaleString('pt-BR', {
+                    style: 'currency',
+                    currency: 'BRL'
+                });
+
+                tr.dataset.itemId = item.ItemId;
+                atualizarTotais();
+            });
+
+        } catch (error) {
+            alert(error.message);
+            this.value = '';
+            this.focus();
+        } finally {
+            this.readOnly = false;
+        }
+    });
+}
+
+
+
+    }
+
     tbody.appendChild(tr);
-    atualizarTotalComImposto();
-    atualizarTotalVolumes();
-    atualizarTotalProdutos();
-});
+}
+
 
 // Função para remover a última linha da tabela
 document.getElementById('excluirLinha').addEventListener('click', function () {
     let tbody = document.querySelector('#dadosPedido tbody');
     if (tbody.rows.length > 0) {
         tbody.deleteRow(tbody.rows.length - 1);
-        atualizarTotalComImposto();
-        atualizarTotalVolumes();
-        atualizarTotalProdutos();
+        atualizarTotais();
     } else {
         alert("Nenhuma linha para remover");
     }
@@ -543,128 +600,20 @@ function verificarCodigoDuplicado(codigo) {
     return contador > 1;
 }
 
-// Função para preencher os dados da linha com os cálculos baseados no IPI e R$ Unitário
-function preencherLinha(tr, listaPrecos, promocao = null, ufCliente) { 
-    let cells = tr.getElementsByTagName('td');
-    let codProduto = cells[0].querySelector('input').value;
-    
+function verificarCodigoDuplicadoNaTabela(codigo, linhaAtual) {
+    const linhas = document.querySelectorAll('#dadosPedido tbody tr');
 
-    if (verificarCodigoDuplicado(codProduto)) {
-        alert(`O código "${codProduto}" já existe na lista. Por favor, digite outro código.`);
-        cells[0].querySelector('input').value = '';
-        return;
-    }
+    for (const tr of linhas) {
+        if (tr === linhaAtual) continue; // ignora a própria linha
 
-    let codGroup = document.getElementById('codgroup').value;
-   
-    for (let i = 0; i < cells.length; i++) {
-        if (i !== 0 && i !== 1) {
-            cells[i].querySelector('input').setAttribute('readonly', true);
+        const inputCodigo = tr.cells[0]?.querySelector('input');
+        if (inputCodigo && inputCodigo.value.trim().toUpperCase() === codigo) {
+            return true;
         }
     }
-
-    let codigoConcatenado = codGroup ? `${codGroup}-${codProduto}` : codProduto;
-    let precoEncontrado = listaPrecosData.find(item => item[0] === codigoConcatenado);
-
-    if (precoEncontrado) {
-        cells[5].querySelector('input').value = (precoEncontrado[12] * 100).toFixed(2) + '%';
-    } else {
-        let itemPorCodigo = listaPrecosData.find(item => item[2] == codProduto);
-        if (itemPorCodigo) {
-            cells[5].querySelector('input').value = (itemPorCodigo[12] * 100).toFixed(2) + '%';
-        } else {
-            cells[5].querySelector('input').value = '';
-        }
-    }
-
-    let produtoPromocao = promocaoData.find(item => item[0] == codProduto);
-
-    if (produtoPromocao) {
-        cells[6].querySelector('input').value = Number(produtoPromocao[5]).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-    } else {
-        let precoEncontrado = listaPrecosData.find(item => item[0] === codigoConcatenado);
-        if (precoEncontrado) {
-            cells[6].querySelector('input').value = Number(precoEncontrado[11]).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-        } else {
-            cells[6].querySelector('input').value = '';
-        }
-    }
-
-    if (codProduto) {
-        let ipiStr = cells[5].querySelector('input').value.replace("%", "");
-        let ipi = Number(ipiStr) / 100;
-        let valorUnitarioStr = cells[6].querySelector('input').value.replace("R$", "").replace(/\./g, "").replace(",", ".");
-        let valorUnitario = Number(valorUnitarioStr);
-
-        if (!isNaN(valorUnitario)) {
-            let valorComIPI = valorUnitario * (1 + ipi);
-            cells[7].querySelector('input').value = valorComIPI.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-        } else {
-            cells[7].querySelector('input').value = '';
-        }
-    } else {
-        cells[7].querySelector('input').value = '';
-    }
-
-    if (listaPrecos) {
-        cells[1].querySelector('input').value = '';
-        cells[2].querySelector('input').value = listaPrecos[9];
-        cells[3].querySelector('input').value = listaPrecos[10];
-        cells[4].querySelector('input').value = listaPrecos[4];
-        cells[9].querySelector('input').value = listaPrecos[13];
-    }
-
-    if( cells[6].querySelector('input').value == 0 || cells[6].querySelector('input').value == '' )   {
-        alert("Item não disponivel para este cliente no momento , por favor verificar com Edmundo")
-        cells[0].querySelector('input').value = '';
-        cells[1].querySelector('input').value = '';
-        cells[2].querySelector('input').value = '';
-        cells[3].querySelector('input').value = '';
-        cells[4].querySelector('input').value = '';
-        cells[5].querySelector('input').value = '';
-        cells[7].querySelector('input').value = '';
-        cells[8].querySelector('input').value = '';
-
-    }
-
- 
-
-
-    function atualizarValorTotal() {
-        if (codProduto) {
-            let quantidade = Number(cells[1].querySelector('input').value);
-            let ipiStr = cells[5].querySelector('input').value.replace("%", "");
-            let ipi = Number(ipiStr) / 100;
-            let valorUnitarioStr = cells[6].querySelector('input').value.replace("R$", "").replace(/\./g, "").replace(",", ".");
-            let valorUnitario = Number(valorUnitarioStr);
-
-            if (!isNaN(valorUnitario)) {
-                let valorComIPI = valorUnitario * (1 + ipi);
-                let valorTotal = valorComIPI * quantidade;
-                cells[8].querySelector('input').value = valorTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-
-                atualizarTotalComImposto();
-                atualizarTotalVolumes();
-                atualizarTotalProdutos();
-            } else {
-                cells[8].querySelector('input').value = '';
-            }
-        } else {
-            cells[8].querySelector('input').value = '';
-        }
-    }
-
-    cells[1].querySelector('input').addEventListener('input', function() {
-        atualizarValorTotal();
-        atualizarTotalVolumes();
-        atualizarTotalProdutos();
-    });
-    cells[6].querySelector('input').addEventListener('input', function() {
-        atualizarValorTotal();
-        atualizarTotalProdutos();
-    });
-    cells[8].querySelector('input').addEventListener('input', atualizarTotalComImposto);
+    return false;
 }
+
 
 
 //--inicio-----envio de dados para o sistema DBCorp-----------------------------------------------------------------------------------------////
@@ -694,6 +643,7 @@ cancelButton.addEventListener("click", () => {
 
 // Executa a lógica de envio ao clicar no botão "Sim"
 confirmButton.addEventListener("click", async () => {
+    console.log('CONFIRM BUTTON CLICADO');
     modal.style.display = "none"; // Fecha o modal
 
     // Exibe a mensagem de feedback
@@ -712,7 +662,7 @@ confirmButton.addEventListener("click", async () => {
                 const cells = row.querySelectorAll('td input'); // Captura os inputs da linha
 
                 // Verifica se a linha tem dados válidos antes de adicioná-la
-                const itemId = Number(cells[9]?.value || 0); // ID do item na décima célula
+                const itemId = row.dataset.itemId || 0;
                 const quantidade = Number(cells[1]?.value || 0); // Quantidade na segunda célula
 
                 // Só adiciona a linha se tiver um ItemId e Quantidade válidos
@@ -760,6 +710,8 @@ confirmButton.addEventListener("click", async () => {
 
         // Loga o JSON no console
         console.log("JSON enviado para a API:", requestBody);
+        console.log('ClienteId:', document.getElementById('cod_cliente').value);
+console.log('Itens:', itensPedidoVenda);
 
         // Envia os dados para a API
         const response = await fetch('/api/pedidos/input', {
@@ -783,10 +735,10 @@ confirmButton.addEventListener("click", async () => {
         console.error("Erro de conexão:", error);
         alert("Erro ao conectar com o servidor.");
     } finally {
-        limparCamposCliente()
-        // Oculta a mensagem de feedback
-        feedbackDiv.style.display = "none";
-    }
+    limparCamposCliente();
+    zerarCamposPedido();   // ← ISSO É FUNDAMENTAL
+    feedbackDiv.style.display = "none";
+}
 });
 
 //--fim-----envio de dados para o sistema DBCorp------------------------------------------------------------
@@ -797,6 +749,16 @@ document.addEventListener("DOMContentLoaded", () => {
     const overlay = document.getElementById('overlay');
     const closeModal = document.getElementById('closeModal');
 
+     const confirmButton = document.getElementById('confirmButton');
+
+    if (!confirmButton) {
+        console.error('confirmButton não encontrado no DOM');
+        return;
+    }
+
+    confirmButton.addEventListener('click', async () => {
+        console.log('BOTÃO CONFIRMAR CLICADO');
+    });
     // Abrir modal
     helpIcon.addEventListener('click', () => {
         overlay.style.display = 'block'; // Exibe o overlay
@@ -817,9 +779,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 
+// ======================================================================
+// 🧩 MODAIS AJUDA
+// ======================================================================
+document.addEventListener("DOMContentLoaded", () => {
+    el('helpIcon').onclick = () => {
+        el('overlay').style.display = 'block';
+        el('helpModal').style.display = 'block';
+    };
+    el('closeModal').onclick = closeHelp;
+    el('overlay').onclick = closeHelp;
 
-
-
-
-
-
+    function closeHelp() {
+        el('overlay').style.display = 'none';
+        el('helpModal').style.display = 'none';
+    }
+});
