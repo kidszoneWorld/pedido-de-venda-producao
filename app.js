@@ -7,6 +7,7 @@ const Redis = require('ioredis');
 const path = require('path');
 const cookieParser = require('cookie-parser');
 const viewsRouter = require('./router/viewsRouter');
+const clientePdfController = require('./controllers/clientePdfController');
 
 
 
@@ -20,7 +21,8 @@ app.use(express.json({ limit: '500mb' }));
 app.use(express.urlencoded({ limit: '500mb', extended: true }));
 
 // Middleware para parsing de JSON
-app.use(express.json());
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 // Configurar a pasta 'public' para arquivos estáticos (CSS, JS, etc.)
 app.use(express.static(path.join(__dirname, 'public')));
@@ -88,6 +90,8 @@ app.use((req, res, next) => {
     res.setHeader('Access-Control-Allow-Credentials', 'true');
     next();
 });
+app.post('/generate-upload-url', clientePdfController.generateUploadUrl);
+app.post('/send-client-pdf', clientePdfController.sendClientPdf);
 
 
 

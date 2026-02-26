@@ -24,8 +24,7 @@ document.addEventListener("DOMContentLoaded", () => {
     let generatedPdfFile = null;
     let additionalFiles = [];
 
-    // Limite seguro em MB (18 MB para garantir que após codificação base64 não exceda 25 MB)
-    const SAFE_SIZE_LIMIT_MB = 25;
+
 
     // Expressão regular para validar e-mails
     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
@@ -41,7 +40,31 @@ document.addEventListener("DOMContentLoaded", () => {
         const emails = emailString.split(';').map(email => email.trim()).filter(email => email);
         return emails.every(email => isValidEmail(email));
     }
+    async function uploadFileToR2(file) {
+        const response = await fetch('/generate-upload-url', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                fileName: file.name,
+                fileType: file.type
+            })
+        });
 
+        const { uploadUrl, key } = await response.json();
+
+        await fetch(uploadUrl, {
+            method: 'PUT',
+            body: file,
+            headers: {
+                'Content-Type': file.type
+            }
+        });
+
+        return {
+            name: file.name,
+            key: key
+        };
+    }
     // Função para formatar a data no padrão brasileiro (DD-MM-YYYY-hora-HH-MM)
     function formatarDataBrasileira() {
         const agora = new Date();
@@ -135,16 +158,6 @@ document.addEventListener("DOMContentLoaded", () => {
             buttonPdf.style.display = 'block';
             selector.style.display = 'inline-block';
         }
-    }
-
-    // Função para converter um arquivo em base64
-    function fileToBase64(file) {
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onload = () => resolve(reader.result);
-            reader.onerror = error => reject(error);
-        });
     }
 
     // Função para atualizar a lista de arquivos no tooltip
@@ -331,8 +344,6 @@ function atualizarListaAnexos() {
         let emailCc = document.getElementById('emailCc').value;
         const emailSubject = emailSubjectInput.value;
         const emailBody = emailBodyInput.value;
-        const emailAttachment = emailAttachmentInput.files;
-
         // Verifica se os campos obrigatórios estão preenchidos
         if (!emailTo || !emailSubject || !emailBody) {
             alert('Por favor, preencha os campos obrigatórios (Para, Assunto e Mensagem).');
@@ -351,65 +362,50 @@ function atualizarListaAnexos() {
             return;
         }
 
-        // Calcula o tamanho total dos anexos
-        const totalSizeMB = parseFloat(calcularTamanhoTotal());
+       try {
+    emailModal.style.display = 'none';
+    showFeedback('Estamos enviando o e-mail, aguarde...');
 
-        // Verifica se o tamanho total excede o limite seguro
-        if (totalSizeMB > SAFE_SIZE_LIMIT_MB) {
-            sizeLimitMessage.textContent = `Os arquivos passam de ${totalSizeMB} MB. O limite do Gmail é de ${SAFE_SIZE_LIMIT_MB} MB. Por favor, envie uma quantidade menor neste e-mail e envie outro e-mail com os outros arquivos na sequência.`;
-            sizeLimitModal.style.display = 'block';
-            return;
-        }
+    if (!generatedPdfFile) {
+        alert("PDF não gerado.");
+        return;
+    }
+    const uploadedPdf = await uploadFileToR2(generatedPdfFile);
 
-        try {
-            // Fecha o modal imediatamente
-            emailModal.style.display = 'none';
+// Upload anexos adicionais
+const uploadedAttachments = await Promise.all(
+    additionalFiles.map(file => uploadFileToR2(file))
+);
+    const allFiles = [uploadedPdf, ...uploadedAttachments];
 
-            // Mostra o feedback
-            showFeedback('Estamos enviando o e-mail, aguarde...');
+const response = await fetch('/send-client-pdf', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+        files: allFiles,
+        razaoSocial: document.getElementById('razao_social').value || "Cliente",
+        emailTo,
+        emailCc,
+        subject: emailSubject,
+        message: emailBody
+    })
+    });
 
-            // Converte o PDF gerado para base64
-            const pdfBase64 = await fileToBase64(generatedPdfFile);
+    const result = await response.text();
 
-            // Converte todos os anexos adicionais para base64
-            const additionalAttachments = await Promise.all(
-                additionalFiles.map(async file => ({
-                    filename: file.name,
-                    base64: await fileToBase64(file)
-                }))
-            );
+    if (response.ok) {
+        alert('E-mail enviado com sucesso!');
+        document.getElementById('emailForm').reset();
+        generatedPdfFile = null;
+    } else {
+        throw new Error(result);
+    }
 
-            // Faz a requisição para o servidor
-            const response = await fetch('/send-client-pdf', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    pdfBase64,
-                    razaoSocial: document.getElementById('razao_social').value || "Cliente",
-                    emailTo,
-                    emailCc,
-                    subject: emailSubject,
-                    message: emailBody,
-                    additionalAttachments
-                })
-            });
-
-            const result = await response.text();
-            if (response.ok) {
-                alert('E-mail enviado com sucesso!\nPara: ' + emailTo + '\nCc: ' + (emailCc || 'Nenhum') + '\nAssunto: ' + emailSubject);
-                document.getElementById('emailForm').reset();
-                generatedPdfFile = null;
-                additionalFiles = [];
-                atualizarListaAnexos();
-            } else {
-                throw new Error(result);
-            }
-        } catch (error) {
-            console.error('Erro ao enviar o e-mail:', error);
-            alert('Erro ao enviar o e-mail: ' + error.message);
-        } finally {
-            // Oculta o feedback após o término (sucesso ou erro)
-            hideFeedback();
-        }
+} catch (error) {
+    console.error('Erro ao enviar o e-mail:', error);
+    alert('Erro ao enviar o e-mail: ' + error.message);
+} finally {
+    hideFeedback();
+}
     });
 });

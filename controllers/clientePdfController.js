@@ -1,79 +1,113 @@
 const nodemailer = require('nodemailer');
+const { S3Client} = require("@aws-sdk/client-s3");
+const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
+const crypto = require("crypto");
 
 let emailsRecentes = new Map();
 
-exports.sendClientPdf = async (req, res) => {
-    const { pdfBase64, razaoSocial, emailTo, emailCc, subject, message, additionalAttachments } = req.body;
+// Cliente R2 (Cloudflare)
+const s3 = new S3Client({
+  region: "auto",
+  endpoint: process.env.R2_ENDPOINT,
+  credentials: {
+    accessKeyId: process.env.R2_ACCESS_KEY,
+    secretAccessKey: process.env.R2_SECRET_KEY,
+  },
+});
+const { PutObjectCommand } = require("@aws-sdk/client-s3");
 
-    // Valida os dados obrigatórios
-    if (!pdfBase64 || !razaoSocial || !emailTo || !subject || !message) {
-        return res.status(400).send('Dados incompletos para envio do e-mail.');
-    }
+exports.generateUploadUrl = async (req, res) => {
+  try {
+    const { fileName, fileType } = req.body;
 
-    // Cria uma chave única para evitar envios duplicados
-    const emailKey = `${razaoSocial}-${emailTo}-${subject}-${Date.now()}`; // Adiciona timestamp para unicidade
+  //  substitui espaços por "-"
 
-    if (emailsRecentes.has(emailKey)) {
-        return res.status(429).send('E-mail já enviado recentemente. Aguarde antes de tentar novamente.');
-    }
-
-    try {
-        emailsRecentes.set(emailKey, Date.now());
-
-        // Configura o transporter do Nodemailer
-        const transporter = nodemailer.createTransport({
-            service: 'gmail',
-            auth: {
-                user: process.env.GMAIL_USER,
-                pass: process.env.GMAIL_APP_PASSWORD
-            },
-            tls: { rejectUnauthorized: false }
-        });
-
-        // Nome do arquivo PDF gerado
-        const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-        const pdfFileName = `Cadastro_Cliente_${razaoSocial}_${timestamp}.pdf`;
-
-        // Prepara os anexos
-        const attachments = [
-            {
-                filename: pdfFileName,
-                content: pdfBase64.split(",")[1], // Remove o prefixo "data:application/pdf;base64,"
-                encoding: 'base64'
-            }
-        ];
-
-        // Adiciona os anexos adicionais do usuário, se houver
-        if (additionalAttachments && Array.isArray(additionalAttachments)) {
-            additionalAttachments.forEach(attachment => {
-                if (attachment.base64 && attachment.filename) {
-                    attachments.push({
-                        filename: attachment.filename,
-                        content: attachment.base64.split(",")[1], // Remove o prefixo do base64
-                        encoding: 'base64'
-                    });
-                }
-            });
-        }
-
-        // Prepara os destinatários do campo "Cc"
-        const ccEmails = emailCc ? emailCc.split(',').map(email => email.trim()) : [];
-
-        // Envia o e-mail
-        await transporter.sendMail({
-            from: 'Cadastro clientes KidsZone <kidszoneworldinvestimento@gmail.com>',
-            to: emailTo.split(',').map(email => email.trim()), // Suporta múltiplos e-mails no "Para"
-            cc: ccEmails, // Adiciona os e-mails do "Cc"
-            subject: subject,
-            text: message,
-            attachments: attachments
-        });
-
-        res.status(200).send('E-mail enviado com sucesso!');
-    } catch (error) {
-        console.error('Erro ao enviar o e-mail:', error);
-        res.status(500).send('Erro ao enviar o e-mail');
-    } finally {
-        setTimeout(() => emailsRecentes.delete(emailKey), 10000); // Remove a chave após 10 segundos
-    }
+    const normalizeFileName = (name) => {
+  return name
+    .normalize("NFD") // separa acentos
+    .replace(/[\u0300-\u036f]/g, "") // remove acentos
+    .replace(/\s+/g, "-") // espaço vira "-"
+    .replace(/[^a-zA-Z0-9.-]/g, "") // remove caracteres especiais
+    .toLowerCase();
 };
+  const safeFileName = normalizeFileName(fileName);
+
+    if (!fileName || !fileType) {
+      return res.status(400).json({ error: "Dados incompletos" });
+    }
+
+    const key = `clientes/${Date.now()}-${safeFileName}`;
+
+    // ✅ AQUI estava faltando isso
+    const putCommand = new PutObjectCommand({
+      Bucket: process.env.R2_BUCKET,
+      Key: key,
+      ContentType: fileType,
+    });
+
+    const uploadUrl = await getSignedUrl(s3, putCommand, {
+      expiresIn: 300,
+    });
+
+    res.json({ uploadUrl, key });
+
+  } catch (error) {
+    console.error("Erro ao gerar URL:", error);
+    res.status(500).json({ error: "Erro ao gerar URL" });
+  }
+};
+exports.sendClientPdf = async (req, res) => {
+  try {
+    const { files, razaoSocial, emailTo, emailCc, subject, message } = req.body;
+
+    console.log("sendClientPdf FOI CHAMADO");
+    console.log("BODY RECEBIDO:", req.body);
+
+    if (!files || !files.length || !emailTo || !subject || !message) {
+      return res.status(400).send("Dados incompletos.");
+    }
+
+    console.log("📎 Arquivos recebidos:", files);
+
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.GMAIL_USER,
+        pass: process.env.GMAIL_APP_PASSWORD,
+      },
+    });
+
+    const downloadLinks = files.map(file => {
+      return `- ${file.name}\n${process.env.DOWNLOAD_BASE_URL}/baixar/${file.key}\n`;
+    }).join("\n");
+
+    console.log("📧 Tentando enviar e-mail...");
+
+    const info = await transporter.sendMail({
+      from: "Cadastro de Clientes <kidzonekidszonemail@gmail.com>",
+      to: "pedidoskz@kidszoneworld.com.br",
+      cc: emailCc ? emailCc.split(";").map(email => email.trim()) : [],
+      subject,
+      text: `
+${message}
+
+Baixe os arquivos abaixo:
+
+${downloadLinks}
+
+(O download será iniciado automaticamente.)
+      `
+    });
+
+    console.log("✅ E-mail enviado:", info.response);
+    return res.status(200).send("E-mail enviado com sucesso!");
+
+  } catch (error) {
+    console.error("❌ ERRO REAL:", error);
+    return res.status(500).send(error.message);
+  }
+  finally {
+    setTimeout(() => emailsRecentes.delete(emailKey), 10000);
+  }
+};
+ 
