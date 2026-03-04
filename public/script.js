@@ -454,7 +454,7 @@ function adicionarNovaLinha() {
                 }, 0);
             }
             //enter = tab
-            if ((e.key === 'Tab' || e.key === 'Enter') && !e.shiftKey) {
+            if ((e.key === 'Tab' || e.key === 'Enter' || e.key === 'Next') && !e.shiftKey) {
     e.preventDefault();
 
     // se estiver na QUANTIDADE (coluna 1)
