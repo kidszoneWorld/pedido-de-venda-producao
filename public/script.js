@@ -121,7 +121,7 @@ cnpjInput1.addEventListener('focus', () => {
         el('timestamp').textContent = new Date().toLocaleString('pt-BR');
         return;
     }
-    limparCamposCliente();
+   // limparCamposCliente();
 });
 
 // ======================================================================
@@ -401,6 +401,9 @@ function adicionarNovaLinha() {
                 tr.remove();
                 atualizarTotais();
                 garantirLinhaInicial();
+            });
+             btn.addEventListener('adicionarLinha', () => {
+                adicionarNovaLinha();
             });
 
             td.appendChild(btn);
@@ -740,8 +743,8 @@ console.log('Itens:', itensPedidoVenda);
         console.error("Erro de conexão:", error);
         alert("Erro ao conectar com o servidor.");
     } finally {
-    limparCamposCliente();
-    zerarCamposPedido();   // ← ISSO É FUNDAMENTAL
+  //  limparCamposCliente();
+    //zerarCamposPedido();   // ← ISSO É FUNDAMENTAL
     feedbackDiv.style.display = "none";
 }
 });

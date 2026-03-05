@@ -15,6 +15,8 @@ async function OrdersInput(data) {
 
     try {
         // Realiza a requisição POST para a API
+        //console.log(JSON.stringify(data));
+
         const response = await fetch(apiUrl, {
             method: 'POST',
             headers: {
