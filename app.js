@@ -1,6 +1,6 @@
 // app.js
-//require('dotenv').config();
-//const express = require('express');
+require('dotenv').config();
+const express = require('express');
 const session = require('express-session');
 const RedisStore = require('connect-redis').default;
 const Redis = require('ioredis');
