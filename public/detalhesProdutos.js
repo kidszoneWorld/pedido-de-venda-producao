@@ -192,7 +192,7 @@ function preencherCamposProduto(detalhes, imagem) {
     document.getElementById('largura-caixa').value = `${detalhes[7]}`;
     document.getElementById('altura-caixa').value = `${detalhes[8]}`;
 
-    document.getElementById('garantia').value = `${detalhes[9]}`;
+    document.getElementById('garantia').value = `${detalhes[9]} MESES`;
 
     document.getElementById('codigo-display').value = `${detalhes[10]}`;
     document.getElementById('qtd-display').value = `${detalhes[11]}`;
