@@ -1,8 +1,10 @@
 const fetch = require('node-fetch'); 
 
 // Tokens necessários para autenticação
-const ApplicationToken = '62ca18a8-aa3b-41b7-a54e-f669a437d326';
-const CompanyToken = 'b5b984c5-cbfa-490b-8513-448fc67a39b6';
+const ApplicationToken = process.env.APPLICATION_TOKEN;
+const CompanyToken = process.env.COMPANY_TOKEN;
+const ngLink = process.env.NG_LINK
+const pcrLink = process.env.PCR_LINK
 
 /**
  * Função para enviar os dados do pedido para a API externa.
@@ -11,13 +13,11 @@ const CompanyToken = 'b5b984c5-cbfa-490b-8513-448fc67a39b6';
  */
 async function OrdersInput(data) {
   
-    const apiUrl = 'http://kidszone-api-integracao.dbcorp.com.br/v1/PedidoVenda/Incluir'; 
+    const apiUrl = '/v1/PedidoVenda/Incluir'; 
 
     try {
         // Realiza a requisição POST para a API
-        //console.log(JSON.stringify(data));
-
-        const response = await fetch(apiUrl, {
+        const response = await fetch(`${pcrLink}${apiUrl}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
