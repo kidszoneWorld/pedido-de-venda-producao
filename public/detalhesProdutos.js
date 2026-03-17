@@ -194,7 +194,7 @@ function preencherCamposProduto(detalhes, imagem) {
     document.getElementById('garantia').value = `${detalhes[9]} MESES`;
     document.getElementById('codigo-display').value = `${detalhes[10]}`;
     document.getElementById('qtd-display').value = `${detalhes[11]}`;
-    document.getElementById('peso-display').value = `${detalhes[12]}`;
+    document.getElementById('peso-display').value = `${detalhes[12]},00 - CM`;
     document.getElementById('comprimento-display').value = `${detalhes[13]}`;
     document.getElementById('largura-display').value = `${detalhes[14]}`;
     document.getElementById('altura-display').value = `${detalhes[15]}`;
