@@ -177,14 +177,14 @@ function preencherCamposProduto(detalhes, imagem) {
         }
     }
 
-
+//
     
     document.getElementById('descricao').value = detalhes[1]; // Descrição
     document.getElementById('classificacao').value = detalhes[2]; // Classificação Fiscal
     document.getElementById('ipi').value =  detalhes[25] 
                                             ? `${detalhes[25].toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%`
                                             : '0%'; // IPI
-   
+
     document.getElementById('codigo-master').value = `${detalhes[3]}`;
     document.getElementById('qtd-caixa').value = `${detalhes[4]}`;
     document.getElementById('peso-caixa').value = `${detalhes[5]}`;
@@ -194,7 +194,7 @@ function preencherCamposProduto(detalhes, imagem) {
     document.getElementById('garantia').value = `${detalhes[9]} MESES`;
     document.getElementById('codigo-display').value = `${detalhes[10]}`;
     document.getElementById('qtd-display').value = `${detalhes[11]}`;
-    document.getElementById('peso-display').value = `${detalhes[12]},00 - CM`;
+    document.getElementById('peso-display').value = `${detalhes[12]}`;
     document.getElementById('comprimento-display').value = `${detalhes[13]}`;
     document.getElementById('largura-display').value = `${detalhes[14]}`;
     document.getElementById('altura-display').value = `${detalhes[15]}`;
