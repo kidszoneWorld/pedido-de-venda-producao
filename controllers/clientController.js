@@ -139,6 +139,10 @@ function getRepresentativeEmail(repId) {
         "76": "rep76@kidszoneworld.com.br",
         "77": "rep77@kidszoneworld.com.br",
         "79": "rep79@kidszoneworld.com.br",
+        "80": "rep80@kidszoneworld.com.br",
+        "81": "rep81@kidszoneworld.com.br",
+        "82": "rep82@kidszoneworld.com.br",
+        "83": "rep83@kidszoneworld.com.br",
         "30": "rep30@kidszoneworld.com.br"
     };
 
