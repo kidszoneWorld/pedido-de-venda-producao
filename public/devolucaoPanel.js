@@ -114,17 +114,18 @@ function exportarExcel() {
 
 
 async function carregarDevolucoes() {
-    setTimeout(() => {
-  console.log("This runs after 2 seconds.");
     try {
-        const res = fetch('/api/devolucoes');
+
+        const res = await fetch('/api/devolucoes');
 
         console.log("STATUS:", res.status);
 
-        const text = res.text();
+        const text = await res.text();
         console.log("RESPOSTA BRUTA: deu bom");
 
         const json = JSON.parse(text);
+         setTimeout(() => {
+  console.log("This runs after 2 seconds.");
 
         if (!json.success || !Array.isArray(json.data)) {
             throw new Error("Resposta inválida da API");
@@ -132,12 +133,11 @@ async function carregarDevolucoes() {
 
         listaOriginal = json.data;
         aplicarFiltros();
-
+}, 1000);
     } catch (err) {
         console.error("Erro ao carregar devoluções:", err);
         listaOriginal = [];
     }
-    }, 1000);
 }
 
 function extrairNumeroRep(email) {
