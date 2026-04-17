@@ -133,7 +133,7 @@ async function carregarDevolucoes() {
 
         listaOriginal = json.data;
         aplicarFiltros();
-}, 1000);
+}, 500);
     } catch (err) {
         console.error("Erro ao carregar devoluções:", err);
         listaOriginal = [];
