@@ -1231,7 +1231,7 @@ document.addEventListener("DOMContentLoaded", () => {
 const tutorialSteps = [
     {
         element: '#cnpj',
-        text: 'Olá Sr(a).Representante,\nSomente serão aceitas devoluções com até 180 dias da entrega da nota fiscal de origem!!!\n\n Aperte em próximo para continuar com o tutorial ou pressione finalizar para sair '
+        text: 'Olá Sr(a).Representante,\nSomente serão aceitas devoluções com até 180 dias a partir entrega da nota fiscal de origem!!!\n\n Aperte em próximo para continuar com o tutorial ou pressione finalizar para sair '
     },
     {
         element: '#cnpj',
