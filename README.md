@@ -14,9 +14,12 @@ O versionamento do site é controlado apenas pela branch main do site do github 
 Estrutura do projeto:
 
 /pedido-de-venda-producao
+|-/config
+|   |-db.js
 |-/controllers
 |   |-ClientController.js
 |   |-clientePdfController.js
+|   |-devController.js
 |   |-displayController.js
 |   |-eficienciaController.js
 |   |-fernandoController.js
@@ -103,6 +106,9 @@ Estrutura do projeto:
 |   |-comercial.js
 |   |-detalges-item-ativos.xlsx
 |   |-detalhes.js
+|   |-devolucao.js
+|   |-devolucaoPanel.js
+|   |-devolucaoDetalhe.js
 |   |-detalhesProdutos.js
 |   |-display.js
 |   |-eficiencia.js
@@ -141,6 +147,9 @@ Estrutura do projeto:
 |   |-comercial.html
 |   |-Detalhes dos produtos.html
 |   |-detalhes.html
+|   |-devolucao.html
+|   |-devolucaoPanel.html
+|   |-devolucaoDetalhe.html
 |   |-display.html
 |   |-eficiencia.html
 |   |-error-401.html

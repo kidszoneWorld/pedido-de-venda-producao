@@ -11,13 +11,11 @@ const redesController = require('../controllers/redesController');
 const sellOutController = require('../controllers/sellOutController');
 const fernandoController = require('../controllers/fernandoController');
 const clientController = require('../controllers/clientController');
+const devController = require('../controllers/devController');
 const clientePdfController = require('../controllers/clientePdfController');
 const pdfInvestComercialController = require('../controllers/pdf_invest_comercialController');
 const pdfInvestPromotorController = require('../controllers/pdf_invest_promotorController');
 const productController = require('../controllers/productController');
-
-
-
 const router = express.Router();
 
 // Rota para a página inicial
@@ -36,6 +34,11 @@ router.get('/login2', (req, res) => {
     res.sendFile(path.resolve(__dirname, '..', 'views', 'login2.html'));
 });
 
+// Rota para a página de devolução
+router.get('/devolucao',authMiddleware, (req, res) => {
+    res.sendFile(path.join(__dirname, '..', 'views', 'devolucao.html'));
+});
+
 // Rota para a página de administração
 router.get('/admin', (req, res) => {
     res.sendFile(path.resolve(__dirname, '..', 'views', 'admin.html'));
@@ -51,7 +54,16 @@ router.get('/detalhes',authMiddleware, (req, res) => {
     res.sendFile(path.join(__dirname, '..', 'views', 'detalhes.html'));
 });
 
+router.get('/devolucaoPanel',authMiddleware, (req, res) => {
+    res.sendFile(path.join(__dirname, '..', 'views', 'devolucaoPanel.html'));
+});
+
 // Rota para a página de detalhes do produto (Detalhes_Produtos.html)
+router.get('/devolucaoDetalhe.html',authMiddleware, (req, res) => {
+  res.sendFile(require('path').join(__dirname, '../views/devolucaoDetalhe.html'));
+});
+
+//Rota para a pagina de detalhes de devoulção
 router.get('/detalhesProdutos',authMiddleware,(req, res) => {
     res.sendFile(path.join(__dirname, '..', 'views', 'Detalhes_Produtos.html'));
 });
@@ -124,7 +136,13 @@ router.get('/api/logistica/onedrive', invoicesController.fetchLogisticsData);
 router.get('/api/logistica/logistica03', fernandoController.fetchLogisticsData);
 router.get('/api/logistica/logistica02', fernandoController.fetchLogisticsData1);
 
+// salvar
+router.post('/api/devolucao', devController.salvarDevolucao);
+router.get('/api/devolucao/:id', devController.buscarDevolucaoPorId);
 
+// Devolucao
+router.get('/api/devolucoes', devController.listarDevolucoes);
+router.put('/devolucao/:id', devController.atualizarDevolucao);
 
 // Rota para página de erro 401 (Senha incorreta)
 router.get('/error-401', (req, res) => {
@@ -160,6 +178,8 @@ router.post('/send-pdf-investComercial', pdfInvestComercialController.sendPdf);
 router.post('/send-pdf-investPromotor', pdfInvestPromotorController.sendPdf);
 router.post('/generate-upload-url', clientePdfController.generateUploadUrl);
 router.post('/send-client-pdf', clientePdfController.sendClientPdf);
+router.post('/generate-upload-url-dev', devController.generateUploadUrlDev);
+router.post('/send-client-pdf-dev', devController.sendClientPdfDev);
 
 
 // Rota para autenticação
@@ -181,6 +201,7 @@ router.post('/logout', (req, res) => {
 
 router.post('/api/pedidos/input', inputOrdersController.fetchImputOrders)
 router.get('/api/lista-preco/:listaId', productController.getListaPreco);
+router.get('/api/lista-preco-Sem-Verificar/:listaId', productController.getListaPrecoSemVerificar);
 
 
 /////banco de dados mogondb atlas
@@ -201,6 +222,9 @@ router.get('/api/sellOut/:codgroup', sellOutController.getSellOutBycodgroup);
 router.post('/api/sellOut/salvar', sellOutController.salvarSellOut);        
 router.delete('/api/sellOut/remover', sellOutController.removerLinhaSellOut);
 
+router.post('/api/devolucoes', devController.salvarDevolucao);
+router.get('/api/devolucoes/:id', devController.buscarDevolucaoPorId);
+router.put('/api/devolucoes/:id', devController.atualizarDevolucao);
 
 
 module.exports = router;

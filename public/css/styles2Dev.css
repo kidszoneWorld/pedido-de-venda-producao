@@ -1,6 +1,6 @@
  
  /* Definindo variáveis de cor para os temas claro e escuro */
- :root {
+:root {
     --background-color-light: #caccc6;
     --container-bg-light: #ffffff;
     --header-bg-light: #ffffff;
@@ -12,7 +12,7 @@
     --button-text-light: #ffffff;
     --button-hover-bg-light: linear-gradient(90deg, rgba(225, 0, 152) 0%, #f18fc7 100%);
     --button-hover-text-light: #fafcfa;
-
+ 
     --background-color-dark: #1a1a1a;
     --container-bg-dark: #2a2a2a;
     --header-bg-dark: #2a2a2a;
@@ -154,50 +154,6 @@ body.dark-theme #dadosPedido tbody tr td input{
     border:none;
 }
 
-body.dark-theme .tribu {
-    color: var(--button-text-dark);
-}
-
-body.dark-theme .info-item label {
-    color: #ccc8c8; /* Rótulos no tema escuro */
-}
-body.dark-theme .info-item1 label {
-    color: #ccc8c8; /* Rótulos no tema escuro */
-}
-
-body.dark-theme .info-item input {
-    background-color: var(--input-bg-dark);
-    color: #00BFFF; /* Respostas em azul mais claro no tema escuro */
-}
-
-body.dark-theme .info-footer {
-    color: var(--text-color-dark);
-}
-
-body.dark-theme .email-modal-content {
-    background-color: var(--container-bg-dark);
-}
-
-body.dark-theme .email-modal-content h2,
-body.dark-theme .email-field label {
-    color: var(--text-color-dark);
-}
-
-body.dark-theme .email-field input,
-body.dark-theme .email-field textarea {
-    background-color: var(--input-bg-dark);
-    color: var(--text-color-dark);
-    border-color: #555;
-}
-
-body.dark-theme #sendEmailButton {
-    background-color:  rgba(225,0,152);
-}
-
-body.dark-theme #cancelEmailButton {
-    background-color: #555;
-    color: #ddd;
-}
 
 
  /* Definição da animação */
@@ -219,7 +175,6 @@ body.dark-theme #cancelEmailButton {
         opacity: 1;
         transform: translate3d(0,0,0);
     }
-    
 }
  
 @keyframes shake {
@@ -255,6 +210,7 @@ body.dark-theme #cancelEmailButton {
     margin-top: 20px;
     margin-bottom: 20px;
     border-radius: 12px;
+    overflow: visible;
 }
 
 
@@ -304,6 +260,18 @@ body.dark-theme #cancelEmailButton {
     
 }
 
+.btn-mobile {
+    display: none;
+}
+
+/* Aplica estilos apenas para telas menores que 768px (tablets e celulares) */
+@media only screen and (max-width: 767px) {
+    .btn-mobile {
+        display: block; /* Ou flex/inline-block para mostrar */
+        /* Adicione outros estilos aqui, ex: background-color: blue; */
+    }
+}
+
 .section {
     margin-top: 20px;
 }
@@ -323,8 +291,7 @@ body.dark-theme #cancelEmailButton {
 }
 .form-group label {
     font-weight: bold;
-    margin-top: 10px;
-    font-size: 13px;
+    margin-top: 10px
 }
 
 .label-espaco-esquerda {
@@ -375,46 +342,43 @@ body.dark-theme #cancelEmailButton {
 }
 
 /* Seção tabela de dados dos itens */
-.descricao{
-    width: 30%;
+.nfOrigem{
+    width: 8%;
 }
-.pack {
-    width: 1%;
+.data{
+    width: 9%;
 }
-
+.cod{
+    width: 9%;
+}
+.lote{
+    width: 10%;
+}
+.qtd{
+    width: 7%;
+}
 .uv{
     width: 6%;
 }
-
-.cod{
-    width: 7%;
+.pack{
+    width: 5%;
 }
-
-.qtd{
-    width: 8%;
+.descricao{
+    width: 20%;
 }
-
-.ipi{
-    width: 8%;
-}
-
 .unit{
-    width: 11%;
+    width: 8%;
 }
-
-.vipi{
-    width: 11%;
-}
-
 .total{
-    width: 13%;
+    width: 10%;
 }
+
 
 /* Seção Condição de Pagamento e Observações */
 .payment-conditions {
     margin-top: 20px;
     border: 1px solid #1b1a1a;
-    padding: px;
+    padding: 15px;
     padding-left: 35px;
     align-items: center;
    
@@ -441,6 +405,9 @@ body.dark-theme #cancelEmailButton {
     padding: 5px;
     font-weight: bold;
     text-align: center;
+
+
+    
 }
 .observations textarea {
     width: 99.5%;
@@ -538,12 +505,15 @@ input:focus , textarea:focus{
 
 /* Adiciona o asterisco vermelho ao lado do texto CNPJ e TIPO PEDIDO */
 label[for="cnpj"]::after,
+label[for="motivo"]::after,
 label[for="tipo_pedido"]::after {
     content: " *"; /* Insere o asterisco */
     color: rgba(225, 0, 152); /* Cor vermelha */
     font-weight: bold; /* Deixa o asterisco em negrito */
     font-size: 22px; /* Tamanho do asterisco */
 }
+
+
 
 label[for="referencia"]::after {
     content: " ? "; /* Insere o asterisco */
@@ -791,6 +761,7 @@ label[for="referencia"]::after {
     animation: fadeIn 0.3s ease-in-out;
 }
 
+
 /* Conteúdo do modal */
 .help-modal-content {
     display: flex;
@@ -897,65 +868,6 @@ label[for="referencia"]::after {
     text-decoration: none;
     cursor: pointer;
 }
-
-.tribu{
-    height: 250px;
-    font-size: 1.1rem;   /* tamanho de fonte maior */
-    color: black;          /* texto em vermelho */
-    resize: vertical;
-    overflow: auto;
-    padding-top: 40px;
-}
-
-
-/* Estilo para o formulário de informações necessárias */
-.info-form {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-}
-
-.info-item {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-}
-
-.info-item label {
-    font-weight: bold;
-    color: #000; /* Perguntas em preto */
-    font-size: 14px;
-}
-
-.info-item input {
-    padding: 8px;
-    border: 1px solid #242323;
-    border-radius: 3px;
-    width: 98%;
-    color: #0000FF; /* Respostas em azul */
-    font-size: 14px;
-}
-
-/* Estilo para o texto de rodapé */
-.info-footer {
-    margin-top: 10px;
-    font-size: 15px;
-    color: #ec0b0b;
-    font-style: italic;
-    text-align: justify;
-}
-
-.info-item1 label {
-    color: #ec0b0b; 
-    font-size: 20px;
-    text-align:center;
-}
-
-
-
 /* Estilo para o modal de e-mail */
 .email-modal-content {
     width: 90%;
@@ -1003,6 +915,7 @@ label[for="referencia"]::after {
     resize: vertical;
     height: 150px;
 }
+
 
 .email-field input[type="file"] {
     padding: 5px 0;
@@ -1057,6 +970,19 @@ label[for="referencia"]::after {
 }
 
 
+
+/* Animação para o modal */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
 .attachment-wrapper {
     position: relative;
 }
@@ -1089,46 +1015,6 @@ label[for="referencia"]::after {
     margin-bottom: 5px;
     font-size: 14px;
 }
-
-.tooltip {
-    position: relative;
-    display: inline-block;
-    width: 100%;
-}
-.tooltip .tooltiptext {
-    visibility: hidden;
-    width: 200px;
-    background-color: #555;
-    color: #fff;
-    text-align: center;
-    border-radius: 6px;
-    padding: 5px;
-    position: absolute;
-    z-index: 1;
-    bottom: 125%;
-    left: 50%;
-    margin-left: -100px;
-    opacity: 0;
-    transition: opacity 0.3s;
-}
-.tooltip:hover .tooltiptext {
-    visibility: visible;
-    opacity: 1;
-}
-
-/* Animação para o modal */
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: scale(0.9);
-    }
-    to {
-        opacity: 1;
-        transform: scale(1);
-    }
-}
-
-
 
 /* Media Queries para responsividade */
 
@@ -1448,106 +1334,80 @@ label[for="referencia"]::after {
 }
 
 }
-body.light-theme .button-group button,
-body.light-theme .no-print button,
-body.light-theme footer {
+
+/* Botão remover linha (tabela) */
+.btn-remover-linha {
+    width: 100%;
+    height: 100%;
+    padding: 6px;
+    border-radius: 6px;
+    border: 1px solid #3d3c3c;
     background-color: var(--button-bg-light);
     color: var(--button-text-light);
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
 }
 
-body.dark-theme .button-group button,
-body.dark-theme .no-print button,
-body.dark-theme footer {
+/* Hover – igual aos outros botões */
+.btn-remover-linha:hover {
+    background: var(--button-hover-bg-light);
+    color: var(--button-hover-text-light);
+    border: none;
+}
+
+/* Tema escuro */
+body.dark-theme .btn-remover-linha {
     background-color: var(--button-bg-dark);
     color: var(--button-text-dark);
+    border: 1px solid #555;
 }
-footer {
 
-    display: flex;
-    justify-content:space-between;
-    flex-wrap: wrap;
-    margin-top: 20px;
-    padding-top: 20px;
-    background-color: #333;
+body.dark-theme .btn-remover-linha:hover {
+    background: var(--button-hover-bg-dark);
+    color: var(--button-hover-text-dark);
+}
+
+
+/*tutorial*/
+
+
+.tutorial-box {
+    position: absolute;
+    transition: all 0.2s ease;
+    background: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    max-width: 300px;
+    box-shadow: 0 0 15px rgba(0,0,0,0.3);
+}
+
+.highlight {
+    position: relative;
+    z-index: 10000;
+    outline: 3px solid #ff9800;
+    border-radius: 5px;
+}
+
+#tutorialOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
     width: 100%;
- 
-    margin: 0 auto;
-   
+    height: 100%;
 
+    background: rgba(0,0,0,0.6);
+    z-index: 9998;
 }
 
-@media (max-width: 1040px) {
-    footer {
-        width: 100%;
-     
-    }
+#tutorialBox {
+    position: absolute; /* mantém */
+    width: 320px;
+    background: #1e1e1e;
+    color: #fff;
+    padding: 15px;
+    border-radius: 10px;
 
-    .link_sites {
-        flex-direction: column; /* Garante que os itens fiquem em coluna */
-        align-items: center;
-       
-    }
-
-    .link_sites button#logoutButton2 {
-        width: 10%; /* Mantém a largura relativa em telas menores */
-        margin-top: 20px;
-        text-align: center;
-        margin-bottom: 15px; /* Espaçamento abaixo do botão */
-    }
-
-    .link_sites a {
-        margin: 5px ;
-        padding: 5px ;
-    }
-}
-
-    .link_sites {
-        padding-left: 15px;
-         
-      
-      }
-@media (max-width: 560px) {
-   
-    .link_sites a{
-      font-size: 80%;
-      padding-left: 15px;
-       
-    
-    }
-
-}
-.link_sites {
-    display: flex;
-    justify-content:center;
-    width: 100%;
-    padding-top: 20px;
-    padding-bottom: 30px;
-   /* padding: 15px;*/
- 
- 
-}
-.link_sites a {
-    display: flex;
-    justify-content:center;
-    color:#ffffff ;
-    text-align: center;
-    padding-left: 20px;
-    text-decoration: none;
-    font-size: 100%;
-
-}
-
-.link_sites label {
-    display: flex;
-    justify-content:center;
-    margin-right: 15px;
-
-}
-
-
-.link_sites a:hover {
-    color:rgba(225,0,152);
-    font-size: 140%;
-    
-
+    z-index: 9999; /*MUITO IMPORTANTE */
+    box-shadow: 0 0 15px rgba(0,0,0,0.5);
 }

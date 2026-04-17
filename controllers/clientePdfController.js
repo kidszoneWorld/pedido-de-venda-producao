@@ -38,7 +38,6 @@ exports.generateUploadUrl = async (req, res) => {
 
     const key = `clientes/${Date.now()}-${safeFileName}`;
 
-    // ✅ AQUI estava faltando isso
     const putCommand = new PutObjectCommand({
       Bucket: process.env.R2_BUCKET,
       Key: key,
