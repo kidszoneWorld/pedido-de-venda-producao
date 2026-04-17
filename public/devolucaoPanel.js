@@ -231,6 +231,19 @@ tr.innerHTML = `
 document.getElementById('filtroDevolucao').addEventListener('input', aplicarFiltros);
 document.getElementById('filtroCliente').addEventListener('input', aplicarFiltros);
 document.getElementById('filtroRepresentante').addEventListener('input', aplicarFiltros);
+
+
+document.getElementById('filtroRepresentante').addEventListener('input', function(e) {
+    // .trim() remove espaços em branco antes de verificar
+    if (e.target.value.trim() !== "") {
+        console.log("Input não está vazio:", e.target.value);
+        // Coloque sua ação aqui
+        aplicarFiltros();
+    }
+});
+
+
+
 document.getElementById('filtroNfOrigem').addEventListener('input', aplicarFiltros);
 document.getElementById('filtroStatus').addEventListener('change', aplicarFiltros);
 document.getElementById('filtroFinalizado').addEventListener('change', aplicarFiltros);
