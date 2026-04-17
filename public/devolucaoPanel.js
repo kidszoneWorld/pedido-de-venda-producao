@@ -114,6 +114,8 @@ function exportarExcel() {
 
 
 async function carregarDevolucoes() {
+    setTimeout(() => {
+  console.log("This runs after 2 seconds.");
     try {
         const res = await fetch('/api/devolucoes');
 
@@ -135,6 +137,7 @@ async function carregarDevolucoes() {
         console.error("Erro ao carregar devoluções:", err);
         listaOriginal = [];
     }
+    }, 1000);
 }
 
 function extrairNumeroRep(email) {
@@ -233,14 +236,7 @@ document.getElementById('filtroCliente').addEventListener('input', aplicarFiltro
 document.getElementById('filtroRepresentante').addEventListener('input', aplicarFiltros);
 
 
-document.getElementById('filtroRepresentante').addEventListener('input', function(e) {
-    // .trim() remove espaços em branco antes de verificar
-    if (e.target.value.trim() !== "") {
-        console.log("Input não está vazio:", e.target.value);
-        // Coloque sua ação aqui
-        aplicarFiltros();
-    }
-});
+
 
 
 
