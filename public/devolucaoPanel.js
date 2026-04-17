@@ -117,11 +117,11 @@ async function carregarDevolucoes() {
     setTimeout(() => {
   console.log("This runs after 2 seconds.");
     try {
-        const res = await fetch('/api/devolucoes');
+        const res = fetch('/api/devolucoes');
 
         console.log("STATUS:", res.status);
 
-        const text = await res.text();
+        const text = res.text();
         console.log("RESPOSTA BRUTA: deu bom");
 
         const json = JSON.parse(text);
