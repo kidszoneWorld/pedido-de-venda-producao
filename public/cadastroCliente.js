@@ -116,7 +116,22 @@ document.addEventListener("DOMContentLoaded", () => {
                 'dados_responsavel',
                 'paletizada',
                 'horario_entrega',
-                'numero_nf'
+                'numero_nf',
+                'representante',
+                'transp',
+                'codgroup',
+                'email',
+                'ie',
+                'endereco',
+                'cidade',
+                'bairro',
+                'cep',
+                'telefone',
+                'email',
+                'email_fiscal',
+                'contat',
+                'formPagDescricao',
+                'nFan'
             ];
     
             for (let campo of campos) {
@@ -297,7 +312,7 @@ function atualizarListaAnexos() {
     // Ao clicar no botão "ENVIAR E-MAIL COM ANEXOS", verifica os campos obrigatórios antes de gerar o PDF e abrir o modal
     buttonPdf.addEventListener('click', async () => {
         if (!verificarCamposObrigatorios()) {
-            alert('Por favor, preencha todos os campos obrigatórios na seção "INFORMAÇÕES NECESSÁRIAS"');
+            alert('Por favor, preencha todos os campos obrigatórios!"');
             return;
         }
         await gerarPDF();
