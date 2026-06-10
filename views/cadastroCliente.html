@@ -12,8 +12,8 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.2/html2pdf.bundle.min.js"></script>
 
-    <link rel="stylesheet" href="/css/cadastroCliente.css?v=1778763117614">
-    <link rel="stylesheet" href="/css/theme-toggle.css?v=1778763117614">
+    <link rel="stylesheet" href="/css/cadastroCliente.css?v=1778777229725">
+    <link rel="stylesheet" href="/css/theme-toggle.css?v=1778777229725">
     <!-- Script inline para aplicar o tema imediatamente -->
     <script>
         (function() {
@@ -37,6 +37,7 @@
            <!--<a target="_blank" href="/admin">Área T.I.</a>-->
            <a href="/">Pedido de Venda</a>
            <a href="/devolucao">Pedido de Devolução</a>
+           <!-- <a href="/rebaixa">Solicitação de Rebaixa</a> -->
            <a href="/comercial">Área Comercial</a>
            <a href="/logistica03">Área logística</a>
            <a href="/detalhesProdutos">Detalhes do Produto</a>
@@ -193,16 +194,21 @@
                 <span class="tooltip2">Campo Obrigatório</span>
             </label>
             <input type="text" id="telefone" placeholder="Telefone">
+            
+            <!-- <label for="nome_comprador" class="label-obrigatorio">NOME COMPRADOR:
+                <span class="tooltip2">Campo Obrigatório</span>
+            </label> -->
+            <!-- <input type="text" id="nome_comprador" placeholder="Nome do comprador"> -->
 
             <label class="label-obrigatorio" for="email">E-MAIL ARQUIVO XML:
                 <span class="tooltip2">Campo Obrigatório</span>
             </label>
             <input type="text" id="email" placeholder="E-mail para o XML">
 
-            <label for="email_fiscal" class="label-obrigatorio">E-MAIL COMPRADOR:
+            <label for="email_comprador" class="label-obrigatorio">E-MAIL COMPRADOR:
                 <span class="tooltip2">Campo Obrigatório</span>
             </label>
-            <input type="text" id="email_fiscal" placeholder="E-mail Fiscal">
+            <input type="text" id="email_comprador" placeholder="Email comprador">
 
             <label for="pay">E-MAIL AGENDAMENTO:</label>
             <input type="text" id="pay" placeholder="E-mail para Agendamento">
@@ -224,6 +230,11 @@
                 <span class="tooltip2">Campo Obrigatório</span>
             </label>
             <input type="text" id="formPagDescricao" placeholder="Segmento">
+
+            <!-- <label class="label-obrigatorio"  for="formPagDescricao">ONDE DESCOBRIU<br>A KIDSZONE?
+                <span class="tooltip2">Campo Obrigatório</span>
+            </label> -->
+            <!-- <input type="text" id="origem" placeholder="Origem"> -->
             
             <label class="label-obrigatorio" for="codgroup">TABELA PREÇOS:
                 <span class="tooltip2">Campo Obrigatório</span>
@@ -331,8 +342,8 @@
     
 </div>
 
-<script src="/cadastroCliente.js?v=1778763117614"></script>
-<script src="/theme-toggle.js?v=1778763117614"></script>
+<script src="/cadastroCliente.js?v=1778777229725"></script>
+<script src="/theme-toggle.js?v=1778777229725"></script>
 <script>
     document.getElementById('logoutButton2').addEventListener('click', async () => {
         sessionStorage.clear();

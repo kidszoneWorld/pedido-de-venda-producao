@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>Detalhes da Devolução</title>
+  <title>Detalhes da Rebaixa</title>
   <link rel="stylesheet" href="/css/styles2.css?v=1778777229736">
 
   <style>
@@ -43,10 +43,10 @@
            <a href="/investComercial">Investimento</a>
            </div>
         </footer> -->
-<h1>Detalhes da Devolução</h1>
+<h1>Detalhes da Rebaixa</h1>
 
 <div class="card">
-  <h2>Dados da devolução</h2>
+  <h2>Dados da Rebaixa</h2>
   <div class="grid" id="dadosPedido"></div>
 </div>
 <button onclick="exportarDetalheExcel()">Exportar para Excel</button>
@@ -56,14 +56,14 @@
     <thead>
       <tr>
         <th>NF</th>
-        <th>Data</th>
         <th>Código</th>
+        <th>descrição</th>
         <th>Lote</th>
-        <th>Qtd</th>
-        <th>UN</th>
-        <th>Descrição</th>
-        <th>Preço</th>
-        <th>Total</th>
+        <th>Preço Unitário</th>
+        <th>Rebaixa</th>
+        <th>Atual</th>
+        <th>Quantidade</th>
+        <th>Total Rebaixa</th>
       </tr>
     </thead>
     <tbody id="tabelaProdutos"></tbody>
@@ -75,6 +75,6 @@
 </div>
 
     <script src="/theme-toggle.js?v=1778777229736"></script>
-<script src="/devolucaoDetalhe.js?v=1778777229736"></script>
+<script src="/rebaixaDetalhe.js?v=1778777229736"></script>
 </body>
 </html>

@@ -2,9 +2,9 @@ const apiForm = require('../utils/apiForm');
 
 async function getClientDetails(req, res) {
     const { cnpj } = req.params;
-
+    const { api } = req.params;
     try {
-        const clientCnpj = await apiForm.fetchcontat(cnpj);
+        const clientCnpj = await apiForm.fetchcontat(api, cnpj);
 
         if (!clientCnpj) {
             return res.status(404).json({ message: 'Cliente não encontrado' });
@@ -59,8 +59,10 @@ function treatClientData(clientData) {
     const ufNumber = clientData.enderecos?.[0]?.cidade?.uf || 0;
     const ufSigla = ufMap[ufNumber] || "Nenhum"; // Caso o número não exista no mapeamento, retorna "Nenhum"
     debugger;
-
     //console.log('representantes dados: '+ JSON.stringify(clientData.representantes?.dados));
+
+    //puxa comissão representante x cliente
+    
     const comissaoItem = clientData.representantes?.dados[0]?.clientes?.find(
         cliente => cliente.clienteCodigo === clientData.codigo
     )?.comissaoItem;
@@ -69,9 +71,8 @@ function treatClientData(clientData) {
         cliente => cliente.clienteCodigo === clientData.codigo
     )?.comissaoServico;
 
-    console.log ('comissão do cliente Item '+ comissaoItem);
-    console.log ('comissão do cliente Servico '+ comissaoServico);
-
+    //console.log ('comissão do cliente Item '+ comissaoItem);
+    //console.log ('comissão do cliente Servico '+ comissaoServico);
     // Mapeamento dos campos
     const treatedData = {
         "COD CLIENTE": clientData.codigo || 0 ,

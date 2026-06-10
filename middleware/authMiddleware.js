@@ -1,4 +1,4 @@
-const REPRESENTANTES = require('../public/data/representantes.json');
+const pool = require('../config/database');
 
 function authMiddleware(req, res, next) {
     if (req.session && req.session.isAuthenticated) {
@@ -7,35 +7,75 @@ function authMiddleware(req, res, next) {
 
     res.redirect('/login2');
 }
+async function authenticateUser(req, res) {
 
-function authenticateUser(req, res) {
-    const { email, senha } = req.body;
+    try {
 
-    const user = REPRESENTANTES[email];
+        const email = req.body?.email;
+        const senha = req.body?.senha;
 
-    if (!user) {
-        console.warn('Usuário não encontrado');
-        return res.redirect('/error-404');
+        const result = await pool.query(
+            `SELECT *
+             FROM "TbUsuarios"
+             WHERE "UsuEmail" = $1`,
+            [email]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(401).send('Usuário não encontrado');
+        }
+
+        const user = result.rows[0];
+
+        const senhaBanco =
+            user.UsuSenha ||
+            user.ususenha;
+
+        if (senha !== senhaBanco) {
+            return res.status(401).send('Senha incorreta');
+        }
+
+        // AQUI DENTRO
+        req.session.isAuthenticated = true;
+
+        req.session.user = {
+             id:
+                user.UsuId ||
+                user.usuid,
+
+            email:
+                user.UsuEmail ||
+                user.usuemail,
+
+            nome:
+                user.UsuNome ||
+                user.usunome,
+
+            numero:
+                user.UsuNumero ||
+                user.usunumero
+        
+        };
+
+        
+        req.session.userNumero =
+            user.UsuNumero ||
+            user.usunumero;
+
+        return res.redirect('/');
+        
+    } catch (error) {
+
+        console.error(error);
+
+        return res.status(500).json({
+            message: error.message
+        });
     }
-
-    if (senha !== user.senha) {
-        console.warn('Senha incorreta');
-        return res.redirect('/error-401');
-    }
-
-    req.session.isAuthenticated = true;
-    req.session.user = {
-        email,
-        nome: user.nome,
-        numero: user.numero || null
-    };
-
-    if (email.startsWith('rep')) {
-        req.session.userNumero = user.numero;
-    }
-
-    console.log(`Usuário autenticado: ${email}`);
-    res.redirect('/');
 }
 
-module.exports = { authMiddleware, authenticateUser };
+
+module.exports = {
+    authMiddleware,
+    authenticateUser
+};

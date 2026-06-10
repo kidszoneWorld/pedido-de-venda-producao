@@ -12,6 +12,7 @@ const sellOutController = require('../controllers/sellOutController');
 const fernandoController = require('../controllers/fernandoController');
 const clientController = require('../controllers/clientController');
 const devController = require('../controllers/devController');
+const rebController = require('../controllers/rebController');
 const clientePdfController = require('../controllers/clientePdfController');
 const pdfInvestComercialController = require('../controllers/pdf_invest_comercialController');
 const pdfInvestPromotorController = require('../controllers/pdf_invest_promotorController');
@@ -39,6 +40,10 @@ router.get('/devolucao',authMiddleware, (req, res) => {
     res.sendFile(path.join(__dirname, '..', 'views', 'devolucao.html'));
 });
 
+router.get('/rebaixa',authMiddleware, (req, res) => {
+    res.sendFile(path.join(__dirname, '..', 'views', 'rebaixa.html'));
+});
+
 // Rota para a página de administração
 router.get('/admin', (req, res) => {
     res.sendFile(path.resolve(__dirname, '..', 'views', 'admin.html'));
@@ -58,15 +63,24 @@ router.get('/devolucaoPanel',authMiddleware, (req, res) => {
     res.sendFile(path.join(__dirname, '..', 'views', 'devolucaoPanel.html'));
 });
 
+router.get('/rebaixaPanel',authMiddleware, (req, res) => {
+    res.sendFile(path.join(__dirname, '..', 'views', 'rebaixaPanel.html'));
+});
+
 // Rota para a página de detalhes do produto (Detalhes_Produtos.html)
 router.get('/devolucaoDetalhe.html',authMiddleware, (req, res) => {
   res.sendFile(require('path').join(__dirname, '../views/devolucaoDetalhe.html'));
+});
+
+router.get('/rebaixaDetalhe.html',authMiddleware, (req, res) => {
+  res.sendFile(require('path').join(__dirname, '../views/rebaixaDetalhe.html'));
 });
 
 //Rota para a pagina de detalhes de devoulção
 router.get('/detalhesProdutos',authMiddleware,(req, res) => {
     res.sendFile(path.join(__dirname, '..', 'views', 'Detalhes_Produtos.html'));
 });
+
 
 // Rota para a página de eficiencia cliente (eficiencia.html)
 router.get('/eficiencia',authMiddleware,(req, res) => {
@@ -127,7 +141,7 @@ router.get('/investPromotor',authMiddleware, (req, res) => {
 // Rotas da API de pedidos
 router.get('/api/pedidos', orderController.getOrderDetails); // Pedidos com representantes
 router.get('/api/pedidos1/:codPedido', orderController.getClientDetailsEndpoint); // Detalhes do pedido por codPedido
-router.get('/api/cliente/:cnpj', clientController.getClientDetails); // Detalhes do cliente por cnpj
+router.get('/api/cliente/:api/:cnpj', clientController.getClientDetails); // Detalhes do cliente por cnpj
 router.get('/api/cliente1/:cnpj', clientController.getClientDetailsTest); // Detalhes do cliente por cnpj full
 
 
@@ -143,6 +157,17 @@ router.get('/api/devolucao/:id', devController.buscarDevolucaoPorId);
 // Devolucao
 router.get('/api/devolucoes', devController.listarDevolucoes);
 router.put('/devolucao/:id', devController.atualizarDevolucao);
+
+
+// salvar Rebaixa
+router.post('/api/rebaixa', rebController.salvarRebaixa);
+router.get('/api/rebaixa/:id', rebController.buscarRebaixaPorId);
+
+// Rebaixa
+router.get('/api/rebaixas', rebController.listarRebaixas);
+router.put('/rebaixa/:id', rebController.atualizarRebaixa);
+
+
 
 // Rota para página de erro 401 (Senha incorreta)
 router.get('/error-401', (req, res) => {
@@ -180,6 +205,8 @@ router.post('/generate-upload-url', clientePdfController.generateUploadUrl);
 router.post('/send-client-pdf', clientePdfController.sendClientPdf);
 router.post('/generate-upload-url-dev', devController.generateUploadUrlDev);
 router.post('/send-client-pdf-dev', devController.sendClientPdfDev);
+router.post('/generate-upload-url-reb', rebController.generateUploadUrlReb);
+router.post('/send-client-pdf-reb', rebController.sendClientPdfReb);
 
 
 // Rota para autenticação
@@ -225,6 +252,10 @@ router.delete('/api/sellOut/remover', sellOutController.removerLinhaSellOut);
 router.post('/api/devolucoes', devController.salvarDevolucao);
 router.get('/api/devolucoes/:id', devController.buscarDevolucaoPorId);
 router.put('/api/devolucoes/:id', devController.atualizarDevolucao);
+
+router.post('/api/rebaixas', rebController.salvarRebaixa);
+router.get('/api/rebaixas/:id', rebController.buscarRebaixaPorId);
+router.put('/api/rebaixas/:id', rebController.atualizarRebaixa);
 
 
 module.exports = router;

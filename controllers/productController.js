@@ -67,10 +67,13 @@ async function verificarStatusItem(itemEmpresaId) {
 
     const data = JSON.parse(text);
 
+
     return {
         ativo: data.ativo,
         suspenso: data.suspenso,
-        foraLinha: data.foraLinha
+        foraLinha: data.foraLinha,
+        classificacaoFiscal: data.classificacaoFiscal,
+        origem: data.origem
     };
 }
 
@@ -120,9 +123,8 @@ async function getListaPreco(req, res) {
 
 
     const item = itens[0];
-
     const status = await verificarStatusItem(item.ItemCodigo);
-
+        console.log(status);
     if (status.suspenso == true) {
         return res.status(400).json({ message: 'Item suspenso' });
     }
@@ -134,10 +136,21 @@ async function getListaPreco(req, res) {
     else if (status.foraLinha == true) {
         return res.status(400).json({ message: 'Item fora de linha' });
     
-}
-        }
+}   
+    console.log(status.classificacaoFiscal);
 
+    
+
+    itens = itens.map(itens => ({
+        ...itens, // Mantém as propriedades originais do item
+        classificacaoFiscal: status.classificacaoFiscal, // Substitua pelo campo real do seu dado
+        origem: status.origem
+    }));
+
+    }
         res.json(itens);
+        console.log(itens)
+
 
     } catch (err) {
         console.error(err);
@@ -253,7 +266,7 @@ function formatProductsFromPriceList(products) {
     item.push(product.ItemDescricao);
     item.push('null');
     item.push('null');
-    item.push('null');
+    item.push(product.classificacaoFiscal);
     item.push('null');
     item.push('CX');
     item.push('null');

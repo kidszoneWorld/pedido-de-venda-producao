@@ -43,15 +43,17 @@ fetch(`/data/ICMS-ST.json?cacheBust=${timestamp}`)
 async function carregarListaPrecos(listaId) {
     const response = await fetch(`/api/lista-preco/${listaId}`);
     listaPrecosData = await response.json();
-    console.log('LISTA DE PREÇOS CARREGADA:', Array.isArray(listaPrecosData) ? listaPrecosData.length : listaPrecosData);
+
+    console.log('LISTA ID CARREGADA:', listaId);
+    console.log('QTD ITENS DA LISTA:', listaPrecosData.length);
+    console.log('DADOS DA LISTA:', listaPrecosData);
 }
 
 console.log('script.js carregado');
 
 // limpar tudo ao atualizar page (run once)
-
-// limparCamposCliente();
-// atualizarTotais();
+ limparCamposCliente();
+ atualizarTotais();
 
 // ======================================================================
 // 🔧 FUNÇÕES UTILITÁRIAS
@@ -184,6 +186,7 @@ const hideFeedback = () => { el('feedback1').style.display = 'none'; el('feedbac
 
 // Modal bloqueio CNPJ
 const cnpjInput1 = el('cnpj');
+const codInput1 = el('cod_cliente');
 const blockModal = el('blockModal');
 el('okButton').onclick = () => blockModal.style.display = "none";
 blockModal.querySelector('.close-button').onclick = () => blockModal.style.display = "none";
@@ -209,11 +212,11 @@ cnpjInput1.addEventListener('blur', async function () {
 
     showFeedback('Carregando cliente...');
     this.readOnly = true;
-
+    let api = "documento"
     let clienteApi;
 
     try {
-        const res = await fetch(`/api/cliente/${cnpj}`);
+        const res = await fetch(`/api/cliente/${api}/${cnpj}`);
         if (!res.ok) throw new Error();
         clienteApi = await res.json();
 
@@ -221,7 +224,8 @@ cnpjInput1.addEventListener('blur', async function () {
             alert('Cliente inativo ou suspenso.');
             return limparCamposCliente();
         }
-
+        console.log('LISTA:', clienteApi["LISTA"]);
+        console.log('LISTA NOME1:', clienteApi["LISTA NOME1"]);
         clientesData = [null, [
             null,
             clienteApi["CNPJ"], clienteApi["INSC. ESTADUAL"], clienteApi["RAZÃO SOCIAL"],
@@ -242,30 +246,7 @@ cnpjInput1.addEventListener('blur', async function () {
         const c = buscarCliente(cnpj);
         if (!c) return alert('Cliente não encontrado.');
 
-        el('razao_social').value = c[3];
-        el('ie').value = c[2];
-        el('representante').value = `${c[15]} - ${c[16]}`;
-        el('endereco').value = c[8];
-        el('bairro').value = c[9];
-        el('cidade').value = c[10];
-        el('uf').value = c[11];
-        el('cep').value = formatarCEP(c[12].toString());
-        el('telefone').value = c[4];
-        el('email').value = c[6];
-        el('email_fiscal').value = c[7];
-        el('cod_cliente').value = c[17];
-        el('pay').value = c[14];
-        el('group').value = c[19];
-        el('transp').value = c[20];
-        el('codgroup').value = c[18];
-        el('representanteId').value = c[15];
-        el('formPagId').value = c[25];
-        el('condPagId').value = c[27];
-        el('PercentualComissaoItem').value = c[23];
-        el('PercentualComissaoServico').value = c[24];
-        el('ContatoClienteId').value = c[28];
-        el('formPagDescricao').value = c[26];
-        el('email_rep').value = c[22];
+        preencherCliente(clientesData[1]);
 
         if (clienteApi.LISTA) await carregarListaPrecos(clienteApi.LISTA);
 
@@ -278,6 +259,94 @@ cnpjInput1.addEventListener('blur', async function () {
         setTimeout(() => document.querySelector('#dadosPedido tbody tr input')?.focus(), 0);
     }
 });
+
+
+
+codInput1.addEventListener('blur', async function () {
+    let cnpj = this.value
+
+
+
+    showFeedback('Carregando cliente...');
+    this.readOnly = true;
+    let api = "codigo"
+    let clienteApi;
+
+    try {
+        const res = await fetch(`/api/cliente/${api}/${cnpj}`);
+        if (!res.ok) throw new Error();
+        clienteApi = await res.json();
+
+        if (!clienteApi.ATIVO || clienteApi.SUSPENSO) {
+            alert('Cliente inativo ou suspenso.');
+            return limparCamposCliente();
+        }
+        console.log('LISTA:', clienteApi["LISTA"]);
+        console.log('LISTA NOME1:', clienteApi["LISTA NOME1"]);
+        clientesData = [null, [
+            null,
+            clienteApi["CNPJ"], clienteApi["INSC. ESTADUAL"], clienteApi["RAZÃO SOCIAL"],
+            clienteApi["TELEFONE"], clienteApi["LISTA NOME"], clienteApi["EMAIL COMERCIAL"],
+            clienteApi["EMAIL FISCAL"], clienteApi["ENDEREÇO"], clienteApi["BAIRRO"],
+            clienteApi["CIDADE"], clienteApi["UF"], clienteApi["CEP"],
+            clienteApi["NOME CONTATO"], clienteApi["COND. DE PAGTO"],
+            clienteApi["REPRESENTANTE"], clienteApi["REPRESENTANTE NOME"],
+            clienteApi["COD CLIENTE 2"], clienteApi["LISTA"], clienteApi["LISTA NOME1"],
+            clienteApi["TRANSPORTADORA"], clienteApi["CliDataHoraIncl"],
+            clienteApi["REPRESENTANTE E-MAIL"], clienteApi["REP COMISSAO ITEM"],
+            clienteApi["REP COMISSAO SERVICO"], clienteApi["FORMA DE PAGAMENTO ID"],
+            clienteApi["FORMA DE PAGAMENTO DESCRICAO"], clienteApi["ID COND. DE PAGTO"],
+            clienteApi["ID NOME CONTATO"], clienteApi["NOME GRUPO CLIENTE"],
+            clienteApi["GRUPO CLIENTE"], clienteApi["ATIVO"], clienteApi["SUSPENSO"]
+        ]];
+
+        const c = clientesData[1];
+
+        if (!c) {
+            return alert('Cliente não encontrado.');
+        }
+        preencherCliente(clientesData[1]);
+        if (clienteApi.LISTA) await carregarListaPrecos(clienteApi.LISTA);
+
+    } catch {
+        alert("Cliente não encontrado, verificar com o financeiro.");
+    } finally {
+        hideFeedback();
+        this.readOnly = false;
+        garantirLinhaInicial();
+        setTimeout(() => document.querySelector('#dadosPedido tbody tr input')?.focus(), 0);
+    }
+});
+
+
+
+function preencherCliente(c) {
+    el('cnpj').value = formatarCNPJ(c[1].toString());
+    el('razao_social').value = c[3];
+    el('ie').value = c[2];
+    el('representante').value = `${c[15]} - ${c[16]}`;
+    el('endereco').value = c[8];
+    el('bairro').value = c[9];
+    el('cidade').value = c[10];
+    el('uf').value = c[11];
+    el('cep').value = formatarCEP(c[12].toString());
+    el('telefone').value = c[4];
+    el('email').value = c[6];
+    el('email_fiscal').value = c[7];
+    el('cod_cliente').value = c[17];
+    el('pay').value = c[14];
+    el('group').value = c[19];
+    el('transp').value = c[20];
+    el('codgroup').value = c[18];
+    el('representanteId').value = c[15];
+    el('formPagId').value = c[25];
+    el('condPagId').value = c[27];
+    el('PercentualComissaoItem').value = c[23];
+    el('PercentualComissaoServico').value = c[24];
+    el('ContatoClienteId').value = c[28];
+    el('formPagDescricao').value = c[26];
+    el('email_rep').value = c[22];
+}
 
 // ======================================================================
 // 📦 PEDIDO / TABELA
@@ -443,7 +512,41 @@ function buscarIpiDoItem(codigoItem) {
 }
 
 
+function getIpi(classificacao){
 
+      const classificacaoFiscal = [
+                [17041000 , 0.0325],
+                [17049020 , 0.0325],
+                [17049090 , 0.0325],
+                [18069000 , 0.0325],
+                [20079923 , 0],
+                [20079990 , 0],
+                [21069050 , 0],
+                [39201099 , 0],
+                [49019900 , 0],
+                [49111090 , 0],
+                [61091000 , 0],
+                [84729059 , 0],
+                [85061010 , 0],
+                [87120010 , 0],
+                [94033000 , 0],
+                [94037000 , 0],
+                [95030022 , 0.065],
+                [95030031 , 0],
+                [95030039 , 0.065],
+                [95030070 , 0.065],
+                [95030098 , 0.065],
+                [95030099 , 0.065],
+                [95049090 , 0],
+            ];
+            
+            const ipi = classificacaoFiscal.find(
+                row => row[0] == classificacao
+            )
+
+            return ipi ? ipi[1] : 0;
+            
+}
 
 
 
@@ -457,7 +560,7 @@ function adicionarNovaLinha() {
     for (let i = 0; i < 10; i++) {
         const td = document.createElement('td');
 
-        // 🔴 coluna oculta (ItemId)
+        // coluna oculta (ItemId)
         if (i === 9) {
             td.style.display = 'none';
         }
@@ -567,11 +670,13 @@ function adicionarNovaLinha() {
        // =========================
 
 if (i === 0) {
+
     input.addEventListener('blur', async function () {
+
         const cod = this.value.trim().toUpperCase();
+
         if (!cod) return;
 
-        // VERIFICA DUPLICIDADE
         if (verificarCodigoDuplicadoNaTabela(cod, tr)) {
             alert('Este item já foi adicionado ao pedido.');
             this.value = '';
@@ -580,79 +685,141 @@ if (i === 0) {
         }
 
         const listaId = document.getElementById('codgroup').value;
+
         const cells = tr.querySelectorAll('td input');
 
-        // 🔄 FEEDBACK VISUAL
-        cells[3].value = 'Carregando item, por favor aguarde...';
         this.readOnly = true;
+
+        // quantidade
         cells[1].readOnly = true;
         cells[1].value = '';
+
+        // UV
         cells[2].value = '';
+
+        // descrição
+        cells[3].value = 'Carregando item...';
+
+        // IPI
         cells[4].value = '';
+
+        // unitário
         cells[5].value = '';
+
+        // c/ ipi
         cells[6].value = '';
+
+        // total
         cells[7].value = '';
 
         try {
+
             const response = await fetch(
                 `/api/lista-preco/${listaId}?codigo=${encodeURIComponent(cod)}`
             );
 
             if (!response.ok) {
+
                 const erro = await response.json();
-                throw new Error(erro.message || 'Item não disponível');
+
+                throw new Error(
+                    erro.message || 'Item não disponível'
+                );
             }
 
             const data = await response.json();
+
+            console.log('RETORNO ITEM:', data);
+            console.log('É ARRAY?', Array.isArray(data));
+
             if (!data.length) {
                 throw new Error('Item não encontrado');
             }
 
             const item = data[0];
+            let ipi = 0;
             const preco = Number(item.PrecoVenda);
 
-            // ✅ IPI DINÂMICO
-            const ipi = buscarIpiDoItem(cod);
+            //Verificação automática de IPI
+            console.log('Origem '+item.origem)
+            
+            if(item.origem == 2)
+                ipi = getIpi(item.classificacaoFiscal)
+            else
+                ipi = 0
             const ipiMult = 1 + ipi;
 
+            // UV
             cells[2].value = 'CX';
+
+            // descrição
             cells[3].value = item.ItemDescricao;
-            cells[4].value = (ipi * 100).toFixed(2) + '%';
+
+            // IPI
+            cells[4].value =
+                (ipi * 100).toFixed(2) + '%';
 
             const precoComIpi = preco * ipiMult;
 
-            cells[5].value = preco.toLocaleString('pt-BR', {
-                style: 'currency',
-                currency: 'BRL'
-            });
-
-            cells[6].value = precoComIpi.toLocaleString('pt-BR', {
-                style: 'currency',
-                currency: 'BRL'
-            });
-
-            cells[1].readOnly = false;
-            cells[1].focus();
-
-            cells[1].addEventListener('input', () => {
-                const qtd = parseFloat(cells[1].value.replace(',', '.')) || 0;
-                const totalLinha = qtd * preco;
-                const totalComIpi = totalLinha * ipiMult;
-
-                cells[7].value = totalComIpi.toLocaleString('pt-BR', {
+            // unitário
+            cells[5].value = preco.toLocaleString(
+                'pt-BR',
+                {
                     style: 'currency',
                     currency: 'BRL'
-                });
+                }
+            );
+
+            // c/ ipi
+            cells[6].value = precoComIpi.toLocaleString(
+                'pt-BR',
+                {
+                    style: 'currency',
+                    currency: 'BRL'
+                }
+            );
+
+            cells[1].readOnly = false;
+
+            cells[1].focus();
+
+            cells[1].oninput = () => {
+
+                const qtd =
+                    parseFloat(
+                        cells[1].value.replace(',', '.')
+                    ) || 0;
+
+                const totalLinha = qtd * preco;
+
+                const totalComIpi =
+                    totalLinha * ipiMult;
+
+                // TOTAL
+                cells[7].value =
+                    totalComIpi.toLocaleString(
+                        'pt-BR',
+                        {
+                            style: 'currency',
+                            currency: 'BRL'
+                        }
+                    );
 
                 tr.dataset.itemId = item.ItemId;
+
                 atualizarTotais();
-            });
+            };
 
         } catch (error) {
+
             alert(error.message);
+
             this.value = '';
+
             this.focus();
+
         } finally {
+
             this.readOnly = false;
         }
     });
@@ -712,7 +879,14 @@ function verificarCodigoDuplicadoNaTabela(codigo, linhaAtual) {
 
 
 
+
+
 //--inicio-----envio de dados para o sistema DBCorp-----------------------------------------------------------------------------------------////
+
+
+
+
+
 
 const btSistema = document.getElementById('button_sistema');
 const feedbackDiv = document.getElementById('feedback1');
@@ -722,6 +896,305 @@ const confirmButton = document.getElementById('confirmButton');
 const cancelButton = document.getElementById('cancelButton');
 const cnpjInput = document.getElementById('cnpj');
 const btPdfGeneration = document.getElementById('button_pdf');
+
+document.getElementById('baixarJson').addEventListener('click', () => {
+
+        // Captura as linhas da tabela
+        const tableRows = document.querySelectorAll('#dadosPedido tbody tr');
+
+        // Cria o array dinâmico para ItensPedidoVenda
+        const itensPedidoVenda = Array.from(tableRows)
+            .map(row => {
+                const cells = row.querySelectorAll('td input'); // Captura os inputs da linha
+
+                // Verifica se a linha tem dados válidos antes de adicioná-la
+                const itemId = row.dataset.itemId || 0;
+                const quantidade = Number(cells[1]?.value || 0); // Quantidade na segunda célula
+
+                // Só adiciona a linha se tiver um ItemId e Quantidade válidos
+                if (itemId > 0 && quantidade > 0) {
+                    return {
+                        ItemValorDesconto: 0,
+                        ItemPercentualDesconto: 0,
+
+                        EntregasItemPedidoVenda: [
+                            {
+                                Data: new Date().toISOString(),
+                                DataPrevista: new Date().toISOString(),
+                                Quantidade: quantidade,
+                            }
+                        ],
+
+                        ItemId: itemId,
+
+                        Codigo: cells[0]?.value || '',
+
+                        Quantidade: quantidade,
+                    };
+                }
+
+                return null; // Retorna null para linhas inválidas
+            })
+            .filter(item => item !== null); // Remove itens nulos do array
+
+        // Cria o corpo da requisição com base nos inputs
+        const requestBody = {
+
+    // =========================
+    // CLIENTE
+    // =========================
+    cnpj: document.getElementById('cnpj').value,
+    ie: document.getElementById('ie').value,
+    representante: document.getElementById('representante').value,
+    tipoPedido: document.getElementById('tipo_pedido').value,
+    razaoSocial: document.getElementById('razao_social').value,
+    codClienteTexto: document.getElementById('cod_cliente').value,
+    endereco: document.getElementById('endereco').value,
+    bairro: document.getElementById('bairro').value,
+    cidade: document.getElementById('cidade').value,
+    uf: document.getElementById('uf').value,
+    cep: document.getElementById('cep').value,
+    telefone: document.getElementById('telefone').value,
+    email: document.getElementById('email').value,
+    emailFiscal: document.getElementById('email_fiscal').value,
+    condicaoPagamentoTexto: document.getElementById('pay').value,
+    transporte: document.getElementById('transp').value,
+    tabelaTexto: document.getElementById('group').value,
+    formaPagamentoTexto: document.getElementById('formPagDescricao').value,
+
+    // =========================
+    // IDs SISTEMA
+    // =========================
+    ListaPrecoId: Number(document.getElementById('codgroup').value),
+    CondicaoPagamentoId: Number(document.getElementById('condPagId').value),
+    FormaPagamentoId: Number(document.getElementById('formPagId').value),
+
+    ValorDesconto: 0,
+    PercentualDesconto: 0,
+
+    ItensPedidoVenda: itensPedidoVenda,
+
+    RepresentantesPedidoVendas: [
+        {
+            RepresentanteId: Number(document.getElementById('representanteId').value),
+            RepresentantePrincipal: true,
+            PercentualComissaoItem: Number(document.getElementById('PercentualComissaoItem').value),
+            PercentualComissaoServico: Number(document.getElementById('PercentualComissaoServico').value),
+        }
+    ],
+
+    ClienteId: Number(document.getElementById('cod_cliente').value),
+
+    ContatoClienteId: Number(document.getElementById('ContatoClienteId').value || 0),
+
+    NumeroReferencia: document.getElementById('referencia').value,
+
+    Observacao: document.getElementById('observation').value,
+};
+
+    // Converte objeto para JSON formatado
+    const jsonString = JSON.stringify(requestBody, null, 2);
+
+    // Cria blob
+    const blob = new Blob([jsonString], {
+        type: 'application/json'
+    });
+
+    // Cria URL temporária
+    const url = URL.createObjectURL(blob);
+
+    // Cria link invisível
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = document.getElementById('razao_social').value+ ' ' + document.getElementById('totalComIpi').value  +'.json';
+
+    // Dispara download
+    a.click();
+
+    // Limpeza
+    URL.revokeObjectURL(url);
+});
+
+
+
+//input via json
+
+const inputJsonButton = document.getElementById('inputJson');
+const jsonFileInput = document.getElementById('jsonFileInput');
+
+// abre seletor de arquivo ao clicar no botão
+inputJsonButton.addEventListener('click', () => {
+    jsonFileInput.click();
+});
+
+// Ao clicar no botão abre seletor de arquivo
+jsonFileInput.addEventListener('change', async (event) => {
+
+    const file = event.target.files[0];
+
+    if (!file) return;
+
+    try {
+
+        const fileContent = await file.text();
+
+        // remove BOM UTF-8 invisível
+        const jsonLimpo = fileContent.replace(/^\uFEFF/, '');
+
+        const requestBody = JSON.parse(jsonLimpo);
+
+        console.log("JSON importado:", requestBody);
+
+        // =========================
+        // PREENCHE CLIENTE
+        // =========================
+
+        document.getElementById('cnpj').value =
+            requestBody.cnpj || '';
+
+        document.getElementById('ie').value =
+            requestBody.ie || '';
+
+        document.getElementById('representante').value =
+            requestBody.representante || '';
+
+        document.getElementById('tipo_pedido').value =
+            requestBody.tipoPedido || 'Venda';
+
+        document.getElementById('razao_social').value =
+            requestBody.razaoSocial || '';
+
+        document.getElementById('cod_cliente').value =
+            requestBody.codClienteTexto || '';
+
+        document.getElementById('endereco').value =
+            requestBody.endereco || '';
+
+        document.getElementById('bairro').value =
+            requestBody.bairro || '';
+
+        document.getElementById('cidade').value =
+            requestBody.cidade || '';
+
+        document.getElementById('uf').value =
+            requestBody.uf || '';
+
+        document.getElementById('cep').value =
+            requestBody.cep || '';
+
+        document.getElementById('telefone').value =
+            requestBody.telefone || '';
+
+        document.getElementById('email').value =
+            requestBody.email || '';
+
+        document.getElementById('email_fiscal').value =
+            requestBody.emailFiscal || '';
+
+        document.getElementById('pay').value =
+            requestBody.condicaoPagamentoTexto || '';
+
+        document.getElementById('transp').value =
+            requestBody.transporte || '';
+
+        document.getElementById('group').value =
+            requestBody.tabelaTexto || '';
+
+        document.getElementById('codgroup').value =
+            requestBody.ListaPrecoId || '';
+
+        document.getElementById('formPagDescricao').value =
+            requestBody.formaPagamentoTexto || '';
+        
+        document.getElementById('referencia').value =
+            requestBody.NumeroReferencia || '';
+
+        document.getElementById('observation').value =
+            requestBody.Observacao || '';
+
+        // representante
+        if (requestBody.RepresentantesPedidoVendas?.length) {
+
+            const rep = requestBody.RepresentantesPedidoVendas[0];
+
+            document.getElementById('representanteId').value =
+                rep.RepresentanteId || '';
+
+            document.getElementById('PercentualComissaoItem').value =
+                rep.PercentualComissaoItem || '';
+
+            document.getElementById('PercentualComissaoServico').value =
+                rep.PercentualComissaoServico || '';
+        }
+
+        // =========================
+        // LIMPA TABELA
+        // =========================
+
+        const tbody = document.querySelector('#dadosPedido tbody');
+        tbody.innerHTML = '';
+
+        // =========================
+        // PREENCHE ITENS
+        // =========================
+
+        for (const item of requestBody.ItensPedidoVenda) {
+
+            adicionarNovaLinha();
+
+            const tr = tbody.lastElementChild;
+            const cells = tr.querySelectorAll('td input');
+
+            // ItemId
+            tr.dataset.itemId = item.ItemId;
+
+           // Código do item
+                cells[0].value = item.Codigo;
+
+                // dispara blur primeiro
+                cells[0].dispatchEvent(new Event('blur'));
+
+                // espera carregar o item
+                await new Promise(resolve => {
+
+                    const verificar = setInterval(() => {
+
+                        // preço carregado e quantidade liberada
+                        if (cells[5]?.value && !cells[1].readOnly) {
+
+                            clearInterval(verificar);
+
+                            // AGORA define a quantidade
+                            cells[1].value = item.Quantidade;
+
+                            // dispara cálculo
+                            cells[1].dispatchEvent(new Event('input'));
+
+                            resolve();
+                        }
+
+                    }, 100);
+
+                });
+        }
+
+        atualizarTotais();
+
+        alert("JSON carregado na tela com sucesso!");
+
+    } catch (error) {
+
+        console.error("Erro ao importar JSON:", error);
+
+        alert("Erro ao processar o arquivo JSON.");
+    } finally {
+
+        jsonFileInput.value = '';
+    }
+});
+
+
+
 
 // Função para abrir o modal
 btSistema.addEventListener("click", () => {
@@ -782,6 +1255,7 @@ confirmButton.addEventListener("click", async () => {
                             }
                         ],
                         ItemId: itemId,
+                        Codigo: cells[0]?.value || '',
                         Quantidade: quantidade,
                     };
                 }
@@ -813,7 +1287,7 @@ confirmButton.addEventListener("click", async () => {
         };
 
         // Loga o JSON no console
-        console.log("JSON enviado para a API:", requestBody);
+        console.log("JSON enviado para a API:", requestBody); ////// BAIXAR ESTE ARQUIVO E IMPUTAR ESSE ARQUIVO
         console.log('ClienteId:', document.getElementById('cod_cliente').value);
 console.log('Itens:', itensPedidoVenda);
 
