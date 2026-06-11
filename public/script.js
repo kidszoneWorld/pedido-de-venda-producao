@@ -945,11 +945,10 @@ document.getElementById('baixarJson').addEventListener('click', () => {
     // =========================
     cnpj: document.getElementById('cnpj').value,
     ie: document.getElementById('ie').value,
-    // representante: document.getElementById('representante').value,
-    codClienteTexto: document.getElementById('cod_cliente').value,
+    representante: document.getElementById('representante').value,
     tipoPedido: document.getElementById('tipo_pedido').value,
     razaoSocial: document.getElementById('razao_social').value,
-    representante: document.getElementById('representante').value,
+    codClienteTexto: document.getElementById('cod_cliente').value,
     endereco: document.getElementById('endereco').value,
     bairro: document.getElementById('bairro').value,
     cidade: document.getElementById('cidade').value,
