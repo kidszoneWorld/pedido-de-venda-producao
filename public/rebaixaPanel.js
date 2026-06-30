@@ -25,7 +25,7 @@ async function aplicarRestricaoRepresentante() {
             const inputRep = document.getElementById('filtroRepresentante');
 
             // força valor
-            inputRep.value = Math.round(userNumero);
+            inputRep.value = userNumero;
             
                 inputRep.readOnly = true;
                 inputRep.style.backgroundColor = '#e9ecef';

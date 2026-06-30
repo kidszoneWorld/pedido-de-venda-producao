@@ -25,7 +25,7 @@ async function aplicarRestricaoRepresentante() {
             const inputRep = document.getElementById('filtroRepresentante');
 
             // força valor
-            inputRep.value =  Math.round(userNumero);
+            inputRep.value = userNumero;
             
                 inputRep.readOnly = true;
                 inputRep.style.backgroundColor = '#e9ecef';
@@ -56,7 +56,7 @@ function exportarExcel() {
     const filtrados = listaOriginal.filter(dev => {
 
         const matchCliente =
-            dev.razaosocial?.toLowerCase().includes(cliente) ||
+            dev.razaoSocial?.toLowerCase().includes(cliente) ||
             dev.cnpj?.includes(cliente);
 
         const matchRepresentante =
@@ -69,7 +69,7 @@ function exportarExcel() {
             );
 
         const matchDevolucao =
-            !devolucao || dev.pedidoId?.toString().includes(devolucao);
+            !devolucao || dev.id?.toString().includes(devolucao);
 
         const matchStatus =
             !status || dev.status === status;
@@ -90,11 +90,11 @@ function exportarExcel() {
         const totalItens = dev.produtos.reduce((acc, p) => acc + p.total, 0);
 
         return {
-            Pedido: dev.pedidoId,
-            Cliente: dev.razaosocial,
+            Pedido: dev.id,
+            Cliente: dev.razaoSocial,
             CNPJ: formatarCNPJ(dev.cnpj),
             Representante: dev.representante,
-            Data: formatarData(dev.data),
+            Data: dev.data,
             Status: dev.status,
             Finalizado: dev.finalizado ? 'Sim' : 'Não',
             "NF Vinculada": dev.nfVinculada || '',
@@ -118,14 +118,14 @@ async function carregarDevolucoes() {
 
         const res = await fetch('/api/devolucoes');
 
-        console.log("STATUS:", res.status);
+        // console.log("STATUS:", res.status);
 
         const text = await res.text();
-        console.log("RESPOSTA BRUTA: deu bom");
+        // console.log("RESPOSTA BRUTA: deu bom");
 
         const json = JSON.parse(text);
          setTimeout(() => {
-  console.log("This runs after 2 seconds.");
+//   console.log("This runs after 2 seconds.");
 
         if (!json.success || !Array.isArray(json.data)) {
             throw new Error("Resposta inválida da API");
@@ -138,6 +138,12 @@ async function carregarDevolucoes() {
         console.error("Erro ao carregar devoluções:", err);
         listaOriginal = [];
     }
+}
+
+function formatarData(dataStr){
+    if (!data) return '-';
+    const d = new Date(data);
+    return isNaN(d) ? '-' : d.toLocaleDateString('pt-BR');
 }
 
 function extrairNumeroRep(email) {
@@ -178,8 +184,8 @@ function renderizarTabela(lista) {
             tr.style.backgroundColor = '#f8d7da'; // vermelho claro
         }
 
-        const totalItens = dev.produtos.reduce((acc, p) => acc + p.total, 0);
-
+        const totalItens = dev.produtos.reduce((acc, p) => acc + parseFloat(p.total), 0);
+        // console.log("total de itens "+ parseFloat(totalItens))
         const isPendente = status === 'pendente';
         const isReprovado = status === 'reprovado';
 
@@ -192,11 +198,12 @@ function renderizarTabela(lista) {
         if (isReprovado) {
             finalizado = true;
 }
-        
-
+// dev.data =   formatarData(dev.data)
+// console.log("dev: "+dev.data);
+// console.log("dev "+JSON.stringify(dev))
 tr.innerHTML = `
-    <td>${dev.pedidoId}</td>
-    <td><font size="-5">${dev.razaosocial}</font></td>
+    <td>${dev.id}</td>
+    <td><font size="-5">${dev.razaoSocial}</font></td>
     <td>${dev.status}</td>
     <td>${formatarCNPJ(dev.cnpj)}</td>
     <td>${dev.representante}</td>
@@ -204,26 +211,26 @@ tr.innerHTML = `
     <td>${formatarMoeda(totalItens)}</td>
     <td>
     <center>
-        <button target="_blank" onclick="verDetalhes('${dev._id}')">Ver</button>
+        <button target="_blank" onclick="verDetalhes('${dev.id}')">Ver</button>
     </center>
     </td>
     <td>
-        <input type="radio" name="status-${dev._id}" value="Pendente"
+        <input type="radio" name="status-${dev.id}" value="Pendente"
         ${status === 'pendente' ? 'checked' : '' }
-        onchange="controlarFinalizado('${dev._id}', this)" ${isRep ? 'disabled' : ''}>
+        onchange="controlarFinalizado('${dev.id}', this)" ${isRep ? 'disabled' : ''}>
         Pendente<br>
-        <input type="radio" name="status-${dev._id}" value="Aprovado" ${status === 'aprovado' ? 'checked' : ''} ${isRep ? 'disabled' : ''}> Aprovado<br>
+        <input type="radio" name="status-${dev.id}" value="Aprovado" ${status === 'aprovado' ? 'checked' : ''} ${isRep ? 'disabled' : ''}> Aprovado<br>
 
-        <input type="radio" name="status-${dev._id}" value="Reprovado" ${status === 'reprovado' ? 'checked' : ''} ${isRep ? 'disabled' : ''}> Reprovado
+        <input type="radio" name="status-${dev.id}" value="Reprovado" ${status === 'reprovado' ? 'checked' : ''} ${isRep ? 'disabled' : ''}> Reprovado
     </td>
     <td><center>
     <input type="checkbox" 
     ${finalizado ? 'checked' : ''} 
     ${(isPendente || isReprovado) ? 'disabled' : ''} ${isRep ? 'disabled' : ''}>
-    <input type="number" name="nfVinculada" placeholder="inserir nota vinculada" size="5" value="${dev.nfVinculada}" ${(isPendente || isReprovado) ? 'disabled' : ''} ${isRep ? 'disabled' : ''}>
+    <input name="nfVinculada" placeholder="inserir nota vinculada" size="5" value="${dev.nfVinculada}" ${(isPendente || isReprovado) ? 'disabled' : ''} ${isRep ? 'disabled' : ''}>
     </center></td>
     <td>
-        <button onclick="salvar('${dev._id}', this)" ${isRep ? 'disabled' : ''}>Salvar</button>
+        <button onclick="salvar('${dev.id}', this)" ${isRep ? 'disabled' : ''}>Salvar</button>
     </td>
 `;
 
@@ -293,7 +300,7 @@ function aplicarFiltros() {
     const filtrados = listaOriginal.filter(dev => {
 
         const matchCliente =
-            dev.razaosocial?.toLowerCase().includes(cliente) ||
+            dev.razaoSocial?.toLowerCase().includes(cliente) ||
             dev.cnpj?.includes(cliente);
 
         const matchRepresentante =
@@ -306,7 +313,7 @@ function aplicarFiltros() {
             );
 
         const matchDevolucao =
-            !devolucao || dev.pedidoId?.toString().includes(devolucao);
+            !devolucao || dev.id?.toString().includes(devolucao);
 
         const matchStatus =
             !status || dev.status === status;
@@ -332,9 +339,9 @@ function salvar(id, btn) {
 
     const finalizado = tr.querySelector('input[type="checkbox"]').checked;
 
-    const nfVinculada = tr.querySelector('input[type="number"]')?.value;
+    const nfVinculada = tr.querySelector('input[name="nfVinculada"')?.value;
 
-    console.log({ id, statusSelecionado, finalizado, nfVinculada });
+    // console.log({ id, statusSelecionado, finalizado, nfVinculada });
 
     if (!statusSelecionado) {
         alert("Selecione um status!");

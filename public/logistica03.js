@@ -214,7 +214,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const representanteFilter = document.getElementById('representanteFilter1');
 
             if (userNumero) {
-                representanteFilter.value = Math.round(userNumero);
+                representanteFilter.value = userNumero;
                 representanteFilter.disabled = true; // Bloqueia o campo
             }
 

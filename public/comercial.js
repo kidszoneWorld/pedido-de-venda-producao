@@ -192,7 +192,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const representanteFilter = document.getElementById('representanteFilter');
 
             if (userNumero) {
-                representanteFilter.value = Math.round(userNumero);
+                representanteFilter.value = userNumero;
                 representanteFilter.disabled = true; // Bloqueia o campo
                 currentFilters.representante = userNumero; // Atualiza o filtro global
             }
