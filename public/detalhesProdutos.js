@@ -34,7 +34,7 @@ function buscarProduto(codigo) {
 
     let produtoDetalhes = null;
     let produtoImagem = null;
-
+    codigo = codigo.toUpperCase();
     // Buscar detalhes do produto
     for (let i = 1; i < detalhesProdutosData.length; i++) {
         if (detalhesProdutosData[i][0].toString() === codigo) {
