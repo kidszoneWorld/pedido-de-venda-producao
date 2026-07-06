@@ -1,3 +1,6 @@
+
+
+
 // Lista de itens fixa 
 const listaItensFixos = [
     { cod: "1024", sku: "KIDS ROCK SHOKS (CX-C/24)" },
@@ -652,7 +655,6 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 
-
 document.getElementById('btnSalvarDados1').addEventListener('click', salvarDados);
 
 // Adicionar eventos para os botões de alternância
@@ -665,3 +667,5 @@ meses.forEach(mes => {
         console.error(`Toggle button for ${mes} not found!`);
     }
 });
+
+
