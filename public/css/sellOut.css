@@ -257,9 +257,7 @@ footer {
     padding-top: 20px;
     background-color: #333;
     width: 100%;
- 
     margin: 0 auto;
-   
 
 }
 
@@ -290,18 +288,13 @@ footer {
 
     .link_sites {
         padding-left: 15px;
-         
-      
       }
+
 @media (max-width: 560px) {
-   
     .link_sites a{
       font-size: 80%;
-      padding-left: 15px;
-       
-    
+      padding-left: 15px;   
     }
-
 }
 .link_sites {
     display: flex;
@@ -309,10 +302,12 @@ footer {
     width: 100%;
     padding-top: 20px;
     padding-bottom: 30px;
-   /* padding: 15px;*/
- 
- 
+    flex-wrap: nowrap;
+    gap: 15px;
+   
 }
+
+
 .link_sites a {
     display: flex;
     justify-content:center;
@@ -320,8 +315,10 @@ footer {
     text-align: center;
     padding-left: 20px;
     text-decoration: none;
-    font-size: 100%;
-
+    white-space: nowrap;
+    font-size: clamp(9px, 1vw, 16px);
+    
+    transition: all .3s ease;
 }
 
 .link_sites label {
@@ -334,8 +331,74 @@ footer {
 
 .link_sites a:hover {
     color:rgba(225,0,152);
-    font-size: 140%;
-    
-
+    font-size: 110%;
 }
 
+
+input:focus , textarea:focus{
+    border-color: rgba(225,0,152); /* Cor da borda quando o input estiver ativo */
+    outline: none; /* Remove o contorno padrão do navegador */
+    box-shadow: 0 0 5px #ff0000; /* Efeito de brilho leve */ 
+}
+
+
+
+input:focus , textarea:focus{
+    border-color: rgba(225,0,152); /* Cor da borda quando o input estiver ativo */
+    outline: none; /* Remove o contorno padrão do navegador */
+    box-shadow: 0 0 5px #ff0000; /* Efeito de brilho leve */ 
+}
+
+
+
+/* Estilo do toggle switch */
+.toggle-container {
+    display: flex;
+    justify-content: flex-end;
+    padding: 10px;
+}
+
+.theme-switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 24px;
+}
+
+.theme-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #f393db;
+    transition: 0.4s;
+    border-radius: 24px;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: 0.4s;
+    border-radius: 50%;
+}
+
+input:checked + .slider {
+    background-color: rgba(225, 0, 152)
+}
+
+input:checked + .slider:before {
+    transform: translateX(26px);
+}

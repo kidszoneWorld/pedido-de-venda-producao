@@ -65,7 +65,7 @@ function exportarExcel() {
         const matchNfOrigem =
             !nfOrigem ||
             dev.produtos?.some(p =>
-                p.nforigem?.toLowerCase().includes(nfOrigem)
+                p.nfOrigem?.toLowerCase().includes(nfOrigem)
             );
 
         const matchDevolucao =
@@ -125,7 +125,7 @@ async function carregarDevolucoes() {
 
         const json = JSON.parse(text);
          setTimeout(() => {
-//   console.log("This runs after 2 seconds.");
+//   console.log(json);
 
         if (!json.success || !Array.isArray(json.data)) {
             throw new Error("Resposta inválida da API");
@@ -169,19 +169,19 @@ function renderizarTabela(lista) {
 
         let finalizado = dev.finalizado === 1;
         if (status === 'pendente') {
-            tr.style.backgroundColor = '#fff3cd'; // amarelo claro
+            tr.style.setProperty('background-color', 'var(--tr-bg-cor-pen)'); // amarelo
         }
 
         if (status === 'aprovado' && finalizado) {
-            tr.style.backgroundColor = '#98ecad'; // verde escuro
+            tr.style.setProperty('background-color', 'var(--tr-bg-cor-fin)'); // verde
         }
 
         if (status === 'aprovado' && !finalizado) {
-            tr.style.backgroundColor = '#c0e9ca'; //  verde claro
+            tr.style.setProperty('background-color', 'var(--tr-bg-cor-apr)' , 'important');   // verde claro
         }
 
         if (status === 'reprovado') {
-            tr.style.backgroundColor = '#f8d7da'; // vermelho claro
+            tr.style.setProperty('background-color', 'var(--tr-bg-cor-rep)'); // vermelho
         }
 
         const totalItens = dev.produtos.reduce((acc, p) => acc + parseFloat(p.total), 0);
@@ -211,7 +211,7 @@ tr.innerHTML = `
     <td>${formatarMoeda(totalItens)}</td>
     <td>
     <center>
-        <button target="_blank" onclick="verDetalhes('${dev.id}')">Ver</button>
+        <button class="button" target="_blank" onclick="verDetalhes('${dev.id}')">Ver</button>
     </center>
     </td>
     <td>
@@ -230,7 +230,7 @@ tr.innerHTML = `
     <input name="nfVinculada" placeholder="inserir nota vinculada" size="5" value="${dev.nfVinculada}" ${(isPendente || isReprovado) ? 'disabled' : ''} ${isRep ? 'disabled' : ''}>
     </center></td>
     <td>
-        <button onclick="salvar('${dev.id}', this)" ${isRep ? 'disabled' : ''}>Salvar</button>
+        <button class="button" onclick="salvar('${dev.id}', this)" ${isRep ? 'disabled' : ''}>Salvar</button>
     </td>
 `;
 
@@ -309,7 +309,7 @@ function aplicarFiltros() {
         const matchNfOrigem =
             !nfOrigem ||
             dev.produtos?.some(p =>
-                p.nforigem?.toLowerCase().includes(nfOrigem)
+                p.nfOrigem?.toLowerCase().includes(nfOrigem)
             );
 
         const matchDevolucao =

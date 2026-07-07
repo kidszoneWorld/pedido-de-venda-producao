@@ -69,7 +69,7 @@ function exportarExcel() {
             );
 
         const matchRebaixa =
-            !rebaixa || reb.pedidoId?.toString().includes(rebaixa);
+            !rebaixa || reb.id?.toString().includes(rebaixa);
 
         const matchStatus =
             !status || reb.status === status;
@@ -90,7 +90,7 @@ function exportarExcel() {
         const totalItens = reb.produtos.reduce((acc, p) => acc + p.total, 0);
 
         return {
-            Pedido: reb.pedidoId,
+            Pedido: reb.id,
             Cliente: reb.razaosocial,
             CNPJ: formatarCNPJ(reb.cnpj),
             Representante: reb.representante,
@@ -118,11 +118,9 @@ async function carregarRebaixas() {
 
         const res = await fetch('/api/rebaixas');
 
-        console.log("STATUS:", res);
-
         const text = await res.text();
         console.log("RESPOSTA BRUTA: deu bom");
-
+        
         const json = JSON.parse(text);
          setTimeout(() => {
   console.log("This runs after 0.5 seconds.");
@@ -130,7 +128,7 @@ async function carregarRebaixas() {
         if (!json.success || !Array.isArray(json.data)) {
             throw new Error("Resposta inválida da API");
         }
-
+        // console.log(json)
         listaOriginal = json.data;
         aplicarFiltros();
 }, 500);
@@ -178,7 +176,7 @@ function renderizarTabela(lista) {
             tr.style.backgroundColor = '#f8d7da'; // vermelho claro
         }
 
-        const totalItens = reb.produtos.reduce((acc, p) => acc + p.total, 0);
+        const totalItens = reb.produtos.reduce((acc, p) => acc + Number(p.total), 0);
 
         const isPendente = status === 'pendente';
         const isReprovado = status === 'reprovado';
@@ -195,8 +193,8 @@ function renderizarTabela(lista) {
         
 
 tr.innerHTML = `
-    <td>${reb.pedidoId}</td>
-    <td><font size="-5">${reb.razaosocial}</font></td>
+    <td>${reb.id}</td>
+    <td><font size="-5">${reb.razaoSocial}</font></td>
     <td>${reb.status}</td>
     <td>${formatarCNPJ(reb.cnpj)}</td>
     <td>${reb.representante}</td>
@@ -204,41 +202,37 @@ tr.innerHTML = `
     <td>${formatarMoeda(totalItens)}</td>
     <td>
     <center>
-        <button target="_blank" onclick="verDetalhes('${reb._id}')">Ver</button>
+        <button target="_blank" onclick="verDetalhes('${reb.id}')">Ver</button>
     </center>
     </td>
     <td>
-        <input type="radio" name="status-${reb._id}" value="Pendente"
+        <input type="radio" name="status-${reb.id}" value="Pendente"
         ${status === 'pendente' ? 'checked' : '' }
-        onchange="controlarFinalizado('${reb._id}', this)" ${isRep ? 'disabled' : ''}>
+        onchange="controlarFinalizado('${reb.id}', this)" ${isRep ? 'disabled' : ''}>
         Pendente<br>
-        <input type="radio" name="status-${reb._id}" value="Aprovado" ${status === 'aprovado' ? 'checked' : ''} ${isRep ? 'disabled' : ''}> Aprovado<br>
+        <input type="radio" name="status-${reb.id}" value="Aprovado" ${status === 'aprovado' ? 'checked' : ''} ${isRep ? 'disabled' : ''}> Aprovado<br>
 
-        <input type="radio" name="status-${reb._id}" value="Reprovado" ${status === 'reprovado' ? 'checked' : ''} ${isRep ? 'disabled' : ''}> Reprovado
+        <input type="radio" name="status-${reb.id}" value="Reprovado" ${status === 'reprovado' ? 'checked' : ''} ${isRep ? 'disabled' : ''}> Reprovado
     </td>
     <td><center>
     <input type="checkbox" 
     ${finalizado ? 'checked' : ''} 
     ${(isPendente || isReprovado) ? 'disabled' : ''} ${isRep ? 'disabled' : ''}>
-    <input type="number" name="nfVinculada" placeholder="inserir nota vinculada" size="5" value="${reb.nfVinculada}" ${(isPendente || isReprovado) ? 'disabled' : ''} ${isRep ? 'disabled' : ''}>
+    <input name="nfVinculada" placeholder="inserir nota vinculada" size="5" value="${reb.nfVinculada}" ${(isPendente || isReprovado) ? 'disabled' : ''} ${isRep ? 'disabled' : ''}>
     </center></td>
     <td>
-        <button onclick="salvar('${reb._id}', this)" ${isRep ? 'disabled' : ''}>Salvar</button>
+        <button onclick="salvar('${reb.id}', this)" ${isRep ? 'disabled' : ''}>Salvar</button>
     </td>
 `;
-
         tbody.appendChild(tr);
+        
     });
+    
 }
 
 document.getElementById('filtroRebaixa').addEventListener('input', aplicarFiltros);
 document.getElementById('filtroCliente').addEventListener('input', aplicarFiltros);
 document.getElementById('filtroRepresentante').addEventListener('input', aplicarFiltros);
-
-
-
-
-
 
 document.getElementById('filtroNfOrigem').addEventListener('input', aplicarFiltros);
 document.getElementById('filtroStatus').addEventListener('change', aplicarFiltros);
@@ -294,7 +288,7 @@ function aplicarFiltros() {
 
         const matchCliente =
             reb.razaosocial?.toLowerCase().includes(cliente) ||
-            Rebaixa.cnpj?.includes(cliente);
+            reb.cnpj?.includes(cliente);
 
         const matchRepresentante =
             !representante || extrairNumeroDoRepresentante(reb.representante) === representante;
@@ -302,11 +296,11 @@ function aplicarFiltros() {
         const matchNfOrigem =
             !nfOrigem ||
             reb.produtos?.some(p =>
-                p.nforigem?.toLowerCase().includes(nfOrigem)
+                p.nfOrigem?.toLowerCase().includes(nfOrigem)
             );
 
         const matchRebaixa =
-            !rebaixa || reb.pedidoId?.toString().includes(rebaixa);
+            !rebaixa || reb.id?.toString().includes(rebaixa);
 
         const matchStatus =
             !status || reb.status === status;
@@ -332,7 +326,7 @@ function salvar(id, btn) {
 
     const finalizado = tr.querySelector('input[type="checkbox"]').checked;
 
-    const nfVinculada = tr.querySelector('input[type="number"]')?.value;
+    const nfVinculada = tr.querySelector('input[name="nfVinculada"')?.value;
 
     console.log({ id, statusSelecionado, finalizado, nfVinculada });
 
