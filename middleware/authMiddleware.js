@@ -32,7 +32,7 @@ async function authenticateUser(req, res) {
             user.ususenha;
 
         if (senha !== senhaBanco) {
-            return res.redirect('/error-401');
+            return res.redirect('/error-404');
         }
 
         // AQUI DENTRO

@@ -9,8 +9,8 @@
     <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
     <link rel="manifest" href="/images/site.webmanifest">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.2/html2pdf.bundle.min.js"></script>
-    <link rel="stylesheet" href="/css/invest_comercial.css?v=1778777229761">
-    <link rel="stylesheet" href="/css/theme-toggle.css?v=1778777229761">
+    <link rel="stylesheet" href="/css/invest_comercial.css?v=1783967913322">
+    <link rel="stylesheet" href="/css/theme-toggle.css?v=1783967913322">
     <script>
         (function() {
             const savedTheme = localStorage.getItem('theme') || 'light';
@@ -20,18 +20,23 @@
 </head>
 <body id="corpo">
         <footer>
-                <div class="link_sites">
-
+            
+            <div class="link_sites">
+                <label class="theme-switch" id="seletor">
+                <input type="checkbox" id="themeToggle">
+                <span class="slider"></span>
+            </label>
            <button id="logoutButton2">Sair</button>
            <!--<a target="_blank" href="/admin">Área T.I.</a>-->
            <a href="/">Pedido de Venda</a>
            <a href="/devolucao">Pedido de Devolução</a>
-           <!-- <a href="/rebaixa">Solicitação de Rebaixa</a> -->
+           <a href="/rebaixa">Solicitação de Rebaixa</a>
            <a href="/comercial">Área Comercial</a>
            <a href="/logistica03">Área logística</a>
            <a href="/detalhesProdutos">Detalhes do Produto</a>
            <a href="/cadastroCliente">Cadastrar Cliente</a>
            <a href="/investComercial">Investimento</a>
+           <!-- <a href="/distribuidores">Distribuidores</a> -->
            </div>
       </footer>
     <div class="container">
@@ -104,7 +109,7 @@
                 </div>
                 <div>
                     <label for="empresa_responsavel">RESPONSÁVEL:</label>
-                    <input type="text" id="empresa_responsavel" value=" Juliana silva" readonly>
+                    <input type="text" id="empresa_responsavel" value=" Juliana Silva" readonly>
                 </div>
                 <div>
                     <label for="empresa_cargo">SETOR:</label>
@@ -246,7 +251,7 @@
             <div class="form-grid">
                 <div>
                     <label for="responsavel_aprovacao">Responsável pela aprovação:</label>
-                    <input type="text" id="responsavel_aprovacao" value="Marcos Sancovsky/ Juliana Silva" readonly>
+                    <input type="text" id="responsavel_aprovacao" value="Marcos Sancovsky/Juliana Silva" readonly>
                     <div>
                     <label for="Representante">Representante Responsável:</label>
                     <input type="text" id="representante" value="" >
@@ -271,8 +276,8 @@
         </div>
     </footer> -->
 
-    <script src="/invest_comercial.js?v=1778777229761"></script>
-    <script src="/pdf_invest_comercial.js?v=1778777229761"></script>
-    <script src="/theme-toggle.js?v=1778777229761"></script>
+    <script src="/invest_comercial.js?v=1783967913322"></script>
+    <script src="/pdf_invest_comercial.js?v=1783967913322"></script>
+    <script src="/theme-toggle.js?v=1783967913322"></script>
   </body> 
 </html>

@@ -6,9 +6,9 @@ const invoicesController = require('../controllers/invoicesControllers');
 const { authMiddleware, authenticateUser } = require('../middleware/authMiddleware');
 const inputOrdersController = require('../controllers/inputOrdersControllers');
 const eficienciaController = require('../controllers/eficienciaController');
-const displayController = require('../controllers/displayController');  
-const redesController = require('../controllers/redesController');  
-const sellOutController = require('../controllers/sellOutController');
+ 
+ 
+
 const fernandoController = require('../controllers/fernandoController');
 const clientController = require('../controllers/clientController');
 const devController = require('../controllers/devController');
@@ -17,7 +17,18 @@ const clientePdfController = require('../controllers/clientePdfController');
 const pdfInvestComercialController = require('../controllers/pdf_invest_comercialController');
 const pdfInvestPromotorController = require('../controllers/pdf_invest_promotorController');
 const productController = require('../controllers/productController');
+const distribuidorController = require('../controllers/distribuidorController');
+const contatoController = require('../controllers/contatoDistribuidorController');
 const router = express.Router();
+const itemController = require('../controllers/itemController');
+const estoqueDistribuidorController = require('../controllers/estoqueDistribuidorController');
+const investimentoDistribuidorController = require('../controllers/investimentoDistribuidorController');
+const positivacaoDistribuidorController = require('../controllers/positivacaoDistribuidorController')
+const redesDistribuidorController = require('../controllers/redesDistribuidorController');
+const displayDistribuidorController = require('../controllers/displayDistribuidorController');
+const sellOutDistribuidorController = require('../controllers/sellOutDistribuidorController');
+const sellInDistribuidorController = require('../controllers/sellInDistribuidorController');
+
 
 // Rota para a página inicial
 router.get('/', authMiddleware, (req, res) => {
@@ -80,7 +91,118 @@ router.get('/rebaixaDetalhe.html',authMiddleware, (req, res) => {
 router.get('/detalhesProdutos',authMiddleware,(req, res) => {
     res.sendFile(path.join(__dirname, '..', 'views', 'Detalhes_Produtos.html'));
 });
+//rota distribuidores, sell pagina inicial
+router.get(
+    '/distribuidores',
+    authMiddleware,
+    (req, res) => {
+        res.sendFile(
+            path.join(
+                __dirname,
+                '..',
+                'views',
+                'distribuidores.html'
+            )
+        );
+    }
+);
+router.get(
+    '/displayDistribuidor/:codigoDistribuidor',
+    authMiddleware,
+    (req, res) => {
 
+        res.sendFile(
+            path.join(
+                __dirname,
+                '..',
+                'views',
+                'displayDistribuidor.html'
+            )
+        );
+
+    }
+);
+router.get(
+    '/investimentoDistribuidor/:codigoDistribuidor',
+    authMiddleware,
+    (req, res) => {
+        res.sendFile(
+            path.join(
+                __dirname,
+                '..',
+                'views',
+                'investimentoDistribuidor.html'
+            )
+        );
+    }
+);
+
+router.get(
+    '/adminItens',
+    authMiddleware,
+    (req, res) => {
+
+        res.sendFile(
+            path.join(
+                __dirname,
+                '..',
+                'views',
+                'adminItens.html'
+            )
+        );
+
+    }
+);
+
+router.get(
+    '/sellOutDistribuidor/:codigoDistribuidor',
+    authMiddleware,
+    (req,res)=>{
+
+        res.sendFile(
+            path.join(
+                __dirname,
+                '..',
+                'views',
+                'sellOutDistribuidor.html'
+            )
+        );
+
+    }
+);
+
+router.get(
+    '/positivacaoDistribuidor/:codigoDistribuidor',
+    authMiddleware,
+    (req,res)=>{
+
+        res.sendFile(
+            path.join(
+                __dirname,
+                '..',
+                'views',
+                'positivacaoDistribuidor.html'
+            )
+        );
+
+    }
+);
+router.get(
+    '/sellInDistribuidor/:codigoDistribuidor',
+    authMiddleware,
+    (req, res) => {
+
+        res.sendFile(
+            path.join(
+                __dirname,
+                '..',
+                'views',
+                'sellInDistribuidor.html'
+            )
+        );
+
+    }
+);
 
 // Rota para a página de eficiencia cliente (eficiencia.html)
 router.get('/eficiencia',authMiddleware,(req, res) => {
@@ -91,6 +213,8 @@ router.get('/eficiencia',authMiddleware,(req, res) => {
 router.get('/sellOutMenu',authMiddleware,(req, res) => {
     res.sendFile(path.join(__dirname, '..', 'views', 'sellOutMenu.html'));
 });
+
+
 
 // Rota para a página de cadastro de sellOut cliente (sellOutCadastro.html)
 router.get('/sellOutCadastro',authMiddleware,(req, res) => {
@@ -121,6 +245,40 @@ router.get('/logistica02', authMiddleware, (req, res) => {
     res.sendFile(path.join(__dirname, '..', 'views', 'logisticaJoao.html'));
 });
 
+
+router.get(
+    '/estoqueDistribuidor/:codigoDistribuidor',
+    authMiddleware,
+    (req,res)=>{
+
+        res.sendFile(
+            path.join(
+                __dirname,
+                '..',
+                'views',
+                'estoqueDistribuidor.html'
+            )
+        );
+
+    }
+);
+
+router.get(
+    '/redesDistribuidor/:codigoDistribuidor',
+    authMiddleware,
+    (req,res)=>{
+
+        res.sendFile(
+            path.join(
+                __dirname,
+                '..',
+                'views',
+                'redesDistribuidor.html'
+            )
+        );
+
+    }
+);
 
 // Rota para a página (video.html)
 router.get('/video',authMiddleware, (req, res) => {
@@ -163,6 +321,160 @@ router.get('/api/devolucao/:id', devController.buscarDevolucaoPorId);
 router.get('/api/devolucoes', devController.listarDevolucoes);
 router.put('/devolucao/:id', devController.atualizarDevolucao);
 
+router.get(
+    '/api/itens',
+    authMiddleware,
+    itemController.listarItens
+);
+
+router.post(
+    '/api/itens',
+    authMiddleware,
+    itemController.salvarItem
+);
+
+router.get(
+    '/api/itens',
+    authMiddleware,
+    itemController.listarItens
+);
+
+router.put(
+    '/api/itens/:codigo',
+    authMiddleware,
+    itemController.atualizarItem
+);
+
+router.post(
+    '/api/estoqueDistribuidor/:codigoDistribuidor',
+    authMiddleware,
+    estoqueDistribuidorController.salvarEstoque
+);
+router.get(
+    '/api/sellOutDistribuidor/:codigoDistribuidor',
+    authMiddleware,
+    sellOutDistribuidorController.listarSellOut
+);
+router.post(
+    '/api/sellOutDistribuidor/:codigoDistribuidor',
+    authMiddleware,
+    sellOutDistribuidorController.salvarSellOut
+);
+router.get(
+    '/api/sellInDistribuidor/:codigoDistribuidor',
+    authMiddleware,
+    sellInDistribuidorController.listarSellIn
+);
+router.post(
+    '/api/sellInDistribuidor/:codigoDistribuidor',
+    authMiddleware,
+    sellInDistribuidorController.salvarSellIn
+);
+
+router.get(
+    '/infoDistribuidor/:codigo',
+    authMiddleware,
+    (req, res) => {
+
+        res.sendFile(
+            path.join(
+                __dirname,
+                '..',
+                'views',
+                'infoDistribuidor.html'
+            )
+        );
+
+    }
+);
+
+
+router.put(
+    '/api/investimentoDistribuidor',
+    authMiddleware,
+    investimentoDistribuidorController.atualizarInvestimentos
+);
+
+router.get(
+    '/api/tiposInvestimento',
+    authMiddleware,
+    investimentoDistribuidorController.listarTiposInvestimento
+);
+
+router.post(
+    '/api/tiposInvestimento',
+    authMiddleware,
+    investimentoDistribuidorController.criarTipoInvestimento
+);
+
+
+router.get(
+    '/api/displayDistribuidor/:codigoDistribuidor',
+    authMiddleware,
+    displayDistribuidorController.listarDisplays
+);
+router.post(
+    '/api/displayDistribuidor/:codigoDistribuidor',
+    authMiddleware,
+    displayDistribuidorController.inserirDisplay
+);
+router.put(
+    '/api/displayDistribuidor',
+    authMiddleware,
+    displayDistribuidorController.atualizarDisplays
+);
+router.delete(
+    '/api/displayDistribuidor/:codigoDisplay',
+    authMiddleware,
+    displayDistribuidorController.excluirDisplay
+);
+router.get(
+    '/api/itens-display',
+    authMiddleware,
+    itemController.listarItensDisplay
+);
+
+router.get(
+    '/api/positivacaoDistribuidor/:codigoDistribuidor',
+
+    authMiddleware,
+
+    positivacaoDistribuidorController
+    .listarPositivacoes
+);
+router.post(
+    '/api/positivacaoDistribuidor/:codigoDistribuidor',
+
+    authMiddleware,
+
+    positivacaoDistribuidorController
+    .salvarPositivacao
+);
+
+
+router.get(
+    '/api/contatos/:codigoContato',
+    authMiddleware,
+    contatoController.buscarContato
+);
+
+router.put(
+    '/api/contatos/:codigoContato',
+    authMiddleware,
+    contatoController.atualizarContato
+);
+
+router.get(
+    '/api/itens-ativos',
+    authMiddleware,
+    itemController.listarItensAtivos
+);
+
+router.get(
+    '/api/estoqueDistribuidor/:codigoDistribuidor',
+    authMiddleware,
+    estoqueDistribuidorController.listarEstoqueDistribuidor
+);
 
 // salvar Rebaixa
 router.post('/api/rebaixa', rebController.salvarRebaixa);
@@ -171,6 +483,8 @@ router.get('/api/rebaixa/:id', rebController.buscarRebaixaPorId);
 // Rebaixa
 router.get('/api/rebaixas', rebController.listarRebaixas);
 router.put('/rebaixa/:id', rebController.atualizarRebaixa);
+
+
 
 
 
@@ -193,7 +507,12 @@ router.get('/session-data', authMiddleware, (req, res) => {
         user: req.session.user || null,
     });
 });
-
+//rota listar distribuidores
+router.get(
+    '/api/distribuidores',
+    authMiddleware,
+    distribuidorController.listarDistribuidores
+);
 
 router.get('/session-test', (req, res) => {
     res.json({
@@ -213,6 +532,98 @@ router.post('/send-client-pdf-dev', devController.sendClientPdfDev);
 router.post('/generate-upload-url-reb', rebController.generateUploadUrlReb);
 router.post('/send-client-pdf-reb', rebController.sendClientPdfReb);
 
+//salvar distribuidor
+router.post(
+    '/api/distribuidores',
+    authMiddleware,
+    distribuidorController.salvarDistribuidor
+);
+
+router.get(
+    '/api/distribuidor/:codigo',
+    authMiddleware,
+    distribuidorController.buscarDistribuidor
+);
+
+router.get(
+    '/api/distribuidor/:codigo/contatos',
+    authMiddleware,
+    contatoController.listarContatos
+);
+
+router.put(
+    '/api/distribuidor/:codigo',
+    authMiddleware,
+    distribuidorController.atualizarDistribuidor
+);
+
+router.post(
+    '/api/distribuidor/:codigo/contatos',
+    authMiddleware,
+    contatoController.salvarContato
+);
+
+router.get(
+    '/api/investimentoDistribuidor/:codigoDistribuidor',
+    authMiddleware,
+    investimentoDistribuidorController.listarInvestimento
+);
+
+router.post(
+    '/api/investimentoDistribuidor/:codigoDistribuidor',
+    authMiddleware,
+    investimentoDistribuidorController.inserirInvestimento
+);
+
+router.delete(
+    '/api/contatos/:codigoContato',
+    authMiddleware,
+    contatoController.excluirContato
+);
+
+router.get(
+
+    '/api/redesDistribuidor/:codigoDistribuidor',
+
+    authMiddleware,
+
+    redesDistribuidorController
+    .listarRedes
+
+);
+
+router.post(
+
+    '/api/redesDistribuidor/:codigoDistribuidor',
+
+    authMiddleware,
+
+    redesDistribuidorController
+    .inserirRede
+
+);
+
+router.put(
+
+    '/api/redesDistribuidor',
+
+    authMiddleware,
+
+    redesDistribuidorController
+    .atualizarRede
+
+);
+
+router.delete(
+
+    '/api/redesDistribuidor/:codigoRede',
+
+    authMiddleware,
+
+    redesDistribuidorController
+    .excluirRede
+
+);
 
 // Rota para autenticação
 router.post('/auth', authenticateUser);
@@ -241,18 +652,9 @@ router.get('/api/lista-preco-Sem-Verificar/:listaId', productController.getLista
 router.get('/api/eficiencia/:codgroup', eficienciaController.getEficienciaBycodgroup);
 router.post('/api/eficiencia/salvar', eficienciaController.salvarEficiencia);
 
-router.get('/api/display/:codgroup', displayController.getDisplayBycodgroup);
-router.post('/api/display/salvar', displayController.salvarDisplay);
-router.delete('/api/display/remover', displayController.removerLinhaDisplay);
-
-router.get('/api/redes/:codgroup', redesController.getRedesBycodgroup);
-router.post('/api/redes/salvar', redesController.salvarRedes);
-router.delete('/api/redes/remover', redesController.removerLinhaRedes);
 
 
-router.get('/api/sellOut/:codgroup', sellOutController.getSellOutBycodgroup);
-router.post('/api/sellOut/salvar', sellOutController.salvarSellOut);        
-router.delete('/api/sellOut/remover', sellOutController.removerLinhaSellOut);
+
 
 router.post('/api/devolucoes', devController.salvarDevolucao);
 router.get('/api/devolucoes/:id', devController.buscarDevolucaoPorId);

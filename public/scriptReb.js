@@ -889,9 +889,9 @@ showStep();
 
     
     // E-mail fixo que não pode ser removido
-    // const FIXED_EMAIL = `devolucao.kz@kidszoneworld.com.br`; // Trocar depois
+    const FIXED_EMAIL = `devolucao.kz@kidszoneworld.com.br`; // Trocar depois
     
-    const FIXED_EMAIL = `luis.henrique@kidszoneworld.com.br`; // Trocar depois
+    // const FIXED_EMAIL = `luis.henrique@kidszoneworld.com.br`; // Trocar depois
     let generatedPdfFile = null;
     let additionalFiles = [];
 
@@ -1329,7 +1329,6 @@ const tutorialSteps = [
         element: '#dadosPedido',
         text: "Passo 3. Adicione os itens a sofrerem rebaixas, preenchendo TODOS os campos:\n" +
             "- NF de origem\n" +
-            "- Data da NF\n" +
             "- Código do item (carrega automaticamente a descrição)\n" +
             "- Lote\n" +
             "- Quantidade (em unidade)\n" +

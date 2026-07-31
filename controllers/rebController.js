@@ -1,9 +1,7 @@
 const nodemailer = require('nodemailer');
 const { S3Client} = require("@aws-sdk/client-s3");
 const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
-const Rebaixa = require('../models/Rebaixa');
-const Counter = require('../models/Counter');
-const connectDB = require('../config/database');
+const pool = require('../config/database');
 
 const crypto = require("crypto");
 
@@ -24,42 +22,121 @@ const { PutObjectCommand } = require("@aws-sdk/client-s3");
 exports.listarRebaixas = async (req, res) => {
     try {
 
-        const result = await pool.query(`
-            SELECT *
-            FROM "TbRebaixas"
-            ORDER BY "RebId" DESC
+        const { rows } = await pool.query(`
+            SELECT
+              A."RebId"          AS "RebId",
+              A."Cnpj"           AS "Cnpj",
+              A."RazaoSocial"    AS "RazaoSocial",
+              A."Endereco"       AS "Endereco",
+              A."Cidade"         AS "Cidade",
+              A."Cep"            AS "Cep",
+              A."Email"          AS "Email",
+              A."Representante"  AS "Representante",
+              A."CodCliente"     AS "CodCliente",
+              A."Bairro"         AS "Bairro",
+              A."Uf"             AS "Uf",
+              A."Telefone"       AS "Telefone",
+              A."EmailFiscal"    AS "EmailFiscal",
+              A."Data"           AS "Data",
+              A."Motivo"         AS "Motivo",
+              A."Status"         AS "Status",
+              A."Finalizado"     AS "Finalizado",
+              A."NfVinculada"    AS "NfVinculada",
+              B."RebProdId"      AS "RebProdId",
+              B."RebId"          AS "RebProdutoRebId",
+              B."NfOrigem"       AS "NfOrigem",
+              B."CodigoItem"     AS "CodigoItem",
+              B."Descricao"      AS "Descricao",
+              B."Lote"           AS "Lote",
+              B."PrecoUnitario"  AS "PrecoUnitario",
+              B."Rebaixa"        AS "Rebaixa",
+              B."Atual"          AS "Atual",
+              B."Quantidade"     AS "Quantidade",
+              B."Total"          AS "Total"
+
+          FROM "TbRebaixas" A
+          INNER JOIN "TbRebaixaProdutos" B
+              ON A."RebId" = B."RebId"
+          ORDER BY A."RebId";
         `);
+
+        const rebaixas = await agruparrebaixas(rows);
 
         res.json({
             success: true,
-            data: result.rows
+            data: rebaixas
         });
 
     } catch (err) {
 
-        console.error(err);
-
         res.status(500).json({
             success: false,
-            data: [],
             error: err.message
         });
 
     }
 };
+async function agruparrebaixas(rows) {
+
+    const mapa = {};
+
+    rows.forEach(row => {
+
+      if (!mapa[row.RebId]) {
+
+        mapa[row.RebId] = {
+          id: row.RebId,
+          cnpj: row.Cnpj,
+          razaoSocial: row.RazaoSocial,
+          endereco: row.Endereco,
+          cidade: row.Cidade,
+          Cep: row.Cep,
+          email: row.Email,
+          representante: row.Representante,
+          codCliente: row.CodCliente,
+          bairro: row.Bairro,
+          uf: row.Uf,
+          telefone: row.Telefone,
+          emailFiscal: row.EmailFiscal,
+          data: row.Data,
+          motivo: row.Motivo,
+          status: row.Status,
+          finalizado: row.Finalizado,
+          nfVinculada: row.NfVinculada,
+          produtos: []
+        };
+      }
+
+      mapa[row.RebId].produtos.push({
+        RebProdId: row.RebProdId,
+        nfOrigem: row.NfOrigem,
+        ProdData: row.ProdData,
+        codigoItem: row.CodigoItem,
+        lote: row.Lote,
+        quantidade: row.Quantidade,
+        uv: row.Uv,
+        descricao: row.Descricao,
+        precoUnitario: row.PrecoUnitario,
+        total: row.Total
+      });
+
+    });
+    console.log('rows: '+rows[0]);
+    return Object.values(mapa);
+  }
 
 exports.buscarRebaixaPorId = async (req, res) => {
 
     try {
 
         const id = req.params.id;
-
+        console.log("id: "+id)
         const reb = await pool.query(`
             SELECT *
             FROM "TbRebaixas"
             WHERE "RebId" = $1
         `,[id]);
-
+          // console.log("reb"+JSON.stringify(reb));
         if(reb.rows.length === 0){
             return res.status(404).json({
                 error:"Rebaixa não encontrada"
@@ -73,11 +150,42 @@ exports.buscarRebaixaPorId = async (req, res) => {
             ORDER BY "RebProdId"
         `,[id]);
 
-        const retorno = reb.rows[0];
+        const retorno = {
+          id: reb.rows[0].RebId,
+          cnpj: reb.rows[0].Cnpj,
+          razaosocial: reb.rows[0].RazaoSocial,
+          endereco: reb.rows[0].Endereco,
+          cidade: reb.rows[0].Cidade,
+          Cep: reb.rows[0].Cep,
+          email: reb.rows[0].Email,
+          representante: reb.rows[0].Representante,
+          codCliente: reb.rows[0].CodCliente,
+          bairro: reb.rows[0].Bairro,
+          uf: reb.rows[0].Uf,
+          telefone: reb.rows[0].Telefone,
+          emailFiscal: reb.rows[0].EmailFiscal,
+          data: reb.rows[0].Data,
+          motivo: reb.rows[0].Motivo,
+          status: reb.rows[0].Status,
+          finalizado: reb.rows[0].Finalizado,
+          nfVinculada: reb.rows[0].NfVinculada,
+          produtos: produtos.rows.map(p => ({
+              RebProdId: p.RebProdId,
+              nforigem: p.NfOrigem,
+              codigoItem: p.CodigoItem,
+              descricao: p.Descricao,
+              lote: p.Lote,
+              precounitario: Number(p.PrecoUnitario),
+              rebaixa: Number(p.Rebaixa),
+              atual: Number(p.Atual),
+              quantidade: Number(p.Quantidade),
+              total: Number(p.Total)
+          }))
+      };
 
-        retorno.produtos = produtos.rows;
+      res.json(retorno);
 
-        res.json(retorno);
+
 
     } catch(err){
 
@@ -95,6 +203,9 @@ exports.atualizarRebaixa = async (req,res)=>{
     try{
 
         let {status, finalizado, nfVinculada} = req.body;
+
+        finalizado = finalizado ? 1 : 0;
+
 
         status = status?.toLowerCase();
 
@@ -123,7 +234,7 @@ exports.atualizarRebaixa = async (req,res)=>{
             nfVinculada,
             req.params.id
         ]);
-
+       
         res.json(result.rows[0]);
 
     }
@@ -138,17 +249,13 @@ exports.atualizarRebaixa = async (req,res)=>{
 };
 // Salvar rebaixa
 exports.salvarRebaixa = async (req,res)=>{
-
-    const client = await pool.connect();
-
+    let client;
     try{
-
+        client = await pool.connect();
         await client.query("BEGIN");
 
         const {
-
             produtos,
-
             cnpj,
             razaosocial,
             endereco,
@@ -166,14 +273,12 @@ exports.salvarRebaixa = async (req,res)=>{
             status,
             finalizado,
             nfVinculada
-
         } = req.body;
 
         const reb = await client.query(`
 
             INSERT INTO "TbRebaixas"
             (
-
                 "Cnpj",
                 "RazaoSocial",
                 "Endereco",
@@ -191,19 +296,14 @@ exports.salvarRebaixa = async (req,res)=>{
                 "Status",
                 "Finalizado",
                 "NfVinculada"
-
             )
-
             VALUES
             (
                 $1,$2,$3,$4,$5,$6,$7,$8,$9,
                 $10,$11,$12,$13,$14,$15,$16,$17
             )
-
             RETURNING *
-
         `,[
-
             cnpj,
             razaosocial,
             endereco,
@@ -221,7 +321,6 @@ exports.salvarRebaixa = async (req,res)=>{
             status,
             finalizado,
             nfVinculada
-
         ]);
 
         const rebId = reb.rows[0].RebId;
@@ -288,24 +387,6 @@ exports.salvarRebaixa = async (req,res)=>{
 
 };
 
-// Buscar Rebaixas
-exports.listarRebaixas = async (req, res) => {
-  try {
-    const rebaixas = await Rebaixa.find();
-    res.json({
-  success: true,
-  data: rebaixas
-});
-  } catch (err) {
-    res.status(500).json({
-  success: false,
-  data: [],
-  error: err.message
-});
-  }
-};
-
-
 exports.generateUploadUrlReb = async (req, res) => {
   try {
     const { fileName, fileType } = req.body;
@@ -349,14 +430,9 @@ const putCommand = new PutObjectCommand({
       try {
         const { files, razaoSocial, emailTo, emailCc, subject, message } = req.body;
     
-        console.log("sendClientPdf FOI CHAMADO");
-        console.log("BODY RECEBIDO:", req.body);
-    
         if (!files || !files.length || !emailTo || !subject || !message) {
           return res.status(400).send("Dados incompletos.");
         }
-    
-        console.log("📎 Arquivos recebidos:", files);
     
         const transporter = nodemailer.createTransport({
           service: "gmail",
@@ -369,11 +445,11 @@ const putCommand = new PutObjectCommand({
         const downloadLinks = files.map(file => {
           return `- ${file.name}\n${process.env.DOWNLOAD_BASE_URL}/baixar/${file.key}\n`;
         }).join("\n");
-    
-        console.log("📧 Tentando enviar e-mail...");
+
     const info = await transporter.sendMail({
       from: "Rebaixas KIDS ZONE <kidzonkidszonemail@gmail.com>",
       to: "comercial.kz@kidszoneworld.com.br", //trocar depois
+    //   to: "luis.henrique@kidszoneworld.com.br", //trocar depois
       cc: emailCc ? emailCc.split(";").map(email => email.trim()) : [],
       subject,
       text: `
@@ -388,7 +464,6 @@ ${downloadLinks}
       `
     });
 
-    console.log("✅ E-mail enviado:", info.response);
     return res.status(200).send("E-mail enviado com sucesso!");
     
   } catch (error) {

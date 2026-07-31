@@ -485,14 +485,12 @@ function validarTabelaPedido() {
             return false;
         }
 
-//         // 🚫 BLOQUEIO DE 6 MESES   /    verificar Data 
-        if (dataMaiorQue6Meses(data)) {
-            alert(`A data da linha ${i + 1} é superior a 6 meses. Não é permitido.`);
-            inputs[1]?.focus();
-            return false;
-}
-
-
+        // 🚫 BLOQUEIO DE 6 MESES
+       if (dataMaiorQue6Meses(data)) {
+           alert(`A data da linha ${i + 1} é superior a 6 meses. Não é permitido.`);
+           inputs[1]?.focus();
+            return false;   
+        }
         const codigo = inputs[2]?.value.trim();
         const lote = inputs[3]?.value.trim();
         const quantidade = inputs[4]?.value.trim();
@@ -782,7 +780,7 @@ document.getElementById('excluirLinha').addEventListener('click', function () {
                     adicionarNovaLinha(); 
     });
 
-// Função para verificar duplicatas de código na tabela
+// // Função para verificar duplicatas de código na tabela
 // function verificarCodigoDuplicado(codigo) {
 //     const linhas = document.querySelectorAll('#dadosPedido tbody tr');
 //     let contador = 0;
@@ -871,7 +869,7 @@ showStep();
 
     
     // E-mail fixo que não pode ser removido
-    const FIXED_EMAIL = `devolucao.kz@kidszoneworld.com.br`; `erick.almeida@kidszoneworld.com.br`;
+    const FIXED_EMAIL = `devolucao.kz@kidszoneworld.com.br`;
     
     let generatedPdfFile = null;
     // const FIXED_EMAIL = `luis.henrique@kidszoneworld.com.br; erick.almeida@kidszoneworld.com.br`;

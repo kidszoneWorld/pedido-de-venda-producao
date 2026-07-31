@@ -11,10 +11,12 @@
     <link rel="manifest" href="/images/site.webmanifest">
     <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.2/html2pdf.bundle.min.js"></script>
+    <script src="https://cloudflare.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 
-    <link rel="stylesheet" href="/css/styles2.css?v=1778777229759">
+    <link rel="stylesheet" href="/css/styles2.css?v=1783967913321">
 
-    <link rel="stylesheet" href="/css/theme-toggle.css?v=1778777229759">
+    <link rel="stylesheet" href="/css/theme-toggle.css?v=1783967913321">
     <!-- Script inline para aplicar o tema imediatamente -->
     <script>
         (function() {
@@ -30,21 +32,18 @@
                 <div class="link_sites">
 
             <!-- Toggle switch -->
-            <label class="theme-switch" id="seletor">
-                <input type="checkbox" id="themeToggle">
-                <span class="slider"></span>
-            </label>
-           <button id="logoutButton2">Sair</button>
+            
+           <button class="button" id="logoutButton2">Sair</button>
            <!--<a target="_blank" href="/admin">Área T.I.</a>-->
            <a href="/">Pedido de Venda</a>
            <a href="/devolucao">Pedido de Devolução</a>           
-           <!-- <a href="/rebaixa">Solicitação de Rebaixa</a> -->
+           <a href="/rebaixa">Solicitação de Rebaixa</a>
            <a href="/comercial">Área Comercial</a>
            <a href="/logistica03">Área logística</a>
            <a href="/detalhesProdutos">Detalhes do Produto</a>
            <a href="/cadastroCliente">Cadastrar Cliente</a>
            <a href="/investComercial">Investimento</a>
-           <!-- <a href="/sellOutMenu">SellOut</a> -->
+           <!-- <a href="/distribuidores">Distribuidores</a> -->
            </div>
       </footer>
     <div class="container">
@@ -78,8 +77,8 @@
               <button id="okButton">OK</button>
             </div>
           </div>
-            <button id="baixarJson" class="esconder">EXPORTAR PEDIDO EM EXCEL</button>
-            <button id="inputJson" class="esconder">IMPORTAR EXCEL DO PEDIDO</button>
+            <button id="baixarJson" class="button esconder">EXPORTAR PEDIDO</button>
+            <button id="inputJson"class="button esconder">IMPORTAR PEDIDO</button>
             <input
                 type="file"
                 id="jsonFileInput"
@@ -122,7 +121,7 @@
 
         </div>
         <div class="button-group">
-            <button id="button_pdf">SALVAR EM PDF E ENVIAR E-MAIL </button>
+            <button id="button_pdf" >SALVAR EM PDF E ENVIAR E-MAIL </button>
             <button id="button_sistema">ENVIAR PARA O SISTEMA</button>
 
         </div>
@@ -282,9 +281,11 @@
 
         <!-- Seção de Observações -->
         <div class="observations">
-            <div class="obs-title">OBSERVAÇÕES</div>
-            <textarea id="observation" placeholder="Escreva alguma observação"></textarea>
-        </div>
+    <div class="obs-title">OBSERVAÇÕES</div>
+
+    <textarea id="observation" placeholder="Escreva alguma observação"></textarea>
+
+    <div id="observationPdf" class="observation-pdf"></div>
 
         <div id="helpContainer">
             <div id="helpIcon" class="help-icon">
@@ -322,7 +323,7 @@
 
     
     <script  src="/script.js?v=1778777229759"></script>
-    <script src="/theme-toggle.js?v=1778777229759"></script>
+    <script src="/theme-toggle.js?v=1783967913321"></script>
 
     <script>
          // Função para limpar dados do usuário e redirecionar para a página de login
