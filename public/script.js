@@ -1258,9 +1258,6 @@ const requestBody = {
     }
 });
 
-
-
-
 // Função para abrir o modal
 btSistema.addEventListener("click", () => {
     if(!validarTabelaPedido())
