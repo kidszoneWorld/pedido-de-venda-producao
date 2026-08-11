@@ -12,9 +12,9 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.2/html2pdf.bundle.min.js"></script>
 
-    <link rel="stylesheet" href="/css/styles2Dev.css?v=1785862805541">
+    <link rel="stylesheet" href="/css/styles2Dev.css?v=1783967913315">
 
-    <link rel="stylesheet" href="/css/theme-toggle.css?v=1785862805541">
+    <link rel="stylesheet" href="/css/theme-toggle.css?v=1783967913315">
     <!-- Script inline para aplicar o tema imediatamente -->
     <script>
         (function() {
@@ -145,7 +145,13 @@
         <div class="button-group">
             <button id="button_pdf">INSERIR ANEXOS E ENVIAR E-MAIL </button>
         </div>
-   
+               <button
+                    type="button"
+                    id="iniciarTutorial"
+                    class="button"
+                >
+                    Ajuda
+                </button>
         <div class="section">
             <div class="section-title">DADOS DO CLIENTE</div>
             <form class="form-group">
@@ -269,11 +275,11 @@
                             <th class="nfOrigem">NF ORIGEM</th>
                             <th class="data">Data NF</th>
                             <th class="cod">CÓD</th>
+                            <th class="descricao">DESCRIÇÃO</th>
                             <th class="lote">Lote</th>
                             <th class="qtd">QTD</th>
                             <th class="uv" >UV</th>
                             <th class="pack">EXCLUIR</th>
-                            <th class="descricao">DESCRIÇÃO</th>
                             <th class="unit">R$ UNITARIO COM IPI</th>
                             <th class="total" >TOTAL R$</th>
                             <th class="itemId" id="esconder">Item ID</th>
@@ -302,18 +308,18 @@
 
         <div id="helpContainer">
             <div id="helpIcon" class="help-icon">
-                <a href="/devolucaoPanel"><button class="button-group">Painel de Devoluções</button></a>
+                <a href="/devolucaoPanel"><button class="button button-group">Painel de Devoluções</button></a>
             </div>
         </div>
-        
+
         
         
     </div>
 
     
-    <script src="/scriptDev.js?v=1785862805541"></script>
+    <script src="/scriptDev.js?v=1783967913315"></script>
     <!-- <script  src="/pdf.js?v=1742259354185"></script> -->
-    <script src="/theme-toggle.js?v=1785862805541"></script>
+    <script src="/theme-toggle.js?v=1783967913315"></script>
 
     <script>
          // Função para limpar dados do usuário e redirecionar para a página de login
@@ -335,9 +341,9 @@
         });
     </script>
 
-<div id="tutorialOverlay"></div>
+<div id="tutorialOverlay" style="display: none;"></div>
 
-<div id="tutorialBox">
+<div id="tutorialBox" style="display: none;">
     <p id="tutorialText"></p>
     <div class="tutorial-buttons">
         <button onclick="prevStep()">Voltar</button>

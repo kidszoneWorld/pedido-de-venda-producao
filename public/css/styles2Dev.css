@@ -1420,3 +1420,85 @@ body.dark-theme .btn-remover-linha:hover {
     z-index: 9999; /*MUITO IMPORTANTE */
     box-shadow: 0 0 15px rgba(0,0,0,0.5);
 }
+
+
+.campo-moeda {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    width: 100%;
+}
+
+.campo-moeda span {
+    font-size: 12px;
+    font-weight: bold;
+    color: #555;
+    white-space: nowrap;
+}
+
+.campo-moeda input {
+    flex: 1;
+    width: 100%;
+}
+
+body.dark-theme .campo-moeda span {
+    color: #ffffff;
+}
+
+/* Campo quantidade sem setas */
+.quantidadeInput::-webkit-outer-spin-button,
+.quantidadeInput::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+body.light-theme .button{
+    background-color:var(--button-text-light); /* mesma cor do fundo */
+    color: var(--background-color-dark);
+    border: 2px solid #c4007a;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all .3s ease;
+
+}
+
+body.light-theme .button:hover {
+    background-color: #c4007a;
+    border-color: #c4007a;
+}
+
+body.dark-theme .button{
+    background-color: var(--button-bg-light); /* mesma cor do fundo */
+    color: #fff;
+    border: 2px solid #a50066;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all .3s ease;
+}
+
+body.dark-theme .button:hover {
+    background-color: #c4007a;
+    border-color: #c4007a;
+}
+
+.quantidadeInput {
+    -moz-appearance: textfield;
+}
+
+input:disabled,
+textarea:disabled,
+select:disabled,
+button:disabled {
+    opacity: 0.75;
+    cursor: not-allowed;
+}
+
+#tutorialBox button {
+    opacity: 1;
+    cursor: pointer;
+    pointer-events: auto;
+}
+#tutorialOverlay,
+#tutorialBox {
+    display: none;
+}
