@@ -1,0 +1,391 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #caccc6;
+}
+
+.container {
+    width: 90%;
+    max-width: 1100px;
+    margin: 20px auto;
+    padding: 20px;
+    background-color: #ffffff;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 12px;
+}
+
+.header {
+    display: flex;
+    align-items: center;
+    background-color: #333;
+    color: #ffffff;
+    padding: 15px;
+    border-radius: 5px;
+}
+
+.header-logo {
+    flex: 0 0 auto;
+    margin-right: 20px;
+}
+
+.header-logo img {
+    width: 70px;
+    height: auto;
+    border-radius: 5px;
+}
+
+.header h3 {
+    margin: 0;
+    text-align: center;
+    flex: 1;
+}
+
+.client-info {
+    margin: 20px 0;
+    padding: 15px;
+    background-color: #f4e1f2;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    text-align: left;
+    font-size: 16px;
+    font-weight: bold;
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+}
+
+.client-info label {
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.client-info input {
+    width: 600px;
+    height: 35px;
+    padding: 2px;
+    border: 1px solid #fb29d1;
+    border-radius: 6px;
+    font-size: 14px;
+    text-align: center;
+    background-color: #fff;
+}
+
+.table-container {
+    overflow-x: auto;
+    background-color: #f4e1f2;
+    padding: 15px;
+    border-radius: 8px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+    background-color: #fff;
+}
+
+table, th, td {
+    border: 1px solid #ddd;
+}
+
+th, td {
+    padding: 10px;
+    text-align: center;
+}
+
+th {
+    background-color: #d28fd2;
+    color: #000;
+    font-weight: bold;
+}
+
+tbody tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+tbody tr:hover {
+    background-color: #f1f1f1;
+}
+
+.btn-salvar-container {
+    display: flex;
+    justify-content: flex-end;
+    margin: 20px 0;
+}
+
+#btnSalvarDados1 {
+    background-color: #e10098;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 16px;
+    transition: transform 0.3s ease, background-color 0.3s ease;
+}
+
+#btnSalvarDados1:hover {
+    background-color: #9f056f;
+    transform: scale(1.15);
+}
+
+.representante{
+    display: none;
+}
+
+
+@media (max-width: 990px) {
+    .client-info {
+     flex-direction: column;
+     
+    }
+
+    .client-info input {
+        width: 90%;
+    }
+
+}
+
+
+body.light-theme .button-group button,
+body.light-theme .no-print button,
+body.light-theme footer {
+    background-color: var(--button-bg-light);
+    color: var(--button-text-light);
+}
+
+body.dark-theme .button-group button,
+body.dark-theme .no-print button,
+body.dark-theme footer {
+    background-color: var(--button-bg-dark);
+    color: var(--button-text-dark);
+}
+footer {
+
+    display: flex;
+    justify-content:space-between;
+    flex-wrap: wrap;
+    margin-top: 20px;
+    padding-top: 20px;
+    background-color: #333;
+    width: 100%;
+ 
+    margin: 0 auto;
+   
+
+}
+
+@media (max-width: 1040px) {
+    footer {
+        width: 100%;
+     
+    }
+
+    .link_sites {
+        flex-direction: column; /* Garante que os itens fiquem em coluna */
+        align-items: center;
+       
+    }
+
+    .link_sites button#logoutButton2 {
+        width: 10%; /* Mantém a largura relativa em telas menores */
+        margin-top: 20px;
+        text-align: center;
+        margin-bottom: 15px; /* Espaçamento abaixo do botão */
+    }
+
+    .link_sites a {
+        margin: 5px ;
+        padding: 5px ;
+    }
+}
+
+    .link_sites {
+        padding-left: 15px;
+         
+      
+      }
+@media (max-width: 560px) {
+   
+    .link_sites a{
+      font-size: 80%;
+      padding-left: 15px;
+       
+    
+    }
+
+}
+
+.link_sites {
+    display: flex;
+    justify-content:center;
+    width: 100%;
+    padding-top: 20px;
+    padding-bottom: 30px;
+    flex-wrap: nowrap;
+    gap: 15px;
+   
+}
+
+
+.link_sites a {
+    display: flex;
+    justify-content:center;
+    color:#ffffff ;
+    text-align: center;
+    padding-left: 20px;
+    text-decoration: none;
+    white-space: nowrap;
+    font-size: clamp(9px, 1vw, 16px);
+    
+    transition: all .3s ease;
+}
+
+.link_sites label {
+    display: flex;
+    justify-content:center;
+    margin-right: 15px;
+
+}
+
+
+.link_sites a:hover {
+    color:rgba(225,0,152);
+    font-size: 110%;
+}
+
+
+input:focus , textarea:focus{
+    border-color: rgba(225,0,152); /* Cor da borda quando o input estiver ativo */
+    outline: none; /* Remove o contorno padrão do navegador */
+    box-shadow: 0 0 5px #ff0000; /* Efeito de brilho leve */ 
+}
+
+/* ===============================
+   Estilo geral para inputs text e selects
+================================ */
+
+input[type="text"],
+select {
+    width: 100%;
+    min-height: 34px;
+    padding: 6px 8px;
+
+    border: 1px solid #fb29d1;
+    border-radius: 6px;
+
+    background-color: #ffffff;
+    color: #333;
+
+    font-size: 14px;
+    font-family: Arial, sans-serif;
+
+    text-align: center;
+
+    box-sizing: border-box;
+
+    transition: all 0.25s ease-in-out;
+}
+
+/* Hover */
+input[type="text"]:hover,
+select:hover {
+    border-color: #e10098;
+}
+
+/* Focus */
+input[type="text"]:focus,
+select:focus {
+    border-color: rgba(225, 0, 152);
+    outline: none;
+    box-shadow: 0 0 5px rgba(225, 0, 152, 0.6);
+}
+
+/* Placeholder */
+input[type="text"]::placeholder {
+    color: #999;
+    font-size: 13px;
+}
+
+/* ===============================
+   Tema escuro - inputs e selects
+================================ */
+
+body.dark-theme input[type="text"],
+body.dark-theme select {
+    background-color: var(--input-bg-dark);
+    color: var(--button-hover-text-dark);
+
+   border: 1px solid #a50066;
+}
+
+body.dark-theme input[type="text"]::placeholder {
+    color: #d8d8d8;
+}
+
+body.dark-theme input[type="text"]:focus,
+body.dark-theme select:focus {
+    border-color: #e10098;
+    box-shadow: 0 0 5px rgba(225, 0, 152, 0.7);
+}
+
+/* ===============================
+   Inputs e selects dentro de tabelas
+================================ */
+
+.table input[type="text"],
+.table select {
+    width: 100%;
+    min-width: 90px;
+    height: 28px;
+
+    padding: 4px 6px;
+
+    border: 1px solid #d28fd2;
+    border-radius: 5px;
+
+    font-size: 13px;
+    text-align: center;
+
+    box-sizing: border-box;
+}
+
+/* Tema escuro em tabela */
+body.dark-theme .table input[type="text"],
+body.dark-theme .table select {
+    background-color: var(--input-bg-dark);
+    color: var(--button-hover-text-dark);
+    border: 1px solid #777;
+}
+
+select {
+    cursor: pointer;
+    appearance: auto;
+}
+
+select option {
+    background-color: #ffffff;
+    color: #333;
+}
+
+body.dark-theme select option {
+    background-color: var(--input-bg-dark);
+    color: #ffffff;
+}
+
+select {
+    cursor: pointer;
+    appearance: auto;
+}
+
+select option {
+    background-color: #ffffff;
+    color: #333;
+}
+
+body.dark-theme select option {
+    background-color: var(--input-bg-dark);
+    color: #ffffff;
+}
