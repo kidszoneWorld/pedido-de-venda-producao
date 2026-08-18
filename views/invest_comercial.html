@@ -9,8 +9,21 @@
     <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
     <link rel="manifest" href="/images/site.webmanifest">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.2/html2pdf.bundle.min.js"></script>
-    <link rel="stylesheet" href="/css/invest_comercial.css?v=1783967913322">
-    <link rel="stylesheet" href="/css/theme-toggle.css?v=1783967913322">
+    <link rel="stylesheet" href="/css/invest_comercial.css?v=1787056278975">
+    <link rel="stylesheet" href="/css/theme-toggle.css?v=1787056278975">
+    <style>
+        /* Estilos aplicados diretamente para garantir a quebra de linha e expansão no container */
+        #acaoSolicita {
+            width: 100%;
+            box-sizing: border-box;
+            resize: none;
+            overflow-y: hidden;
+            word-wrap: break-word;
+            white-space: pre-wrap;
+            font-family: inherit;
+            font-size: inherit;
+        }
+    </style>
     <script>
         (function() {
             const savedTheme = localStorage.getItem('theme') || 'light';
@@ -124,7 +137,8 @@
 
         <div class="acao-solicitada-container">
             <label class="acao_solicita" for="acaoSolicita">RESUMO DA AÇÃO SOLICITADA:</label>
-            <input type="text" id="acaoSolicita">
+            <!-- ALTERADO DE INPUT PARA TEXTAREA -->
+            <textarea id="acaoSolicita" rows="1"></textarea>
         </div>
 
         <div class="section">
@@ -276,8 +290,19 @@
         </div>
     </footer> -->
 
-    <script src="/invest_comercial.js?v=1783967913322"></script>
-    <script src="/pdf_invest_comercial.js?v=1783967913322"></script>
-    <script src="/theme-toggle.js?v=1783967913322"></script>
+    <script src="/invest_comercial.js?v=1787056278975"></script>
+    <script src="/pdf_invest_comercial.js?v=1787056278975"></script>
+    <script src="/theme-toggle.js?v=1787056278975"></script>
+
+    <!-- SCRIPT PARA AUMENTAR A ALTURA AUTOMATICAMENTE CONFORME A DIGITAÇÃO -->
+    <script>
+        const textareaAcao = document.getElementById('acaoSolicita');
+        if (textareaAcao) {
+            textareaAcao.addEventListener('input', function() {
+                this.style.height = 'auto';
+                this.style.height = this.scrollHeight + 'px';
+            });
+        }
+    </script>
   </body> 
 </html>
