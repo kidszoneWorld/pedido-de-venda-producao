@@ -390,18 +390,13 @@ exports.sendPdf =
                         parcela.valorParcela
                     );
 
-                const valorPagamento =
-                    numeroOuZero(
-                        parcela.valorPagamento
-                    );
 
                 /*
                 * Ignora uma linha completamente vazia.
                 */
                 if(
                     !parcelaTexto &&
-                    valorParcela === 0 &&
-                    valorPagamento === 0
+                    valorParcela === 0 
                 ){
                     continue;
                 }
@@ -412,8 +407,8 @@ exports.sendPdf =
                         (
                             "CodigoInvestimento",
                             "Parcela",
-                            "ValorParcela",
-                            "ValorPagamento"
+                            "ValorParcela"
+                      
                         )
                         VALUES
                         (
@@ -426,8 +421,7 @@ exports.sendPdf =
                     [
                         codigoInvestimento,
                         parcelaTexto,
-                        valorParcela,
-                        valorPagamento
+                        valorParcela
                     ]
                 );
 
