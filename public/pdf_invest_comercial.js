@@ -40,6 +40,40 @@ document.addEventListener("DOMContentLoaded", () => {
     feedbackDiv.style.borderRadius = '5px';
     document.body.appendChild(feedbackDiv);
 
+
+    function prepararTelaParaPDF(){
+
+        document.body.classList.add(
+            'gerando-pdf'
+        );
+
+        window.scrollTo(
+            0,
+            0
+        );
+
+    }
+
+    function restaurarTelaDepoisDoPDF(){
+
+        document.body.classList.remove(
+            'gerando-pdf'
+        );
+
+    }
+
+function adicionarQuebrasEmPalavrasLongas(valor) {
+    return String(valor || '')
+        .replace(/\r\n/g, '\n')
+        .replace(/\r/g, '\n')
+        .replace(
+            /\S{20,}/g,
+            palavra => {
+                return palavra.match(/.{1,20}/g).join('\u200B');
+            }
+        );
+}
+
     async function gerarEEnviarPDF() {
         console.log('Botão de PDF clicado');
 
@@ -80,32 +114,34 @@ document.addEventListener("DOMContentLoaded", () => {
 
         }
 
-        if(!representante.value.trim()){
+        if(
+    !representante ||
+    !representante.value.trim() ||
+    representante.value ===
+        'Carregando representante...'
+){
 
-            alert(
-                'Por favor, preencha o campo Representante Responsável.'
-            );
+    alert(
+        'Informe o representante responsável.'
+    );
 
-            representante.style.border =
-                '2px solid red';
+    representante.readOnly =
+        false;
 
-            representante.focus();
+    representante.focus();
 
-            representante.scrollIntoView({
-                behavior: 'smooth',
-                block: 'center'
-            });
+    representante.scrollIntoView({
+        behavior:
+            'smooth',
 
-            setTimeout(() => {
+        block:
+            'center'
+    });
 
-                representante.style.border =
-                    '';
+    return;
 
-            }, 3000);
+}
 
-            return;
-
-        }
 
         // Ocultar elementos que não devem aparecer no PDF
         const elementsToHide = document.querySelectorAll('.no-print, .button-group');
@@ -122,6 +158,16 @@ document.addEventListener("DOMContentLoaded", () => {
         textareaObs.style.display = 'none';
 
         const content = document.querySelector('.container');
+        const textosTextareas = {};
+
+        content
+            .querySelectorAll('textarea')
+            .forEach(textarea => {
+                if (textarea.id) {
+                    textosTextareas[textarea.id] =
+                        textarea.value || '';
+                }
+            });
         const cliente = clienteInput.value;
         const cnpj = cnpjInput.value;
         const responsavel = responsavelInput.value;
@@ -130,18 +176,296 @@ document.addEventListener("DOMContentLoaded", () => {
         const filename = `Solicitacao_Investimento_comercial_${cliente}_${cnpj}_${responsavel}_${timestamp}.pdf`;
 
         const options = {
-            margin: [10, 10, 10, 10],
-            filename: filename,
-            html2canvas: { scale: 2 },
-            jsPDF: { unit: "mm", format: "a4", orientation: "landscape" },
+
+            margin: [
+                8,
+                8,
+                8,
+                8
+            ],
+
+            filename:
+                filename,
+
+            image: {
+                type:
+                    'jpeg',
+
+                quality:
+                    0.98
+            },
+
+            html2canvas: {
+
+                scale:
+                    2,
+
+                useCORS:
+                    true,
+
+                allowTaint:
+                    false,
+
+                logging:
+                    false,
+
+                backgroundColor:
+                    '#ffffff',
+
+                scrollX:
+                    0,
+
+                scrollY:
+                    0,
+
+                x:
+                    0,
+
+                y:
+                    0,
+
+                /*
+                * Usa a largura real do conteúdo centralizado,
+                * em vez da largura rolável da página.
+                */
+                windowWidth:
+                    content.offsetWidth,
+
+                onclone:
+                    documentoClonado => {
+                        documentoClonado.body.classList.add(
+                            'gerando-pdf'
+                        );
+
+                        const containerClonado =
+                            documentoClonado.querySelector(
+                                '.container'
+                            );
+
+                        if (containerClonado) {
+                            containerClonado.style.marginLeft =
+                                'auto';
+
+                            containerClonado.style.marginRight =
+                                'auto';
+
+                            containerClonado.style.left =
+                                '0';
+
+                            containerClonado.style.transform =
+                                'none';
+
+                            containerClonado.style.overflow =
+                                'visible';
+                        }
+
+                        const textareasClonados =
+                            documentoClonado.querySelectorAll(
+                                '.container textarea'
+                            );
+
+                        textareasClonados.forEach(
+                            textarea => {
+                                if (textarea.hidden) {
+                                    return;
+                                }
+
+                                const textoOriginal =
+                                    textosTextareas[textarea.id] || '';
+
+                                const divTexto =
+                                    documentoClonado.createElement(
+                                        'div'
+                                    );
+
+                                divTexto.className =
+                                    'textarea-pdf';
+
+                                divTexto.textContent =
+                                    adicionarQuebrasEmPalavrasLongas(
+                                        textoOriginal
+                                    );
+
+                                divTexto.style.setProperty(
+                                    'display',
+                                    'block',
+                                    'important'
+                                );
+
+                                divTexto.style.setProperty(
+                                    'width',
+                                    '100%',
+                                    'important'
+                                );
+
+                                divTexto.style.setProperty(
+                                    'max-width',
+                                    '100%',
+                                    'important'
+                                );
+
+                                divTexto.style.setProperty(
+                                    'min-width',
+                                    '0',
+                                    'important'
+                                );
+
+                                divTexto.style.setProperty(
+                                    'min-height',
+                                    textarea.id === 'acaoSolicita'
+                                        ? '100px'
+                                        : '70px',
+                                    'important'
+                                );
+
+                                divTexto.style.setProperty(
+                                    'height',
+                                    'auto',
+                                    'important'
+                                );
+
+                                divTexto.style.setProperty(
+                                    'padding',
+                                    '10px',
+                                    'important'
+                                );
+
+                                divTexto.style.setProperty(
+                                    'border',
+                                    '1px solid #777777',
+                                    'important'
+                                );
+
+                                divTexto.style.setProperty(
+                                    'border-radius',
+                                    '3px',
+                                    'important'
+                                );
+
+                                divTexto.style.setProperty(
+                                    'box-sizing',
+                                    'border-box',
+                                    'important'
+                                );
+
+                                divTexto.style.setProperty(
+                                    'white-space',
+                                    'pre-wrap',
+                                    'important'
+                                );
+
+                                divTexto.style.setProperty(
+                                    'overflow-wrap',
+                                    'anywhere',
+                                    'important'
+                                );
+
+                                divTexto.style.setProperty(
+                                    'word-break',
+                                    'break-all',
+                                    'important'
+                                );
+
+                                divTexto.style.setProperty(
+                                    'overflow',
+                                    'visible',
+                                    'important'
+                                );
+
+                                divTexto.style.setProperty(
+                                    'font-family',
+                                    'Arial, sans-serif',
+                                    'important'
+                                );
+
+                                divTexto.style.setProperty(
+                                    'font-size',
+                                    '14px',
+                                    'important'
+                                );
+
+                                divTexto.style.setProperty(
+                                    'line-height',
+                                    '1.4',
+                                    'important'
+                                );
+
+                                divTexto.style.setProperty(
+                                    'background-color',
+                                    '#ffffff',
+                                    'important'
+                                );
+
+                                divTexto.style.setProperty(
+                                    'color',
+                                    '#333333',
+                                    'important'
+                                );
+
+                                textarea.replaceWith(
+                                    divTexto
+                                );
+                            }
+                        );
+                    }
+            },
+
+            jsPDF: {
+
+                unit:
+                    'mm',
+
+                format:
+                    'a4',
+
+                orientation:
+                    'landscape',
+
+                compress:
+                    true
+
+            },
+
             pagebreak: {
-                mode: ['css', 'legacy']
+
+                mode: [
+                    'avoid-all',
+                    'css',
+                    'legacy'
+                ],
+
+                avoid: [
+                    '.form-grid',
+                    '.payment-conditions',
+                    '.action-table-container',
+                    '.observations',
+                    'tr',
+                    'td',
+                    'th'
+                ]
+
             }
+
         };
 
         try {
             btPdfGeneration.disabled = true;
             console.log('Iniciando geração do PDF...');
+
+
+            prepararTelaParaPDF();
+
+            await new Promise(resolve => {
+
+                requestAnimationFrame(() => {
+
+                    requestAnimationFrame(
+                        resolve
+                    );
+
+                });
+
+            });
 
             // Gerar e baixar o PDF
             const pdfBlob = await html2pdf().set(options).from(content).output('blob');
@@ -176,35 +500,133 @@ document.addEventListener("DOMContentLoaded", () => {
                 elementsToHide.forEach(el => el.style.display = 'none');
 
                 try {
+
+                    prepararTelaParaPDF();
+
+                        await new Promise(resolve => {
+
+                            requestAnimationFrame(() => {
+
+                                requestAnimationFrame(
+                                    resolve
+                                );
+
+                            });
+
+                        });
+
                     // Gerar PDF para envio
                     const pdfBase64 = await html2pdf().set(options).from(content).outputPdf('datauristring');
                     console.log('PDF gerado para envio, iniciando requisição...');
 
-                    const response = await fetch('/send-pdf-investComercial', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            pdfBase64,
-                            razaoSocial: cliente,
-                            codCliente: cnpj,
-                            rep: rep,
-                        })
-                    });
+const dadosInvestimento =
+    window.montarDadosInvestimentoComercial();
 
-                    const result = await response.text();
-                    console.log('Resposta do servidor:', result);
-                    alert(result);
+if(
+    !window.validarDadosInvestimentoComercial(
+        dadosInvestimento
+    )
+){
+    return;
+}
+
+const response =
+    await fetch(
+        '/send-pdf-investComercial',
+        {
+            method: 'POST',
+
+            headers: {
+                'Content-Type':
+                    'application/json'
+            },
+
+            body:
+                JSON.stringify({
+
+                    pdfBase64:
+                        pdfBase64,
+
+                    razaoSocial:
+                        cliente,
+
+                    codCliente:
+                        cnpj,
+
+                    rep:
+                        dadosInvestimento
+                            .representanteInvestimento,
+
+                    dadosInvestimento:
+                        dadosInvestimento
+
+                })
+        }
+    );
+
+                    const result =
+                        await response.json();
+
+                    if(!response.ok){
+
+    const detalhes = [
+        result.mensagem,
+        result.detalhe,
+        result.codigoErro
+            ? `Código PostgreSQL: ${result.codigoErro}`
+            : '',
+        result.coluna
+            ? `Coluna: ${result.coluna}`
+            : '',
+        result.tabela
+            ? `Tabela: ${result.tabela}`
+            : '',
+        result.restricao
+            ? `Restrição: ${result.restricao}`
+            : ''
+    ]
+    .filter(Boolean)
+    .join('\n');
+
+    throw new Error(
+        detalhes ||
+        'Erro ao salvar e enviar o investimento.'
+    );
+
+}
+
+                    alert(
+                        `${result.mensagem}\nNúmero do investimento: ${result.codigoInvestimento}`
+                    );
+
+
                 } catch (error) {
                     console.error('Erro ao enviar o e-mail:', error);
                     alert('Erro ao enviar o e-mail.');
-                } finally {
-                        feedbackDiv.style.display = 'none';
+                } 
+                finally {
 
-                        textareaObs.style.display = 'block';
-                        observacoesPdf.style.display = 'none';
+                    restaurarTelaDepoisDoPDF();
 
-                        elementsToHide.forEach(el => el.style.display = 'flex');
-                    }
+                    feedbackDiv.style.display =
+                        'none';
+
+                    textareaObs.style.display =
+                        'block';
+
+                    observacoesPdf.style.display =
+                        'none';
+
+                    elementsToHide.forEach(
+                        elemento => {
+
+                            elemento.style.display =
+                                '';
+
+                        }
+                    );
+
+                }
             };
         } catch (error) {
             console.error('Erro ao salvar ou enviar o PDF:', error);

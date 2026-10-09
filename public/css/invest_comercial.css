@@ -116,6 +116,13 @@ body.light-theme .form-grid select {
     width: 100%; /* Ajusta para ocupar toda a largura da célula */
     box-sizing: border-box; /* Garante que padding e borda não aumentem o tamanho */
 }
+body.light-theme textarea{
+    padding: 8px;
+    border: 1px solid #242323;
+    border-radius: 3px;
+    width: 100%; /* Ajusta para ocupar toda a largura da célula */
+    box-sizing: border-box; /* Garante que padding e borda não aumentem o tamanho */
+}
 
 body.dark-theme .form-grid {
     display: grid;
@@ -147,6 +154,13 @@ body.dark-theme .form-grid label {
     color: var(--button-hover-text-dark);
 }
 
+body.dark-theme label{
+    font-weight: bold;
+    margin-bottom: 5px;
+    font-size: 17px;
+    color: var(--button-hover-text-dark);
+}
+
 body.dark-theme .form-grid input,
 body.dark-theme .form-grid select {
     padding: 8px;
@@ -154,6 +168,15 @@ body.dark-theme .form-grid select {
     border-radius: 3px;
     width: 100%; /* Ajusta para ocupar toda a largura da célula */
     box-sizing: border-box; /* Garante que padding e borda não aumentem o tamanho */
+}
+
+body.dark-theme textarea{
+    padding: 8px;
+    border: 1px solid #242323;
+    border-radius: 3px;
+    width: 100%; /* Ajusta para ocupar toda a largura da célula */
+    box-sizing: border-box; /* Garante que padding e borda não aumentem o tamanho */
+    color: var(--background-color-dark);
 }
 
 body.dark-theme .form-grid {
@@ -267,7 +290,7 @@ div.acao-solicitada-container {
 }
 
 .investment-table {
-    width: 100%;
+    width: 90%;
     border-collapse: collapse;
     margin-top: 10px;
 }
@@ -285,28 +308,28 @@ div.acao-solicitada-container {
     font-size: 15px;
 }
 
-.investment-table td input {
+ .investment-table td input {
     width: 100%;
     border: none;
     background: transparent;
     text-align: center;
 }
-
+ 
 .investment-table .parcela {
-    width: 20%;
+    width: 11%;
 }
-
+/*
 .investment-table .valor {
-    width: 30%;
+    width: 39%;
 }
 
 .investment-table .pago {
-    width: 20%;
+    width: 39%;
 }
 
 .investment-table .valor-pago {
-    width: 30%;
-}
+    width: 39%;
+} */
 
 .payment-conditions {
     margin-top: 20px;
@@ -432,7 +455,7 @@ footer {
 
 .link_sites a:hover {
     color:rgba(225,0,152);
-    font-size: 110%;
+    font-size: 100%;
 }
 
 
@@ -568,7 +591,7 @@ textarea:focus {
     }
 
     .payment-conditions input {
-        width: 50%;
+        width: 20%;
         padding: 5px;
     }
 }
@@ -718,7 +741,7 @@ textarea:focus {
     }
 
     .payment-conditions input {
-        flex: 2 1 120px;
+   
         padding: 5px;
     }
 }
@@ -831,7 +854,7 @@ body.dark-theme footer {
 
 .link_sites a:hover {
     color:rgba(225,0,152);
-    font-size: 140%;
+    font-size: 100%;
     
 
 }
@@ -976,6 +999,31 @@ body.dark-theme input{
     background-color: var(--input-bg-dark);
     color: var(--button-hover-text-dark);
 }
+
+
+.acaoSolicita{
+            width: 100%;
+            box-sizing: border-box;
+            resize: none;
+            overflow-y: hidden;
+            word-wrap: break-word;
+            white-space: pre-wrap;
+            font-family: inherit;
+            font-size: inherit;
+      }
+
+
+
+.body.dark-theme .acaoSolicita{
+            color: var(--background-color-dark);
+            background-color: var(--input-bg-dark);
+}
+.body.light-theme .acaoSolicita{
+
+            color: var(--table-text-color-light);
+            background-color: var(--background-color-light);
+        }
+
 
 body.dark-theme ::placeholder{
     color:#3d3d3d;
@@ -1343,7 +1391,7 @@ footer {
 
 .link_sites a:hover {
     color:rgba(225,0,152);
-    font-size: 110%;
+    font-size: 100%;
 }
 
 
@@ -1352,8 +1400,6 @@ input:focus , textarea:focus{
     outline: none; /* Remove o contorno padrão do navegador */
     box-shadow: 0 0 5px #ff0000; /* Efeito de brilho leve */ 
 }
-
-
 
 
 #logoutButton2:hover{
@@ -1869,7 +1915,7 @@ label[for="referencia"]::after {
  }
  
  .payment-conditions input {
-    width: 50%;
+    width: 20%;
      padding: 5px;
   
  }
@@ -2062,7 +2108,7 @@ label[for="referencia"]::after {
 }
 
 .payment-conditions input {
-    flex: 2 1 120px; /* Define largura mínima */
+
     padding: 5px;
 }
 
@@ -2099,4 +2145,185 @@ body.dark-theme .btn-remover-linha {
 body.dark-theme .btn-remover-linha:hover {
     background: var(--button-hover-bg-dark);
     color: var(--button-hover-text-dark);
+}
+
+
+/* Aplicado somente durante a geração do PDF */
+body.gerando-pdf {
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    background-color: #ffffff !important;
+}
+
+body.gerando-pdf .container {
+    /*
+     * A4 paisagem tem 297 mm.
+     * Com margens de 8 mm em cada lado,
+     * a largura útil fica em 281 mm.
+     */
+    width: 281mm !important;
+    max-width: 281mm !important;
+    min-width: 0 !important;
+
+    margin-left: auto !important;
+    margin-right: auto !important;
+    padding: 5mm !important;
+
+    box-sizing: border-box !important;
+
+    position: relative !important;
+    left: 0 !important;
+    right: 0 !important;
+
+    transform: none !important;
+    translate: none !important;
+
+    overflow: visible !important;
+    background-color: #ffffff !important;
+}
+
+body.gerando-pdf .section,
+body.gerando-pdf .form-grid,
+body.gerando-pdf .payment-conditions,
+body.gerando-pdf .action-table-container,
+body.gerando-pdf .investment-table-container,
+body.gerando-pdf .observations {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    box-sizing: border-box !important;
+}
+
+body.gerando-pdf table {
+    width: 100% !important;
+    max-width: 100% !important;
+    table-layout: fixed !important;
+    box-sizing: border-box !important;
+}
+
+body.gerando-pdf input,
+body.gerando-pdf textarea,
+body.gerando-pdf select {
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+body.gerando-pdf .no-print,
+body.gerando-pdf .button-group,
+body.gerando-pdf footer {
+    display: none !important;
+}
+/* 
+.investment-table .coluna-remover-parcela {
+    width: 110px;
+    text-align: center;
+}
+
+.investment-table .numero-parcela {
+    text-align: center;
+    font-weight: bold;
+    cursor: default;
+}
+
+.investment-table .valor-parcela,
+.investment-table .valor-pagamento {
+    text-align: right;
+} */
+
+
+
+#adicionarLinhaInvestimento {
+    padding: 8px 16px;
+    border: 1px solid #c4007a;
+    border-radius: 6px;
+    background-color: #c4007a;
+    color: #ffffff;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+#adicionarLinhaInvestimento:hover {
+    background-color: #a50066;
+}
+
+body.gerando-pdf .coluna-remover-parcela {
+    display: none !important;
+}
+
+@media print {
+
+    .coluna-remover-parcela {
+        display: none !important;
+    }
+
+}
+
+/* ==========================================
+   TABELA DE PARCELAS
+   ========================================== */
+
+
+.investment-table th,
+.investment-table td {
+    padding: 8px;
+    box-sizing: border-box;
+    vertical-align: middle;
+    text-align: center;
+    overflow: hidden;
+    align-items: center;
+}
+
+.investment-table th {
+    white-space: normal;
+    overflow-wrap: break-word;
+}
+
+/* .investment-table td input {
+    display: block;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    padding: 8px;
+    box-sizing: border-box;
+} */
+
+/* Numeração automática */
+.investment-table .numero-parcela {
+    text-align: center;
+    font-weight: bold;
+
+}
+
+/* Valores monetários */
+.investment-table .valor-parcela,
+.investment-table .valor-pagamento {
+    text-align: right;
+}
+
+/* Coluna e botão de remoção */
+.investment-table .coluna-remover-parcela {
+    text-align: center;
+}
+
+.investment-table .remover-parcela {
+    display: block;
+    width: 100%;
+    max-width: 140px;
+    margin: 0 auto;
+    padding: 8px 10px;
+    box-sizing: border-box;
+    border: 1px solid #c4007a;
+    border-radius: 6px;
+    background-color: transparent;
+    color: #c4007a;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.investment-table .remover-parcela:hover {
+    background-color: #c4007a;
+    color: #ffffff;
 }

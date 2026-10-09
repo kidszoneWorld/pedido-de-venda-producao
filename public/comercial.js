@@ -4,6 +4,8 @@ let currentFilters = {
     representante: '',
     clienteCNPJ: '',
     ClienteCodigo: '',
+    codigoPedido: '',
+    numeroNota: '',
     status: '',
     dataInicio: '',
     dataFim: '',
@@ -89,39 +91,271 @@ function exportToExcel(data) {
     XLSX.writeFile(workbook, fileName);
 }
 
+function atualizarStatusPelaResposta(
+    pedidos
+) {
+    const possuiBuscaDireta =
+        Boolean(
+            currentFilters.codigoPedido ||
+            currentFilters.numeroNota
+        );
+
+    if (
+        !possuiBuscaDireta ||
+        !Array.isArray(
+            pedidos
+        ) ||
+        pedidos.length !== 1
+    ) {
+        return;
+    }
+
+    const pedido =
+        pedidos[0];
+
+    const campoStatus =
+        document.getElementById(
+            'statusFilter'
+        );
+
+    const campoSeparacao =
+        document.getElementById(
+            'statusSeparacaoFilter'
+        );
+
+    const statusResposta =
+        String(
+            pedido.status ?? ''
+        ).trim();
+
+    const separacaoResposta =
+        String(
+            pedido.statusSeparacao ?? ''
+        ).trim();
+
+    if (
+        campoStatus &&
+        statusResposta !== ''
+    ) {
+        const possuiOpcaoStatus =
+            Array.from(
+                campoStatus.options
+            ).some(opcao => {
+                return (
+                    opcao.value ===
+                    statusResposta
+                );
+            });
+
+        if (possuiOpcaoStatus) {
+            campoStatus.value =
+                statusResposta;
+
+            currentFilters.status =
+                statusResposta;
+        } else {
+            console.warn(
+                'O status retornado não existe no filtro:',
+                statusResposta
+            );
+        }
+    }
+
+    if (
+        campoSeparacao &&
+        separacaoResposta !== ''
+    ) {
+        const possuiOpcaoSeparacao =
+            Array.from(
+                campoSeparacao.options
+            ).some(opcao => {
+                return (
+                    opcao.value ===
+                    separacaoResposta
+                );
+            });
+
+        if (possuiOpcaoSeparacao) {
+            campoSeparacao.value =
+                separacaoResposta;
+
+            currentFilters.statusSeparacao =
+                separacaoResposta;
+        } else {
+            console.warn(
+                'O status de separação retornado não existe no filtro:',
+                separacaoResposta
+            );
+        }
+    }
+}
+
 // Carregar detalhes dos pedidos
-async function loadOrderDetails(status = currentFilters.status) {
+async function loadOrderDetails(
+    status = currentFilters.status
+) {
+    currentFilters.status =
+        status;
 
-    currentFilters.status = status;
+        const possuiBuscaDireta =
+    Boolean(
+        currentFilters.codigoPedido ||
+        currentFilters.numeroNota
+    );
 
-    const queryParams = new URLSearchParams({
-        status: currentFilters.status,
-        codRep: currentFilters.representante || '',
-        clienteCNPJ: currentFilters.clienteCNPJ || '',
-        ClienteCodigo: currentFilters.ClienteCodigo || '',
-        DataPedidoInicio: formatDate(currentFilters.dataInicio) || '',
-        DataPedidoFim: formatDate(currentFilters.dataFim) || '',
-        statusSeparacao: currentFilters.statusSeparacao || ''
+    const statusConsulta =
+        possuiBuscaDireta
+            ? ''
+            : currentFilters.status;
+
+    const separacaoConsulta =
+        possuiBuscaDireta
+            ? ''
+            : currentFilters.statusSeparacao;
+
+    const dataInicioConsulta =
+        possuiBuscaDireta
+            ? ''
+            : formatDate(
+                currentFilters.dataInicio
+            );
+
+    const dataFimConsulta =
+        possuiBuscaDireta
+            ? ''
+            : formatDate(
+                currentFilters.dataFim
+            );
+
+
+    const queryParams =
+    new URLSearchParams({
+        status:
+            statusConsulta || '',
+
+        codRep:
+            currentFilters.representante || '',
+
+        clienteCNPJ:
+            currentFilters.clienteCNPJ || '',
+
+        ClienteCodigo:
+            currentFilters.ClienteCodigo || '',
+
+        codigoPedido:
+            currentFilters.codigoPedido || '',
+
+        numeroNota:
+            currentFilters.numeroNota || '',
+
+        DataPedidoInicio:
+            dataInicioConsulta || '',
+
+        DataPedidoFim:
+            dataFimConsulta || '',
+
+        statusSeparacao:
+            separacaoConsulta || ''
     });
 
-    showFeedback("Carregando pedidos, aguarde...");
+    showFeedback(
+        'Carregando pedidos, aguarde...'
+    );
 
     try {
-        const response = await fetch(`/api/pedidos?${queryParams.toString()}`);
+        const response =
+            await fetch(
+                `/api/pedidos?${queryParams.toString()}`
+            );
+
         if (response.status === 404) {
-            renderTable([]);
-            showFeedback("Nenhum dado encontrado com os filtros aplicados.");
+            ordersData =
+                [];
+
+            renderTable(
+                []
+            );
+
+            showFeedback(
+                'Nenhum dado encontrado com os filtros aplicados.'
+            );
+
             return;
         }
 
-        if (!response.ok) throw new Error(`Erro ao obter pedidos: ${response.statusText}`);
-        
-        ordersData = await response.json(); 
-        renderTable(ordersData);
+        if (!response.ok) {
+            let mensagem =
+                `Erro ao obter pedidos: ${response.statusText}`;
+
+            try {
+                const erro =
+                    await response.json();
+
+                mensagem =
+                    erro.mensagem ||
+                    mensagem;
+            } catch (error) {
+                console.error(
+                    'Não foi possível ler a mensagem da API:',
+                    error
+                );
+            }
+
+            throw new Error(
+                mensagem
+            );
+        }
+
+        const resultado =
+            await response.json();
+
+        if (
+            !Array.isArray(resultado) ||
+            resultado.length === 0
+        ) {
+            ordersData =
+                [];
+
+            renderTable(
+                []
+            );
+
+            showFeedback(
+                'Nenhum dado encontrado com os filtros aplicados.'
+            );
+
+            return;
+        }
+
+        ordersData =
+            resultado;
+
+        atualizarStatusPelaResposta(
+            ordersData
+        );
+
+        renderTable(
+            ordersData
+        );
+
         hideFeedback();
     } catch (error) {
-        console.error('Erro ao carregar os detalhes dos pedidos:', error);
-        showFeedback("Nenhum dado encontrado com os filtros aplicados.");
+        console.error(
+            'Erro ao carregar os detalhes dos pedidos:',
+            error
+        );
+
+        ordersData =
+            [];
+
+        renderTable(
+            []
+        );
+
+        showFeedback(
+            error.message ||
+            'Não foi possível carregar os pedidos.'
+        );
     }
 }
 
@@ -177,6 +411,7 @@ function mapStatus(status) {
 
 // Inicializar ao carregar a página
 document.addEventListener('DOMContentLoaded', async () => {
+    
     try {
         // Faz a requisição para obter os dados da sessão
         const response = await fetch('/session-data');
@@ -197,6 +432,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                 currentFilters.representante = userNumero; // Atualiza o filtro global
             }
 
+            sincronizarStatusSeparacao();
+
+
             // Simula o clique no botão "Aplicar Filtros" para carregar os dados filtrados automaticamente
             await applyFilters();
             //await loadOrderDetails(this.value);
@@ -209,21 +447,89 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 });
 
-
 async function applyFilters() {
+    currentFilters.representante =
+        document
+            .getElementById(
+                'representanteFilter'
+            )
+            .value
+            .trim();
 
-    // Atualizar filtros globais com valores do DOM
-    currentFilters.representante = document.getElementById('representanteFilter').value.trim();
-    currentFilters.clienteCNPJ = document.getElementById('clienteCNPJFilter').value.trim();
-    currentFilters.ClienteCodigo = document.getElementById('codClientFilter').value;
-    currentFilters.status = document.getElementById('statusFilter').value;
-    currentFilters.dataInicio = document.getElementById('dataPedidoInicioFilter').value;
-    currentFilters.dataFim = document.getElementById('dataPedidoFimFilter').value;
-    currentFilters.statusSeparacao = document.getElementById('statusSeparacaoFilter').value;
+    currentFilters.clienteCNPJ =
+        document
+            .getElementById(
+                'clienteCNPJFilter'
+            )
+            .value
+            .trim();
 
-    await loadOrderDetails(currentFilters.status);
+    currentFilters.ClienteCodigo =
+        document
+            .getElementById(
+                'codClientFilter'
+            )
+            .value
+            .trim();
+
+    currentFilters.codigoPedido =
+        document
+            .getElementById(
+                'codigoPedidoFilter'
+            )
+            .value
+            .trim();
+
+    currentFilters.numeroNota =
+        document
+            .getElementById(
+                'numeroNotaFilter'
+            )
+            .value
+            .trim();
+
+    currentFilters.status =
+        document
+            .getElementById(
+                'statusFilter'
+            )
+            .value;
+
+    currentFilters.dataInicio =
+        document
+            .getElementById(
+                'dataPedidoInicioFilter'
+            )
+            .value;
+
+    currentFilters.dataFim =
+        document
+            .getElementById(
+                'dataPedidoFimFilter'
+            )
+            .value;
+
+    const possuiBuscaDireta =
+        Boolean(
+            currentFilters.codigoPedido ||
+            currentFilters.numeroNota
+        );
+
+    if (!possuiBuscaDireta) {
+        sincronizarStatusSeparacao();
+    }
+
+    currentFilters.statusSeparacao =
+        document
+            .getElementById(
+                'statusSeparacaoFilter'
+            )
+            .value;
+
+    await loadOrderDetails(
+        currentFilters.status
+    );
 }
-
 
 // Limpar Filtros
 async function clearFilters() {
@@ -239,59 +545,91 @@ async function clearFilters() {
     document.getElementById('codClientFilter').value = '';
     document.getElementById('dataPedidoInicioFilter').value = '';
     document.getElementById('dataPedidoFimFilter').value = '';
-    document.getElementById('statusFilter').value = '3';
-    document.getElementById('statusSeparacaoFilter').value = '';
+    document.getElementById('statusFilter').value = '6';
+    document.getElementById(
+        'statusSeparacaoFilter'
+    ).value = '0';
+    document.getElementById(
+        'codigoPedidoFilter'
+    ).value = '';
+
+    document.getElementById(
+        'numeroNotaFilter'
+    ).value = '';
 
 
+    const campoSeparacao =
+        document.getElementById(
+            'statusSeparacaoFilter'
+        );
 
+    campoSeparacao.disabled =
+        false;
+
+    campoSeparacao.value =
+        '0';
+
+        
     // Limpar o estado global de filtros
     currentFilters = {
-        representante: isRep ? currentFilters.representante : '', // Mantém para REP, limpa para outros usuários
-        clienteCNPJ: '',
-        ClienteCodigo: '',
-        status: '',
-        dataInicio: '',
-        dataFim: '',
-        statusSeparacao: ''
+        representante:
+            isRep
+                ? document
+                    .getElementById(
+                        'representanteFilter'
+                    )
+                    .value
+                    .trim()
+                : '',
+
+        clienteCNPJ:
+            '',
+
+        ClienteCodigo:
+            '',
+
+        codigoPedido:
+            '',
+
+        numeroNota:
+            '',
+
+        status:
+            '3',
+
+        dataInicio:
+            '',
+
+        dataFim:
+            '',
+
+        statusSeparacao:
+            ''
     };
 
     await loadOrderDetails(currentFilters.status);
 }
 
+
+
+
 // Verificar se os filtros estão aplicados
-async function areFiltersApplied() {
-    currentFilters.representante = document.getElementById('representanteFilter').value.trim();
-    currentFilters.clienteCNPJ = document.getElementById('clienteCNPJFilter').value.trim();
-    currentFilters.ClienteCodigo = document.getElementById('codClientFilter').value;
-    currentFilters.status = document.getElementById('statusFilter').value;
-    currentFilters.dataInicio = document.getElementById('dataPedidoInicioFilter').value;
-    currentFilters.dataFim = document.getElementById('dataPedidoFimFilter').value;
-    currentFilters.statusSeparacao = document.getElementById('statusSeparacaoFilter').value;
+function areFiltersApplied(){
 
-    return (
-        currentFilters.representante !== '' ||
-        currentFilters.clienteCNPJ  !== '' ||
-        currentFilters.ClienteCodigo !== '' ||
-        currentFilters.status !== '' ||
-        currentFilters.dataInicio !== '' ||
-        currentFilters.dataFim !== '' ||
-        currentFilters.statusSeparacao !== '3'
+    return Boolean(
+        currentFilters.representante ||
+        currentFilters.clienteCNPJ ||
+        currentFilters.ClienteCodigo ||
+        currentFilters.codigoPedido ||
+        currentFilters.numeroNota ||
+        currentFilters.status ||
+        currentFilters.dataInicio ||
+        currentFilters.dataFim ||
+        currentFilters.statusSeparacao
     );
-}
 
+}
 // Verificar se os filtros estão aplicados and return the data to export
-async function areFiltersApplied() {
-    currentFilters.representante = document.getElementById('representanteFilter').value.trim();
-    currentFilters.clienteCNPJ = document.getElementById('clienteCNPJFilter').value.trim();
-    currentFilters.ClienteCodigo = document.getElementById('codClientFilter').value;
-    currentFilters.status = document.getElementById('statusFilter').value;
-    currentFilters.dataInicio = document.getElementById('dataPedidoInicioFilter').value;
-    currentFilters.dataFim = document.getElementById('dataPedidoFimFilter').value;
-    currentFilters.statusSeparacao = document.getElementById('statusSeparacaoFilter').value;
-
-    // Since ordersData is already updated by applyFilters/loadOrderDetails, return it
-    return ordersData;
-}
 
 // Exportar para Excel (com ou sem filtros)
 document.getElementById('exportExcel1').addEventListener('click', async () => {
@@ -301,7 +639,8 @@ document.getElementById('exportExcel1').addEventListener('click', async () => {
     }
 
     // Get the data to export
-    const dataToExport = await areFiltersApplied();
+    const dataToExport =
+        ordersData;
 
     if (dataToExport.length === 0) {
         showFeedback("Nenhum dado para exportar com os filtros aplicados.");
@@ -311,6 +650,58 @@ document.getElementById('exportExcel1').addEventListener('click', async () => {
     exportToExcel(dataToExport);
 });
 
+function sincronizarStatusSeparacao() {
+    const campoStatus =
+        document.getElementById(
+            'statusFilter'
+        );
+
+    const campoSeparacao =
+        document.getElementById(
+            'statusSeparacaoFilter'
+        );
+
+    if (
+        !campoStatus ||
+        !campoSeparacao
+    ) {
+        return;
+    }
+
+    const status =
+        String(
+            campoStatus.value
+        );
+
+    campoSeparacao.disabled =
+        false;
+
+    if (status === '5') {
+        campoSeparacao.value =
+            '2';
+    } else if (status === '4') {
+        campoSeparacao.value =
+            '1';
+    } else if (status === '3') {
+        campoSeparacao.value =
+            '0';
+    }
+
+    currentFilters.statusSeparacao =
+        campoSeparacao.value;
+}
+
+const campoStatusPedido =
+    document.getElementById(
+        'statusFilter'
+    );
+
+if (campoStatusPedido) {
+    campoStatusPedido.addEventListener(
+        'change',
+        sincronizarStatusSeparacao
+    );
+}
 
 // Eventos dos botões de filtro
 document.getElementById('applyFilters').addEventListener('click', applyFilters);

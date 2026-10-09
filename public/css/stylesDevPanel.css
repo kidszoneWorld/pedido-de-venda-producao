@@ -1305,3 +1305,151 @@ input:checked + .slider {
 input:checked + .slider:before {
     transform: translateX(26px);
 }
+
+.coluna-status-investimento {
+    min-width: 155px;
+    text-align: center;
+}
+
+.select-status-investimento {
+    display: block;
+    width: 100%;
+    min-width: 155px;
+    padding: 8px 10px;
+    border: 1px solid #bbbbbb;
+    border-radius: 6px;
+    background-color: #ffffff;
+    color: #222222;
+    font-size: 14px;
+    box-sizing: border-box;
+    cursor: pointer;
+}
+
+.select-status-investimento:focus {
+    border-color: #c4007a;
+    outline: 2px solid rgba(196, 0, 122, 0.15);
+}
+
+.select-status-investimento:disabled {
+    background-color: #e9ecef;
+    color: #666666;
+    cursor: not-allowed;
+}
+
+.status-atual-investimento {
+    font-weight: 600;
+    text-align: center;
+}
+
+#tabelaInvestimentos
+.coluna-observacao-investimento,
+#tabelaInvestimentos
+.celula-observacao-investimento {
+    width: 160px;
+    min-width: 160px;
+}
+
+.campo-observacao-investimento {
+    display: block;
+
+    width: 100%;
+    min-width: 160px;
+    min-height: 7px;
+    height: 35px;
+    padding: 8px;
+
+    box-sizing: border-box;
+
+    border: 1px solid #777777;
+    border-radius: 5px;
+
+    background-color: #ffffff;
+    color: #333333;
+
+    font-family: Arial, sans-serif;
+    font-size: 13px;
+    line-height: 1.35;
+
+    resize: vertical;
+}
+
+.campo-observacao-investimento:focus {
+    border-color: rgba(225, 0, 152);
+    outline: none;
+
+    box-shadow:
+        0 0 5px rgba(225, 0, 152, 0.65);
+}
+
+.campo-observacao-investimento:disabled {
+    opacity: 0.8;
+    cursor: not-allowed;
+
+    background-color: #e9ecef;
+}
+
+.contador-observacao-investimento {
+    margin-top: 4px;
+
+    color: #666666;
+
+    font-size: 11px;
+    text-align: right;
+}
+
+html.dark-theme
+.campo-observacao-investimento,
+body.dark-theme
+.campo-observacao-investimento {
+    background-color: #291919;
+    color: #ffffff;
+
+    border-color: #666666;
+}
+
+html.dark-theme
+.campo-observacao-investimento:disabled,
+body.dark-theme
+.campo-observacao-investimento:disabled {
+    background-color: #292929;
+    color: #cccccc;
+}
+
+html.dark-theme
+.contador-observacao-investimento,
+body.dark-theme
+.contador-observacao-investimento {
+    color: #cccccc;
+}
+
+.celula-acoes-investimento {
+    min-width: 100px;
+}
+
+.acoes-investimento {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.acoes-investimento .button {
+    min-width: 45px;
+    max-height: 25px;
+}
+
+.botao-editar-investimento {
+    background-color: #005faa;
+    color: #ffffff;
+}
+
+.botao-editar-investimento:hover {
+    background-color: #00437a;
+}
+
+html.dark-theme .botao-editar-investimento,
+body.dark-theme .botao-editar-investimento {
+    background-color: #2878c8;
+    color: #ffffff;
+}

@@ -5,7 +5,21 @@ const timestamp = Date.now();
 let clientesData;
 let promocaoData;
 let foraDeLinhaData;
-let listaPrecosData;
+let catalogoClienteData =
+    [];
+
+let catalogoClientePorCodigo =
+    new Map();
+
+let catalogoClienteCarregado =
+    false;
+
+let catalogoClienteCarregando =
+    false;
+
+let dadosListaPrecoAtual =
+    null;
+
 let icmsSTData;
 let listaPrecosIpiData;
   
@@ -42,12 +56,958 @@ fetch(`/data/ICMS-ST.json?cacheBust=${timestamp}`)
   .then(r => r.json())
   .then(d => icmsSTData = d);
 
+function normalizarCodigoItem(
+    valor
+) {
+    return String(
+        valor || ''
+    )
+        .trim()
+        .toUpperCase();
+}
 
+function converterParaBooleano(
+    valor
+) {
+    if (valor === true) {
+        return true;
+    }
 
-async function carregarListaPrecos(listaId) {
-    const response = await fetch(`/api/lista-preco-Sem-Verificar/${listaId}`);
-    listaPrecosData = await response.json();
-    console.log('LISTA DE PREÇOS CARREGADA:', Array.isArray(listaPrecosData) ? listaPrecosData.length : listaPrecosData);
+    if (valor === false) {
+        return false;
+    }
+
+    if (valor === 1) {
+        return true;
+    }
+
+    if (valor === 0) {
+        return false;
+    }
+
+    const texto =
+        String(
+            valor ?? ''
+        )
+            .trim()
+            .toLowerCase();
+
+    return (
+        texto === 'true' ||
+        texto === '1' ||
+        texto === 'sim' ||
+        texto === 's' ||
+        texto === 'ativo'
+    );
+}
+
+function itemPodeAparecerNaLista(
+    item
+) {
+    if (!item) {
+        return false;
+    }
+
+    const ativo =
+        converterParaBooleano(
+            item.ativo
+        );
+
+    const suspenso =
+        converterParaBooleano(
+            item.suspenso
+        );
+
+    const foraLinha =
+        converterParaBooleano(
+            item.foraLinha
+        );
+
+    const bloqueado =
+        converterParaBooleano(
+            item.bloqueado
+        );
+
+    const exibeConsultas =
+        item.exibeConsultasListaPreco === undefined ||
+        item.exibeConsultasListaPreco === null
+            ? true
+            : converterParaBooleano(
+                item.exibeConsultasListaPreco
+            );
+
+    const descricao =
+        String(
+            item.descricao || ''
+        )
+            .normalize(
+                'NFD'
+            )
+            .replace(
+                /[\u0300-\u036f]/g,
+                ''
+            )
+            .trim()
+            .toLowerCase();
+
+    const descricaoBloqueada =
+        descricao.includes(
+            'display'
+        ) ||
+        descricao.includes(
+            'bobina'
+        )
+        ||
+        descricao.includes(
+            'CATÁLOGO'
+        )
+                ||
+        descricao.includes(
+            'CAMISETA'
+        )
+        ||
+        descricao.includes(
+            'Scooter'
+        )
+        ||
+        descricao.includes(
+            'SACOLA'
+        )
+        ||
+        descricao.includes(
+            'Patinete'
+        )||
+        descricao.includes(
+            'LCD'
+        )||
+        descricao.includes(
+            'BICICLETA'
+        )
+    return ( 
+        // ativo &&
+        // !suspenso &&
+        // !foraLinha &&
+        // !bloqueado &&
+        // exibeConsultas &&
+        !descricaoBloqueada
+    );
+}
+
+async function carregarCatalogoCliente(
+    clienteCodigo,
+    listaCodigo = null
+) {
+    const codigoCliente =
+        String(
+            clienteCodigo || ''
+        ).trim();
+
+    if (!codigoCliente) {
+        throw new Error(
+            'Código do cliente não disponível para carregar o catálogo.'
+        );
+    }
+
+    catalogoClienteCarregado =
+        false;
+
+    catalogoClienteCarregando =
+        true;
+
+    catalogoClienteData =
+        [];
+
+    catalogoClientePorCodigo =
+        new Map();
+
+    dadosListaPrecoAtual =
+        null;
+
+    showFeedback(
+        'Carregando lista de produtos do cliente...'
+    );
+
+    try {
+        const parametros =
+            new URLSearchParams();
+
+        if (
+            listaCodigo !== null &&
+            listaCodigo !== undefined &&
+            listaCodigo !== ''
+        ) {
+            parametros.set(
+                'listaCodigo',
+                String(
+                    listaCodigo
+                )
+            );
+        }
+
+        const queryString =
+            parametros.toString();
+
+        const url =
+            `/api/catalogo-cliente/${encodeURIComponent(codigoCliente)}` +
+            (
+                queryString
+                    ? `?${queryString}`
+                    : ''
+            );
+
+        console.log(
+            'Consultando catálogo da devolução:',
+            url
+        );
+
+        const response =
+            await fetch(
+                url,
+                {
+                    method:
+                        'GET',
+
+                    headers: {
+                        Accept:
+                            'application/json'
+                    }
+                }
+            );
+
+        const textoResposta =
+            await response.text();
+
+        let resultado =
+            null;
+
+        if (textoResposta) {
+            try {
+                resultado =
+                    JSON.parse(
+                        textoResposta
+                    );
+            } catch {
+                throw new Error(
+                    'O catálogo retornou uma resposta inválida.'
+                );
+            }
+        }
+
+        if (!response.ok) {
+            throw new Error(
+                resultado?.mensagem ||
+                resultado?.message ||
+                textoResposta ||
+                `Erro HTTP ${response.status}`
+            );
+        }
+
+        const itensRecebidos =
+            Array.isArray(
+                resultado?.itens
+            )
+                ? resultado.itens
+                : [];
+
+        const itensDisponiveis =
+            itensRecebidos.filter(
+                itemPodeAparecerNaLista
+            );
+
+        catalogoClienteData =
+            itensDisponiveis;
+
+        dadosListaPrecoAtual =
+            resultado?.listaPreco ||
+            null;
+
+        catalogoClientePorCodigo =
+            new Map();
+
+        itensDisponiveis.forEach(
+            item => {
+                const codigo =
+                    normalizarCodigoItem(
+                        item.itemEmpresaId
+                    );
+
+                if (!codigo) {
+                    return;
+                }
+
+                catalogoClientePorCodigo.set(
+                    codigo,
+                    item
+                );
+            }
+        );
+
+        catalogoClienteCarregado =
+            true;
+
+        if (dadosListaPrecoAtual) {
+            const campoCodigoLista =
+                document.getElementById(
+                    'codgroup'
+                );
+
+            const campoNomeLista =
+                document.getElementById(
+                    'group'
+                );
+
+            if (campoCodigoLista) {
+                campoCodigoLista.value =
+                    dadosListaPrecoAtual.codigo ||
+                    '';
+            }
+
+            if (campoNomeLista) {
+                campoNomeLista.value =
+                    dadosListaPrecoAtual.descricao ||
+                    '';
+            }
+        }
+
+        criarDatalistCatalogo();
+
+        console.log(
+            'Catálogo da devolução carregado:',
+            {
+                clienteCodigo:
+                    codigoCliente,
+
+                listaPreco:
+                    dadosListaPrecoAtual,
+
+                totalRecebido:
+                    itensRecebidos.length,
+
+                totalDisponivel:
+                    itensDisponiveis.length,
+
+                totalIndexado:
+                    catalogoClientePorCodigo.size,
+
+                erros:
+                    resultado?.erros || []
+            }
+        );
+
+        return resultado;
+    } catch (error) {
+        catalogoClienteData =
+            [];
+
+        catalogoClientePorCodigo =
+            new Map();
+
+        catalogoClienteCarregado =
+            false;
+
+        console.error(
+            'Erro ao carregar catálogo da devolução:',
+            error
+        );
+
+        throw error;
+    } finally {
+        catalogoClienteCarregando =
+            false;
+
+        hideFeedback();
+    }
+}
+
+function criarDatalistCatalogo() {
+    let datalist =
+        document.getElementById(
+            'lista-produtos-cliente'
+        );
+
+    if (!datalist) {
+        datalist =
+            document.createElement(
+                'datalist'
+            );
+
+        datalist.id =
+            'lista-produtos-cliente';
+
+        document.body.appendChild(
+            datalist
+        );
+    }
+
+    datalist.innerHTML =
+        '';
+
+    catalogoClienteData.forEach(
+        item => {
+            const codigo =
+                String(
+                    item.itemEmpresaId || ''
+                ).trim();
+
+            const descricao =
+                String(
+                    item.descricao || ''
+                ).trim();
+
+            if (
+                !codigo ||
+                !descricao
+            ) {
+                return;
+            }
+
+            const option =
+                document.createElement(
+                    'option'
+                );
+
+            option.value =
+                `${codigo} - ${descricao}`;
+
+            datalist.appendChild(
+                option
+            );
+        }
+    );
+}
+
+function buscarItemNoCatalogo(
+    codigoDigitado
+) {
+    const codigo =
+        normalizarCodigoItem(
+            codigoDigitado
+        );
+
+    if (!codigo) {
+        return null;
+    }
+
+    return (
+        catalogoClientePorCodigo.get(
+            codigo
+        ) ||
+        null
+    );
+}
+
+function buscarItemPorPesquisa(
+    valorDigitado
+) {
+    const texto =
+        String(
+            valorDigitado || ''
+        ).trim();
+
+    if (!texto) {
+        return null;
+    }
+
+    const separador =
+        texto.indexOf(
+            ' - '
+        );
+
+    if (separador >= 0) {
+        const codigoExtraido =
+            normalizarCodigoItem(
+                texto.substring(
+                    0,
+                    separador
+                )
+            );
+
+        const itemPorCodigo =
+            buscarItemNoCatalogo(
+                codigoExtraido
+            );
+
+        if (itemPorCodigo) {
+            return itemPorCodigo;
+        }
+    }
+
+    const itemPorCodigo =
+        buscarItemNoCatalogo(
+            texto
+        );
+
+    if (itemPorCodigo) {
+        return itemPorCodigo;
+    }
+
+    const pesquisa =
+        texto.toUpperCase();
+
+    const correspondencias =
+        catalogoClienteData.filter(
+            item => {
+                const descricao =
+                    String(
+                        item.descricao || ''
+                    )
+                        .trim()
+                        .toUpperCase();
+
+                return (
+                    descricao ===
+                    pesquisa
+                );
+            }
+        );
+
+    return correspondencias.length === 1
+        ? correspondencias[0]
+        : null;
+}
+
+function linhaDevolucaoEstaVazia(
+    tr
+) {
+    if (!tr) {
+        return true;
+    }
+
+    const campoItem =
+        tr.querySelector(
+            '.campo-item-pesquisa'
+        );
+
+    const possuiCodigo =
+        Boolean(
+            String(
+                tr.dataset.itemEmpresaId || ''
+            ).trim()
+        );
+
+    const possuiPesquisa =
+        Boolean(
+            String(
+                campoItem?.value || ''
+            ).trim()
+        );
+
+    return (
+        !possuiCodigo &&
+        !possuiPesquisa
+    );
+}
+
+function obterProximaLinhaDevolucao(
+    linhaAtual
+) {
+    if (!linhaAtual) {
+        return null;
+    }
+
+    const proximaLinha =
+        linhaAtual.nextElementSibling;
+
+    if (
+        proximaLinha &&
+        proximaLinha.classList.contains(
+            'linha-item-devolucao'
+        )
+    ) {
+        return proximaLinha;
+    }
+
+    return adicionarNovaLinha();
+}
+
+function finalizarPrecoLinhaDevolucao(
+    tr,
+    campoPreco
+) {
+    const valor =
+        converterNumero(
+            campoPreco.value
+        );
+
+    if (valor <= 0) {
+        campoPreco.value =
+            '';
+
+        campoPreco.focus();
+
+        alert(
+            'Informe um preço unitário válido.'
+        );
+
+        return false;
+    }
+
+    campoPreco.value =
+        formatarMoeda(
+            valor
+        );
+
+    recalcularLinhaDevolucao(
+        tr
+    );
+
+    return true;
+}
+
+function configurarLinhaDevolucao(
+    tr
+) {
+    const campoPesquisa =
+        tr.querySelector(
+            '.campo-item-pesquisa'
+        );
+
+    const campoLote =
+        tr.querySelector(
+            '.campo-lote-item'
+        );
+
+    const campoQuantidade =
+        tr.querySelector(
+            '.campo-quantidade-item'
+        );
+
+    const campoPreco =
+        tr.querySelector(
+            '.campo-preco-unitario-item'
+        );
+
+    const botaoRemover =
+        tr.querySelector(
+            '.btn-remover-linha'
+        );
+
+    let processandoItem =
+        false;
+
+    async function processarItem() {
+        if (processandoItem) {
+            return false;
+        }
+
+        const valorDigitado =
+            campoPesquisa.value.trim();
+
+        if (!valorDigitado) {
+            return false;
+        }
+
+        processandoItem =
+            true;
+
+        campoPesquisa.readOnly =
+            true;
+
+        try {
+            if (catalogoClienteCarregando) {
+                throw new Error(
+                    'O catálogo ainda está sendo carregado. Aguarde.'
+                );
+            }
+
+            if (!catalogoClienteCarregado) {
+                throw new Error(
+                    'Carregue um cliente antes de informar os itens.'
+                );
+            }
+
+            const item =
+                buscarItemPorPesquisa(
+                    valorDigitado
+                );
+
+            if (!item) {
+                throw new Error(
+                    'Item não encontrado no catálogo do cliente.'
+                );
+            }
+
+            const codigo =
+                normalizarCodigoItem(
+                    item.itemEmpresaId
+                );
+
+            const itemDuplicado =
+                Array.from(
+                    document.querySelectorAll(
+                        '#dadosPedido tbody .linha-item-devolucao'
+                    )
+                ).some(
+                    linha => {
+                        return (
+                            linha !== tr &&
+                            normalizarCodigoItem(
+                                linha.dataset.itemEmpresaId
+                            ) === codigo
+                        );
+                    }
+                );
+
+            if (itemDuplicado) {
+                throw new Error(
+                    'Este item já foi adicionado à devolução.'
+                );
+            }
+
+            preencherLinhaDevolucao(
+                tr,
+                item
+            );
+
+            setTimeout(
+                () => {
+                    campoLote.focus();
+                    campoLote.select();
+                },
+                0
+            );
+            return true;
+        } catch (error) {
+            console.error(
+                'Erro ao carregar item da devolução:',
+                error
+            );
+
+            campoPesquisa.value =
+                '';
+
+            campoQuantidade.value =
+                '';
+
+            campoQuantidade.readOnly =
+                true;
+
+            campoPreco.value =
+                '';
+
+            campoPreco.readOnly =
+                true;
+
+            tr.dataset.itemId =
+                '';
+
+            tr.dataset.itemEmpresaId =
+                '';
+
+            tr.dataset.codigo =
+                '';
+
+            tr.dataset.descricao =
+                '';
+
+            tr.dataset.ipi =
+                '';
+
+            alert(
+                error.message ||
+                'Item indisponível.'
+            );
+
+            setTimeout(
+                () => {
+                    campoPesquisa.focus();
+                },
+                0
+            );
+
+            return false;
+        } finally {
+            processandoItem =
+                false;
+
+            campoPesquisa.readOnly =
+                false;
+        }
+    }
+
+    campoPesquisa.addEventListener(
+        'input',
+        () => {
+            const item =
+                buscarItemPorPesquisa(
+                    campoPesquisa.value
+                );
+
+            if (
+                item &&
+                !processandoItem
+            ) {
+                processarItem();
+            }
+        }
+    );
+
+    campoPesquisa.addEventListener(
+        'change',
+        processarItem
+    );
+
+    campoPesquisa.addEventListener(
+        'blur',
+        () => {
+            if (
+                campoPesquisa.value.trim() &&
+                !tr.dataset.itemId
+            ) {
+                processarItem();
+            }
+        }
+    );
+
+    campoPesquisa.addEventListener(
+        'keydown',
+        evento => {
+            if (
+                evento.key !== 'Enter' &&
+                evento.key !== 'Tab'
+            ) {
+                return;
+            }
+
+            if (evento.shiftKey) {
+                return;
+            }
+
+            evento.preventDefault();
+
+            processarItem();
+        }
+    );
+
+    campoQuantidade.addEventListener(
+        'input',
+        () => {
+            recalcularLinhaDevolucao(
+                tr
+            );
+        }
+    );
+
+    campoPreco.addEventListener(
+        'input',
+        () => {
+            tr.dataset.linhaFinalizada =
+                'false';
+
+            recalcularLinhaDevolucao(
+                tr
+            );
+        }
+    );
+
+    campoPreco.addEventListener(
+        'blur',
+        () => {
+            const valor =
+                converterNumero(
+                    campoPreco.value
+                );
+
+            if (valor <= 0) {
+                campoPreco.value =
+                    '';
+
+                recalcularLinhaDevolucao(
+                    tr
+                );
+
+                return;
+            }
+
+            campoPreco.value =
+                formatarMoeda(
+                    valor
+                );
+
+            recalcularLinhaDevolucao(
+                tr
+            );
+        }
+    );
+
+    campoPreco.addEventListener(
+        'keydown',
+        evento => {
+            const pressionouEnter =
+                evento.key ===
+                'Enter';
+
+            const pressionouTab =
+                evento.key ===
+                'Tab';
+
+            if (
+                !pressionouEnter &&
+                !pressionouTab
+            ) {
+                return;
+            }
+
+            if (
+                pressionouTab &&
+                evento.shiftKey
+            ) {
+                return;
+            }
+
+            evento.preventDefault();
+
+            const linhaFinalizada =
+                finalizarPrecoLinhaDevolucao(
+                    tr,
+                    campoPreco
+                );
+
+            if (!linhaFinalizada) {
+                return;
+            }
+
+            let proximaLinha =
+                tr.nextElementSibling;
+
+            if (
+                !proximaLinha ||
+                !proximaLinha.classList.contains(
+                    'linha-item-devolucao'
+                )
+            ) {
+                proximaLinha =
+                    adicionarNovaLinha();
+            }
+
+            tr.dataset.linhaFinalizada =
+                'true';
+
+            const campoNfProximaLinha =
+                proximaLinha?.querySelector(
+                    '.campo-nf-origem'
+                );
+
+            setTimeout(
+                () => {
+                    campoNfProximaLinha?.focus();
+                    campoNfProximaLinha?.select();
+                },
+                0
+            );
+        }
+    );
+
+    botaoRemover.addEventListener(
+        'click',
+        () => {
+            tr.remove();
+
+            atualizarTotais();
+
+            garantirLinhaInicial();
+        }
+    );
 }
 
 console.log('script.js carregado');
@@ -56,7 +1016,7 @@ console.log('script.js carregado');
 
 //  limparCamposCliente();
 //  atualizarTotais();
-alert('Olá Sr(a).Representante,\nSomente serão aceitas devoluções com até 180 dias, a partir entrega da nota fiscal de origem!!!')
+alert('Olá Sr(a).Representante,\nSomente serão aceitas devoluções com até 180 dias, a partir do faturamento da nota fiscal de origem!!!')
 // ======================================================================
 // 🔧 FUNÇÕES UTILITÁRIAS
 // ======================================================================
@@ -108,7 +1068,7 @@ const hideFeedback = () => { el('feedback1').style.display = 'none'; el('feedbac
 // Modal bloqueio CNPJ
 const cnpjInput1 = el('cnpj');
 const codInput1 = el('cod_cliente');
-const blockModal = el('blockModal');
+
 
 cnpjInput1.addEventListener('focus', () => {
     if (cnpjInput1.readOnly) {
@@ -165,7 +1125,25 @@ cnpjInput1.addEventListener('blur', async function () {
 
         preencherCliente(clientesData[1]);
 
-        if (clienteApi.LISTA) await carregarListaPrecos(clienteApi.LISTA);
+        const clienteCodigo =
+            clienteApi.codigo ??
+            clienteApi.Codigo ??
+            clienteApi['COD CLIENTE 2'] ??
+            document
+                .getElementById(
+                    'cod_cliente'
+                )
+                ?.value;
+
+        const listaCodigo =
+            clienteApi.LISTA ??
+            clienteApi.listaPrecoCodigo ??
+            null;
+
+        await carregarCatalogoCliente(
+            clienteCodigo,
+            listaCodigo
+        );
 
     } catch {
         alert("Cliente não encontrado, verificar com o financeiro.");
@@ -222,11 +1200,38 @@ codInput1.addEventListener('blur', async function () {
             return alert('Cliente não encontrado.');
         }
         preencherCliente(clientesData[1]);
-        if (clienteApi.LISTA) await carregarListaPrecos(clienteApi.LISTA);
+        
+        const clienteCodigo =
+            clienteApi.codigo ??
+            clienteApi.Codigo ??
+            clienteApi['COD CLIENTE 2'] ??
+            document
+                .getElementById(
+                    'cod_cliente'
+                )
+                ?.value;
 
-    } catch {
-        alert("Cliente não encontrado, verificar com o financeiro.");
-    } finally {
+        const listaCodigo =
+            clienteApi.LISTA ??
+            clienteApi.listaPrecoCodigo ??
+            null;
+
+        await carregarCatalogoCliente(
+            clienteCodigo,
+            listaCodigo
+        );
+
+    }   catch (error) {
+            console.error(
+                'Erro ao carregar cliente ou catálogo:',
+                error
+            );
+
+            alert(
+                error.message ||
+                'Não foi possível carregar o cliente e o catálogo.'
+            );
+        }finally {
         hideFeedback();
         this.readOnly = false;
         garantirLinhaInicial();
@@ -271,12 +1276,31 @@ function preencherCliente(c) {
 function atualizarTotais() {
     atualizarTotalProdutos();
     atualizarTotalVolumes();
+    atualizarTotalProdutosIpi();
 }
 
 function garantirLinhaInicial() {
-    const tbody = el('dadosPedido').querySelector('tbody');
-    tbody.querySelectorAll('tr').forEach(tr => !tr.querySelector('input') && tr.remove());
-    if (!tbody.querySelector('tr')) adicionarNovaLinha();
+    const tbody =
+        document.querySelector(
+            '#dadosPedido tbody'
+        );
+
+    if (!tbody) {
+        console.error(
+            'O corpo da tabela não foi encontrado.'
+        );
+
+        return;
+    }
+
+    const linhas =
+        tbody.querySelectorAll(
+            '.linha-item-devolucao'
+        );
+
+    if (linhas.length === 0) {
+        adicionarNovaLinha();
+    }
 }
 
 
@@ -326,137 +1350,2035 @@ const dataBR = new Date()
 const dataFormatada = dataBR.toLocaleDateString('pt-BR', {
     timeZone: 'UTC'
 });
+
 function montarObjetoDevolucao() {
-    const linhas = document.querySelectorAll('#dadosPedido tbody tr');
+    const linhas =
+        document.querySelectorAll(
+            '#dadosPedido tbody tr'
+        );
 
-    const produtos = [];
+    const produtos =
+        [];
 
-    linhas.forEach(tr => {
-        const cells = tr.querySelectorAll('input');
-
-        if (!cells[1]?.value) return; // ignora linha vazia
+    linhas.forEach(
+    tr => {
+        const codigo =
+            String(
+                tr.dataset.itemEmpresaId || ''
+            ).trim();
+            if (!codigo) {
+                return;
+            }
 
         produtos.push({
-            nforigem: cells[0]?.value,
-            data: cells[1]?.value, // ou você pode ter um campo de data
-            codigoItem: cells[2]?.value,
-            lote: cells[4]?.value, // se tiver campo, mapeia aqui
-            quantidade: cells[5]?.value || 0,
-            uv: cells[6]?.value,
-            descricao: cells[3]?.value,
-            precounitario: parseFloat(
-                cells[7]?.value.replace("R$", "").replace(/\./g, "").replace(",", ".")
-            ) || 0,
-            total: parseFloat(
-                cells[8]?.value.replace("R$", "").replace(/\./g, "").replace(",", ".")
-            ) || 0
+            nforigem:
+                tr.querySelector(
+                    '.campo-nf-origem'
+                )?.value || '',
+
+            data:
+                tr.querySelector(
+                    '.campo-data-nf'
+                )?.value || '',
+
+            codigoItem:
+                codigo,
+
+            descricao:
+                String(
+                    tr.dataset.descricao || ''
+                ).trim(),
+
+            lote:
+                tr.querySelector(
+                    '.campo-lote-item'
+                )?.value || '',
+
+            quantidade:
+                converterNumero(
+                    tr.querySelector(
+                        '.campo-quantidade-item'
+                    )?.value
+                ),
+
+            uv:
+               obterUvDevolucao(),
+
+            precoUnitario:
+                converterNumero(
+                    tr.dataset.precoUnitario
+                ),
+
+            ipi:
+                converterNumero(
+                    tr.dataset.percentualIpi
+                ),
+
+            precoUnitarioIPI:
+                converterNumero(
+                    tr.dataset.precoUnitarioIpi
+                ),
+
+            total:
+                converterNumero(
+                    tr.dataset.total
+                ),
+                
+            totalIpi:
+                converterNumero(
+                        tr.dataset.totalIpi
+                    ),
+
+            itemId:
+                Number(
+                    tr.dataset.itemId || 0
+                )
         });
-    });
+    }
+);
 
-    const devolucao = {
-        cnpj: document.getElementById('cnpj').value.replace(/\D/g, ''),
-        razaosocial: document.getElementById('razao_social').value,
-        endereco: document.getElementById('endereco').value,
-        cidade: document.getElementById('cidade').value,
-        Cep: document.getElementById('cep').value,
-        email: document.getElementById('email').value,
-        representante: document.getElementById('representante').value,
-        codCliente: Number(document.getElementById('cod_cliente').value),
-        bairro: document.getElementById('bairro').value,
-        uf: document.getElementById('uf').value,
-        telefone: document.getElementById('telefone').value,
-        emailFiscal: document.getElementById('email_fiscal').value,
-        data: dataFormatada,
-        motivo: document.getElementById('observation').value,
-        status: "pendente",
-        finalizado: 0,
-        nfVinculada: '',
-        produtos
+    return {
+        movimentaEstoque:
+            obterMovimentaEstoque(),
+
+        cnpj:
+            document
+                .getElementById(
+                    'cnpj'
+                )
+                .value
+                .replace(
+                    /\D/g,
+                    ''
+                ),
+
+        razaosocial:
+            document
+                .getElementById(
+                    'razao_social'
+                )
+                .value,
+
+        endereco:
+            document
+                .getElementById(
+                    'endereco'
+                )
+                .value,
+
+        cidade:
+            document
+                .getElementById(
+                    'cidade'
+                )
+                .value,
+
+        Cep:
+            document
+                .getElementById(
+                    'cep'
+                )
+                .value,
+
+        email:
+            document
+                .getElementById(
+                    'email'
+                )
+                .value,
+
+        representante:
+            document
+                .getElementById(
+                    'representante'
+                )
+                .value,
+
+        codCliente:
+            Number(
+                document
+                    .getElementById(
+                        'cod_cliente'
+                    )
+                    .value
+            ),
+
+        bairro:
+            document
+                .getElementById(
+                    'bairro'
+                )
+                .value,
+
+        uf:
+            document
+                .getElementById(
+                    'uf'
+                )
+                .value,
+
+        telefone:
+            document
+                .getElementById(
+                    'telefone'
+                )
+                .value,
+
+        emailFiscal:
+            document
+                .getElementById(
+                    'email_fiscal'
+                )
+                .value,
+
+        data:
+            dataFormatada,
+
+        motivo:
+            document
+                .getElementById(
+                    'observation'
+                )
+                .value,
+
+        status:
+            'pendente',
+
+        finalizado:
+            0,
+
+        nfVinculada:
+            '',
+
+        produtos:
+            produtos
     };
-
-    return devolucao;
 }
 
 async function salvarDevolucaoMongo() {
-    if (!validarTabelaPedido()) return;
+    if (!validarTabelaPedido()) {
+        return false;
+    }
 
-    const dados = montarObjetoDevolucao();
+    const dados =
+        montarObjetoDevolucao();
 
     try {
-        const res = await fetch('/api/devolucao', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(dados)
-        });
+        const response =
+            await fetch(
+                '/api/devolucao',
+                {
+                    method:
+                        'POST',
 
-        const result = await res.json();
+                    headers: {
+                        'Content-Type':
+                            'application/json'
+                    },
 
-        if (res.ok) {
-            console.log('Devolução salva, aperte ok para enviar o email......');
-        } else {
-            throw new Error(result.error);
+                    body:
+                        JSON.stringify(
+                            dados
+                        )
+                }
+            );
+
+        const textoResposta =
+            await response.text();
+
+        let resultado =
+            null;
+
+        if (textoResposta) {
+            try {
+                resultado =
+                    JSON.parse(
+                        textoResposta
+                    );
+            } catch {
+                resultado = {
+                    error:
+                        textoResposta
+                };
+            }
         }
 
-    } catch (err) {
-        console.error(err);
-        alert('Erro ao salvar devolução');
+        if (!response.ok) {
+            throw new Error(
+                resultado?.error ||
+                resultado?.message ||
+                textoResposta ||
+                `Erro HTTP ${response.status}`
+            );
+        }
+
+        console.log(
+            'Devolução salva:',
+            resultado
+        );
+
+        return true;
+    } catch (error) {
+        console.error(
+            'Erro ao salvar devolução:',
+            error
+        );
+
+        alert(
+            error.message ||
+            'Erro ao salvar devolução.'
+        );
+
+        return false;
     }
 }
 
+async function gerarPdfNoNavegador(
+    elemento,
+    nomeArquivo
+) {
+    if (
+        typeof window.html2canvas !==
+        'function'
+    ) {
+        throw new Error(
+            'A biblioteca html2canvas não foi carregada.'
+        );
+    }
 
+    if (
+        typeof window.jspdf?.jsPDF !==
+        'function'
+    ) {
+        throw new Error(
+            'A biblioteca jsPDF não foi carregada.'
+        );
+    }
+
+    if (!elemento) {
+        throw new Error(
+            'O relatório da devolução não foi criado.'
+        );
+    }
+
+    await new Promise(
+        resolve => {
+            requestAnimationFrame(
+                () => {
+                    requestAnimationFrame(
+                        resolve
+                    );
+                }
+            );
+        }
+    );
+
+    if (document.fonts?.ready) {
+        await document.fonts.ready;
+    }
+
+    const larguraCaptura =
+        1120;
+
+    const alturaCaptura =
+        Math.ceil(
+            Math.max(
+                elemento.scrollHeight,
+                elemento.offsetHeight,
+                elemento
+                    .getBoundingClientRect()
+                    .height
+            )
+        );
+
+    console.log(
+        'Dimensões do relatório:',
+        {
+            larguraCaptura:
+                larguraCaptura,
+
+            alturaCaptura:
+                alturaCaptura
+        }
+    );
+
+    const canvas =
+        await window.html2canvas(
+            elemento,
+            {
+                scale:
+                    2,
+
+                useCORS:
+                    true,
+
+                allowTaint:
+                    false,
+
+                backgroundColor:
+                    '#ffffff',
+
+                logging:
+                    false,
+
+                width:
+                    larguraCaptura,
+
+                height:
+                    alturaCaptura,
+
+                windowWidth:
+                    larguraCaptura,
+
+                windowHeight:
+                    alturaCaptura,
+
+                scrollX:
+                    0,
+
+                scrollY:
+                    0
+            }
+        );
+
+    const jsPDF =
+        window.jspdf.jsPDF;
+
+    const pdf =
+        new jsPDF({
+            orientation:
+                'landscape',
+
+            unit:
+                'mm',
+
+            format:
+                'a4',
+
+            compress:
+                true
+        });
+
+    const margem =
+        4;
+
+    const larguraPagina =
+        pdf.internal.pageSize
+            .getWidth();
+
+    const alturaPagina =
+        pdf.internal.pageSize
+            .getHeight();
+
+    const larguraDisponivel =
+        larguraPagina -
+        margem * 2;
+
+    const alturaDisponivel =
+        alturaPagina -
+        margem * 2;
+
+    const escalaHorizontal =
+        larguraDisponivel /
+        canvas.width;
+
+    const escalaVertical =
+        alturaDisponivel /
+        canvas.height;
+
+    const escalaFinal =
+        Math.min(
+            escalaHorizontal,
+            escalaVertical
+        );
+
+    const larguraFinal =
+        canvas.width *
+        escalaFinal;
+
+    const alturaFinal =
+        canvas.height *
+        escalaFinal;
+
+    const x =
+        (
+            larguraPagina -
+            larguraFinal
+        ) /
+        2;
+
+    const y =
+        margem;
+
+    pdf.addImage(
+        canvas.toDataURL(
+            'image/jpeg',
+            0.96
+        ),
+        'JPEG',
+        x,
+        y,
+        larguraFinal,
+        alturaFinal,
+        undefined,
+        'FAST'
+    );
+
+    const blob =
+        pdf.output(
+            'blob'
+        );
+
+    if (
+        !blob ||
+        blob.size === 0
+    ) {
+        throw new Error(
+            'O PDF foi gerado vazio.'
+        );
+    }
+
+    console.log(
+        'PDF gerado:',
+        {
+            nomeArquivo:
+                nomeArquivo,
+
+            larguraFinal:
+                larguraFinal,
+
+            alturaFinal:
+                alturaFinal,
+
+            tamanho:
+                blob.size
+        }
+    );
+
+    return blob;
+}
+
+function obterValorCampoPdf(
+    id,
+    valorPadrao = '-'
+) {
+    const campo =
+        document.getElementById(
+            id
+        );
+
+    const valor =
+        String(
+            campo?.value || ''
+        ).trim();
+
+    return valor ||
+        valorPadrao;
+}
+
+function converterCamposParaTextoPdf(
+    clone
+) {
+    const campos =
+        Array.from(
+            clone.querySelectorAll(
+                'input, textarea, select'
+            )
+        );
+
+    campos.forEach(
+        campo => {
+            if (
+                campo.type ===
+                'hidden'
+            ) {
+                campo.remove();
+
+                return;
+            }
+
+            if (
+                campo.type ===
+                'checkbox'
+            ) {
+                const textoCheckbox =
+                    document.createElement(
+                        'span'
+                    );
+
+                textoCheckbox.className =
+                    'valor-checkbox-pdf';
+
+                textoCheckbox.textContent =
+                    campo.checked
+                        ? 'Sim'
+                        : 'Não';
+
+                campo.replaceWith(
+                    textoCheckbox
+                );
+
+                return;
+            }
+
+            let valor =
+                '';
+
+            if (
+                campo.tagName ===
+                'SELECT'
+            ) {
+                valor =
+                    campo.options[
+                        campo.selectedIndex
+                    ]?.textContent || '';
+            } else {
+                valor =
+                    campo.value || '';
+            }
+
+            const texto =
+                document.createElement(
+                    campo.tagName ===
+                        'TEXTAREA'
+                        ? 'div'
+                        : 'span'
+                );
+
+            texto.className =
+                campo.tagName ===
+                    'TEXTAREA'
+                    ? 'valor-textarea-pdf'
+                    : 'valor-campo-pdf';
+
+            texto.textContent =
+                valor || '-';
+
+            campo.replaceWith(
+                texto
+            );
+        }
+    );
+}
+
+function organizarCabecalhoPdf(
+    clone
+) {
+    const cabecalho =
+        clone.querySelector(
+            '.header'
+        );
+
+    if (!cabecalho) {
+        return;
+    }
+
+    cabecalho.classList.add(
+        'cabecalho-relatorio-pdf'
+    );
+
+    const titulo =
+        cabecalho.querySelector(
+            'h1'
+        );
+
+    if (titulo) {
+        titulo.textContent =
+            'DEVOLUÇÃO DE PRODUTOS';
+    }
+
+    const logo =
+        cabecalho.querySelector(
+            'img'
+        );
+
+    if (logo) {
+        logo.style.width =
+            '145px';
+
+        logo.style.height =
+            'auto';
+
+        logo.style.objectFit =
+            'contain';
+    }
+}
+
+function organizarDadosClientePdf(
+    clone
+) {
+    const formulario =
+        clone.querySelector(
+            '.form-group'
+        );
+
+    if (!formulario) {
+        return;
+    }
+
+    formulario.classList.add(
+        'dados-cliente-pdf'
+    );
+
+    const elementos =
+        Array.from(
+            formulario.children
+        );
+
+    const grade =
+        document.createElement(
+            'div'
+        );
+
+    grade.className =
+        'grade-cliente-pdf';
+
+    for (
+        let indice = 0;
+        indice < elementos.length;
+        indice += 2
+    ) {
+        const label =
+            elementos[indice];
+
+        const valor =
+            elementos[
+                indice + 1
+            ];
+
+        if (
+            !label ||
+            label.classList.contains(
+                'esconder'
+            )
+        ) {
+            continue;
+        }
+
+        const campo =
+            document.createElement(
+                'div'
+            );
+
+        campo.className =
+            'campo-cliente-pdf';
+
+        const titulo =
+            document.createElement(
+                'strong'
+            );
+
+        titulo.textContent =
+            String(
+                label.textContent || ''
+            )
+                .replace(
+                    'Campo Obrigatório',
+                    ''
+                )
+                .trim();
+
+        const conteudo =
+            document.createElement(
+                'span'
+            );
+
+        conteudo.textContent =
+            String(
+                valor?.textContent || '-'
+            ).trim() || '-';
+
+        campo.appendChild(
+            titulo
+        );
+
+        campo.appendChild(
+            conteudo
+        );
+
+        grade.appendChild(
+            campo
+        );
+    }
+
+    formulario.replaceWith(
+        grade
+    );
+}
+
+function organizarTabelaPdf(
+    clone
+) {
+    const tabela =
+        clone.querySelector(
+            '#dadosPedido'
+        );
+
+    if (!tabela) {
+        return;
+    }
+
+    tabela.classList.add(
+        'tabela-devolucao-pdf'
+    );
+
+    const cabecalhos =
+        tabela.querySelectorAll(
+            'thead th'
+        );
+
+    const larguras = [
+        '7%',
+        '8%',
+        '22%',
+        '8%',
+        '5%',
+        '4%',
+        '9%',
+        '6%',
+        '9%',
+        '9%',
+        '9%'
+    ];
+
+    cabecalhos.forEach(
+        (
+            cabecalho,
+            indice
+        ) => {
+            cabecalho.style.width =
+                larguras[indice] ||
+                '8%';
+        }
+    );
+
+    tabela
+        .querySelectorAll(
+            '.campo-item-pesquisa'
+        )
+        .forEach(
+            campo => {
+                campo.style.whiteSpace =
+                    'normal';
+            }
+        );
+}
+
+function criarCabecalhoPdf() {
+    const cabecalho =
+        document.createElement(
+            'div'
+        );
+
+    cabecalho.className =
+        'pdf-cabecalho';
+
+    const areaLogo =
+        document.createElement(
+            'div'
+        );
+
+    areaLogo.className =
+        'pdf-logo-container';
+
+    const logoOriginal =
+        document.querySelector(
+            '.header img'
+        );
+
+    if (logoOriginal) {
+        const logo =
+            logoOriginal.cloneNode(
+                true
+            );
+
+        logo.removeAttribute(
+            'width'
+        );
+
+        logo.removeAttribute(
+            'height'
+        );
+
+        areaLogo.appendChild(
+            logo
+        );
+    }
+
+    const titulo =
+        document.createElement(
+            'h1'
+        );
+
+    titulo.textContent =
+        'DEVOLUÇÃO DE PRODUTOS';
+
+    const data =
+        document.createElement(
+            'div'
+        );
+
+    data.className =
+        'pdf-data';
+
+    data.textContent =
+        new Date()
+            .toLocaleString(
+                'pt-BR'
+            );
+
+    cabecalho.appendChild(
+        areaLogo
+    );
+
+    cabecalho.appendChild(
+        titulo
+    );
+
+    cabecalho.appendChild(
+        data
+    );
+
+    return cabecalho;
+}
+
+function criarCampoClientePdf(
+    rotulo,
+    valor,
+    classeExtra = ''
+) {
+    const campo =
+        document.createElement(
+            'div'
+        );
+
+    campo.className =
+        `pdf-campo-cliente ${classeExtra}`
+            .trim();
+
+    const titulo =
+        document.createElement(
+            'strong'
+        );
+
+    titulo.textContent =
+        rotulo;
+
+    const conteudo =
+        document.createElement(
+            'span'
+        );
+
+    conteudo.textContent =
+        valor || '-';
+
+    campo.appendChild(
+        titulo
+    );
+
+    campo.appendChild(
+        conteudo
+    );
+
+    return campo;
+}
+
+function criarDadosClientePdf() {
+    const secao =
+        document.createElement(
+            'section'
+        );
+
+    secao.className =
+        'pdf-secao pdf-dados-cliente';
+
+    const titulo =
+        document.createElement(
+            'h2'
+        );
+
+    titulo.textContent =
+        'DADOS DO CLIENTE';
+
+    const grade =
+        document.createElement(
+            'div'
+        );
+
+    grade.className =
+        'pdf-grade-cliente';
+
+    grade.appendChild(
+        criarCampoClientePdf(
+            'CNPJ',
+            obterValorCampoPdf(
+                'cnpj'
+            )
+        )
+    );
+
+    grade.appendChild(
+        criarCampoClientePdf(
+            'CÓD CLIENTE',
+            obterValorCampoPdf(
+                'cod_cliente'
+            )
+        )
+    );
+
+    grade.appendChild(
+        criarCampoClientePdf(
+            'RAZÃO SOCIAL',
+            obterValorCampoPdf(
+                'razao_social'
+            ),
+            'pdf-campo-duplo'
+        )
+    );
+
+    grade.appendChild(
+        criarCampoClientePdf(
+            'CÓDIGO REP',
+            obterValorCampoPdf(
+                'representante'
+            )
+        )
+    );
+
+    grade.appendChild(
+        criarCampoClientePdf(
+            'ENDEREÇO',
+            obterValorCampoPdf(
+                'endereco'
+            ),
+            'pdf-campo-duplo'
+        )
+    );
+
+    grade.appendChild(
+        criarCampoClientePdf(
+            'BAIRRO',
+            obterValorCampoPdf(
+                'bairro'
+            )
+        )
+    );
+
+    grade.appendChild(
+        criarCampoClientePdf(
+            'CIDADE',
+            obterValorCampoPdf(
+                'cidade'
+            )
+        )
+    );
+
+    grade.appendChild(
+        criarCampoClientePdf(
+            'UF',
+            obterValorCampoPdf(
+                'uf'
+            )
+        )
+    );
+
+    grade.appendChild(
+        criarCampoClientePdf(
+            'CEP',
+            obterValorCampoPdf(
+                'cep'
+            )
+        )
+    );
+
+    grade.appendChild(
+        criarCampoClientePdf(
+            'TELEFONE',
+            obterValorCampoPdf(
+                'telefone'
+            )
+        )
+    );
+
+    grade.appendChild(
+        criarCampoClientePdf(
+            'E-MAIL',
+            obterValorCampoPdf(
+                'email'
+            ),
+            'pdf-campo-duplo'
+        )
+    );
+
+    grade.appendChild(
+        criarCampoClientePdf(
+            'E-MAIL FISCAL',
+            obterValorCampoPdf(
+                'email_fiscal'
+            ),
+            'pdf-campo-duplo'
+        )
+    );
+
+    const movimentaEstoque =
+        document.getElementById(
+            'movimentaEstoque'
+        )?.checked
+            ? 'Sim'
+            : 'Não';
+
+    grade.appendChild(
+        criarCampoClientePdf(
+            'MOVIMENTA ESTOQUE',
+            movimentaEstoque
+        )
+    );
+
+    secao.appendChild(
+        titulo
+    );
+
+    secao.appendChild(
+        grade
+    );
+
+    return secao;
+}
+
+function criarMotivoPdf() {
+    const secao =
+        document.createElement(
+            'section'
+        );
+
+    secao.className =
+        'pdf-secao pdf-motivo';
+
+    const titulo =
+        document.createElement(
+            'h2'
+        );
+
+    titulo.textContent =
+        'MOTIVO DA DEVOLUÇÃO';
+
+    const texto =
+        document.createElement(
+            'div'
+        );
+
+    texto.className =
+        'pdf-motivo-texto';
+
+    texto.textContent =
+        obterValorCampoPdf(
+            'observation',
+            '-'
+        );
+
+    secao.appendChild(
+        titulo
+    );
+
+    secao.appendChild(
+        texto
+    );
+
+    return secao;
+}
+
+function criarCelulaPdf(
+    texto,
+    classe = ''
+) {
+    const td =
+        document.createElement(
+            'td'
+        );
+
+    td.className =
+        classe;
+
+    td.textContent =
+        String(
+            texto ?? ''
+        ).trim() || '-';
+
+    return td;
+}
+
+function obterValorLinhaPdf(
+    tr,
+    seletor,
+    valorPadrao = '-'
+) {
+    const campo =
+        tr.querySelector(
+            seletor
+        );
+
+    const valor =
+        String(
+            campo?.value || ''
+        ).trim();
+
+    return valor ||
+        valorPadrao;
+}
+
+function criarTabelaItensPdf() {
+    const secao =
+        document.createElement(
+            'section'
+        );
+
+    secao.className =
+        'pdf-secao pdf-itens';
+
+    const titulo =
+        document.createElement(
+            'h2'
+        );
+
+    titulo.textContent =
+        'DADOS DEVOLUÇÃO';
+
+    const tabela =
+        document.createElement(
+            'table'
+        );
+
+    tabela.className =
+        'pdf-tabela-itens';
+
+    const colgroup =
+        document.createElement(
+            'colgroup'
+        );
+
+    const larguras = [
+        '8%',
+        '9%',
+        '24%',
+        '8%',
+        '5%',
+        '4%',
+        '9%',
+        '6%',
+        '9%',
+        '9%',
+        '9%'
+    ];
+
+    larguras.forEach(
+        largura => {
+            const col =
+                document.createElement(
+                    'col'
+                );
+
+            col.style.width =
+                largura;
+
+            colgroup.appendChild(
+                col
+            );
+        }
+    );
+
+    tabela.appendChild(
+        colgroup
+    );
+
+    const thead =
+        document.createElement(
+            'thead'
+        );
+
+    const linhaCabecalho =
+        document.createElement(
+            'tr'
+        );
+
+    const titulos = [
+        'NF ORIGEM',
+        'DATA NF',
+        'CÓDIGO / DESCRIÇÃO',
+        'LOTE',
+        'QTD',
+        'UV',
+        'R$ UNITÁRIO SEM IMPOSTOS',
+        '% IPI',
+        'R$ UNITÁRIO COM IPI',
+        'TOTAL R$',
+        'TOTAL COM IPI R$'
+    ];
+
+    titulos.forEach(
+        texto => {
+            const th =
+                document.createElement(
+                    'th'
+                );
+
+            th.textContent =
+                texto;
+
+            linhaCabecalho.appendChild(
+                th
+            );
+        }
+    );
+
+    thead.appendChild(
+        linhaCabecalho
+    );
+
+    tabela.appendChild(
+        thead
+    );
+
+    const tbody =
+        document.createElement(
+            'tbody'
+        );
+
+    const linhas =
+        document.querySelectorAll(
+            '#dadosPedido tbody ' +
+            '.linha-item-devolucao'
+        );
+
+    linhas.forEach(
+        tr => {
+            const codigo =
+                String(
+                    tr.dataset
+                        .itemEmpresaId ||
+                    ''
+                ).trim();
+
+            if (!codigo) {
+                return;
+            }
+
+            const descricao =
+                String(
+                    tr.dataset.descricao ||
+                    ''
+                ).trim();
+
+            const linha =
+                document.createElement(
+                    'tr'
+                );
+
+            linha.appendChild(
+                criarCelulaPdf(
+                    obterValorLinhaPdf(
+                        tr,
+                        '.campo-nf-origem'
+                    )
+                )
+            );
+
+            linha.appendChild(
+                criarCelulaPdf(
+                    formatarDataPdf(
+                        obterValorLinhaPdf(
+                            tr,
+                            '.campo-data-nf',
+                            ''
+                        )
+                    )
+                )
+            );
+
+            linha.appendChild(
+                criarCelulaPdf(
+                    `${codigo} - ${descricao}`,
+                    'pdf-descricao-item'
+                )
+            );
+
+            linha.appendChild(
+                criarCelulaPdf(
+                    obterValorLinhaPdf(
+                        tr,
+                        '.campo-lote-item'
+                    )
+                )
+            );
+
+            linha.appendChild(
+                criarCelulaPdf(
+                    obterValorLinhaPdf(
+                        tr,
+                        '.campo-quantidade-item'
+                    )
+                )
+            );
+
+            linha.appendChild(
+                criarCelulaPdf(
+                    obterValorLinhaPdf(
+                        tr,
+                        '.campo-unidade-item'
+                    )
+                )
+            );
+
+            linha.appendChild(
+                criarCelulaPdf(
+                    formatarMoeda(
+                        converterNumero(
+                            tr.dataset
+                                .precoUnitario
+                        )
+                    )
+                )
+            );
+
+            linha.appendChild(
+                criarCelulaPdf(
+                    formatarPercentual(
+                        converterNumero(
+                            tr.dataset
+                                .percentualIpi
+                        )
+                    )
+                )
+            );
+
+            linha.appendChild(
+                criarCelulaPdf(
+                    formatarMoeda(
+                        converterNumero(
+                            tr.dataset
+                                .precoUnitarioIpi ??
+                            tr.dataset
+                                .PrecoUnitarioIPI
+                        )
+                    )
+                )
+            );
+
+            linha.appendChild(
+                criarCelulaPdf(
+                    formatarMoeda(
+                        converterNumero(
+                            tr.dataset.total
+                        )
+                    )
+                )
+            );
+
+            linha.appendChild(
+                criarCelulaPdf(
+                    formatarMoeda(
+                        converterNumero(
+                            tr.dataset.totalIpi
+                        )
+                    )
+                )
+            );
+
+            tbody.appendChild(
+                linha
+            );
+        }
+    );
+
+    tabela.appendChild(
+        tbody
+    );
+
+    secao.appendChild(
+        titulo
+    );
+
+    secao.appendChild(
+        tabela
+    );
+
+    return secao;
+}
+
+function formatarDataPdf(
+    valor
+) {
+    if (!valor) {
+        return '-';
+    }
+
+    const partes =
+        String(
+            valor
+        ).split(
+            '-'
+        );
+
+    if (partes.length !== 3) {
+        return valor;
+    }
+
+    return (
+        `${partes[2]}/` +
+        `${partes[1]}/` +
+        `${partes[0]}`
+    );
+}
+
+function criarCampoTotalPdf(
+    rotulo,
+    valor
+) {
+    const campo =
+        document.createElement(
+            'div'
+        );
+
+    campo.className =
+        'pdf-total-campo';
+
+    const label =
+        document.createElement(
+            'strong'
+        );
+
+    label.textContent =
+        rotulo;
+
+    const conteudo =
+        document.createElement(
+            'span'
+        );
+
+    conteudo.textContent =
+        valor;
+
+    campo.appendChild(
+        label
+    );
+
+    campo.appendChild(
+        conteudo
+    );
+
+    return campo;
+}
+
+function criarTotaisPdf() {
+    const totais =
+        document.createElement(
+            'div'
+        );
+
+    totais.className =
+        'pdf-totais';
+
+    totais.appendChild(
+        criarCampoTotalPdf(
+            'VOLUMES',
+            obterValorCampoPdf(
+                'volume',
+                '0'
+            )
+        )
+    );
+
+    totais.appendChild(
+        criarCampoTotalPdf(
+            'TOTAL PRODUTOS',
+            obterValorCampoPdf(
+                'total',
+                'R$ 0,00'
+            )
+        )
+    );
+
+    totais.appendChild(
+        criarCampoTotalPdf(
+            'TOTAL PRODUTOS COM IPI',
+            obterValorCampoPdf(
+                'totalIpi',
+                'R$ 0,00'
+            )
+        )
+    );
+
+    return totais;
+}
+
+function prepararDevolucaoParaPdf() {
+    const relatorio =
+        document.createElement(
+            'div'
+        );
+
+    relatorio.className =
+        'relatorio-devolucao-pdf';
+
+    const cabecalho =
+        criarCabecalhoPdf();
+
+    const dadosCliente =
+        criarDadosClientePdf();
+
+    const motivo =
+        criarMotivoPdf();
+
+    const tabela =
+        criarTabelaItensPdf();
+
+    const totais =
+        criarTotaisPdf();
+
+    relatorio.appendChild(
+        cabecalho
+    );
+
+    relatorio.appendChild(
+        dadosCliente
+    );
+
+    relatorio.appendChild(
+        motivo
+    );
+
+    relatorio.appendChild(
+        tabela
+    );
+
+    relatorio.appendChild(
+        totais
+    );
+
+    document.body.appendChild(
+        relatorio
+    );
+
+    return relatorio;
+}
+
+function removerLinhasVaziasPdf(
+    clone
+) {
+    clone
+        .querySelectorAll(
+            '#dadosPedido tbody tr'
+        )
+        .forEach(
+            linha => {
+                const campoItem =
+                    linha.querySelector(
+                        '.campo-item-pesquisa'
+                    );
+
+                const itemPreenchido =
+                    String(
+                        campoItem?.value ||
+                        ''
+                    ).trim();
+
+                if (!itemPreenchido) {
+                    linha.remove();
+                }
+            }
+        );
+}
+
+function substituirObservacaoPdf(
+    containerOriginal,
+    clone
+) {
+    const observacaoOriginal =
+        containerOriginal
+            .querySelector(
+                '#observation'
+            );
+
+    const observacaoClone =
+        clone.querySelector(
+            '#observation'
+        );
+
+    if (
+        !observacaoOriginal ||
+        !observacaoClone
+    ) {
+        return;
+    }
+
+    const observacaoPdf =
+        document.createElement(
+            'div'
+        );
+
+    observacaoPdf.id =
+        'observation-pdf';
+
+    observacaoPdf.className =
+        'observacao-pdf';
+
+    observacaoPdf.textContent =
+        observacaoOriginal.value ||
+        '';
+
+    observacaoPdf.style.whiteSpace =
+        'pre-wrap';
+
+    observacaoPdf.style.overflowWrap =
+        'anywhere';
+
+    observacaoPdf.style.minHeight =
+        '70px';
+
+    observacaoPdf.style.padding =
+        '10px';
+
+    observacaoPdf.style.border =
+        '1px solid #000000';
+
+    observacaoPdf.style.backgroundColor =
+        '#ffffff';
+
+    observacaoPdf.style.color =
+        '#000000';
+
+    observacaoClone.replaceWith(
+        observacaoPdf
+    );
+}
+
+function configurarContainerPdf(
+    clone
+) {
+    clone.style.setProperty(
+        'position',
+        'fixed',
+        'important'
+    );
+
+    clone.style.setProperty(
+        'top',
+        '0',
+        'important'
+    );
+
+    clone.style.setProperty(
+        'left',
+        '-100000px',
+        'important'
+    );
+
+    clone.style.setProperty(
+        'width',
+        '1120px',
+        'important'
+    );
+
+    clone.style.setProperty(
+        'min-width',
+        '1120px',
+        'important'
+    );
+
+    clone.style.setProperty(
+        'max-width',
+        '1120px',
+        'important'
+    );
+
+    clone.style.setProperty(
+        'padding',
+        '18px',
+        'important'
+    );
+
+    clone.style.setProperty(
+        'margin',
+        '0',
+        'important'
+    );
+
+    clone.style.setProperty(
+        'display',
+        'block',
+        'important'
+    );
+
+    clone.style.setProperty(
+        'visibility',
+        'visible',
+        'important'
+    );
+
+    clone.style.setProperty(
+        'opacity',
+        '1',
+        'important'
+    );
+
+    clone.style.setProperty(
+        'overflow',
+        'visible',
+        'important'
+    );
+
+    clone.style.setProperty(
+        'background',
+        '#ffffff',
+        'important'
+    );
+
+    clone.style.setProperty(
+        'color',
+        '#000000',
+        'important'
+    );
+
+    clone.style.setProperty(
+        'box-sizing',
+        'border-box',
+        'important'
+    );
+
+    clone.style.setProperty(
+        'z-index',
+        '-1',
+        'important'
+    );
+}
+
+function copiarValoresParaClonePdf(
+    containerOriginal,
+    clone
+) {
+    const camposOriginais =
+        containerOriginal
+            .querySelectorAll(
+                'input, textarea, select'
+            );
+
+    const camposClone =
+        clone.querySelectorAll(
+            'input, textarea, select'
+        );
+
+    camposOriginais.forEach(
+        (
+            campoOriginal,
+            indice
+        ) => {
+            const campoClone =
+                camposClone[
+                    indice
+                ];
+
+            if (!campoClone) {
+                return;
+            }
+
+            if (
+                campoOriginal.type ===
+                    'checkbox' ||
+                campoOriginal.type ===
+                    'radio'
+            ) {
+                campoClone.checked =
+                    campoOriginal.checked;
+
+                if (
+                    campoOriginal.checked
+                ) {
+                    campoClone.setAttribute(
+                        'checked',
+                        'checked'
+                    );
+                } else {
+                    campoClone.removeAttribute(
+                        'checked'
+                    );
+                }
+
+                return;
+            }
+
+            campoClone.value =
+                campoOriginal.value;
+
+            campoClone.setAttribute(
+                'value',
+                campoOriginal.value
+            );
+
+            if (
+                campoOriginal.tagName ===
+                'TEXTAREA'
+            ) {
+                campoClone.textContent =
+                    campoOriginal.value;
+
+                campoClone.style.whiteSpace =
+                    'pre-wrap';
+            }
+
+            if (
+                campoOriginal.tagName ===
+                'SELECT'
+            ) {
+                campoClone.selectedIndex =
+                    campoOriginal
+                        .selectedIndex;
+
+                Array.from(
+                    campoClone.options
+                ).forEach(
+                    (
+                        opcao,
+                        indiceOpcao
+                    ) => {
+                        opcao.selected =
+                            indiceOpcao ===
+                            campoOriginal
+                                .selectedIndex;
+                    }
+                );
+            }
+        }
+    );
+}
+function removerElementosInterativosPdf(
+    clone
+) {
+    const seletoresRemover = [
+        '.no-print',
+        '.button-group',
+        '.btn-remover-linha',
+        '.celula-excluir-item',
+        '.esconder',
+        '#esconder',
+        '[hidden]',
+        'input[type="hidden"]',
+        '#helpContainer',
+        '#emailModalDevolucao',
+        '#sizeLimitModal',
+        '#tutorialOverlay',
+        '#tutorialBox',
+        '#feedback1',
+        '#excluirLinha',
+        '#adicionarLinha',
+        '#button_pdf',
+        '#iniciarTutorial',
+        '#emailForm',
+        '.modal',
+        '.modal1'
+    ];
+
+    clone
+        .querySelectorAll(
+            seletoresRemover.join(
+                ','
+            )
+        )
+        .forEach(
+            elemento => {
+                elemento.remove();
+            }
+        );
+}
 
 // Função para atualizar o total de volumes (quantidades) de todas as linhas
 function atualizarTotalVolumes() {
-    let totalVolumes = 0;
-    const linhas = document.querySelectorAll('#dadosPedido tbody tr');
+    let totalVolumes =
+        0;
 
-    linhas.forEach(tr => {
-        const cell = tr.cells[5]?.querySelector('input');
-        if (cell && cell.value) {
-            const quantidade = parseFloat(cell.value.replace(",", "."));
-            if (!isNaN(quantidade)) {
-                totalVolumes += quantidade;
-                console.log('Quantidade adicionada:', quantidade);
-                console.log('Total de volumes até agora:', totalVolumes);
+    document
+        .querySelectorAll(
+            '#dadosPedido tbody .linha-item-devolucao'
+        )
+        .forEach(
+            tr => {
+                const quantidade =
+                    converterNumero(
+                        tr.querySelector(
+                            '.campo-quantidade-item'
+                        )?.value
+                    );
+
+                totalVolumes +=
+                    quantidade;
             }
-        }
-    });
+        );
 
-    document.getElementById('volume').value = totalVolumes;
+    document
+        .getElementById(
+            'volume'
+        )
+        .value =
+            totalVolumes;
 }
 
-
-
-
-// Função para atualizar o total de produtos (quantidade * valor unitário)
 function atualizarTotalProdutos() {
-    let totalProdutos = 0;
-    const linhas = document.querySelectorAll('#dadosPedido tbody tr');
+    let totalProdutos =
+        0;
 
-    linhas.forEach(tr => {
-        const quantidadeCell = tr.cells[5]?.querySelector('input');
-        const valorTotalLinhaCell = tr.cells[9]?.querySelector('input');
-        console.log('Quantidade cell:', quantidadeCell);
-        console.log('Valor unitário cell:', valorTotalLinhaCell);
-
-        if (quantidadeCell && valorTotalLinhaCell && quantidadeCell.value && valorTotalLinhaCell.value) {
-            const quantidade = parseFloat(quantidadeCell.value.replace(",", "."));
-            const valorTotalLinha = parseFloat(valorTotalLinhaCell.value.replace("R$", "").replace(/\./g, "").replace(",", "."));
-            if (!isNaN(quantidade) && !isNaN(valorTotalLinha)) {
-                totalProdutos += valorTotalLinha;
+    document
+        .querySelectorAll(
+            '#dadosPedido tbody .linha-item-devolucao'
+        )
+        .forEach(
+            tr => {
+                totalProdutos +=
+                    converterNumero(
+                        tr.dataset.total
+                    );
             }
-        }
-    });
+        );
 
-    document.getElementById('total').value = totalProdutos.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    document
+        .getElementById(
+            'total'
+        )
+        .value =
+            formatarMoeda(
+                totalProdutos
+            );
 }
+
+function atualizarTotalProdutosIpi() {
+    let totalProdutosIpi =
+        0;
+
+    document
+        .querySelectorAll(
+            '#dadosPedido tbody .linha-item-devolucao'
+        )
+        .forEach(
+            tr => {
+                totalProdutosIpi +=
+                    converterNumero(
+                        tr.dataset.totalIpi
+                    );
+            }
+        );
+
+    document
+        .getElementById(
+            'totalIpi'
+        )
+        .value =
+            formatarMoeda(
+                totalProdutosIpi
+            );
+}
+
+
 
 function dataMaiorQue6Meses(dataInput) {
     const dataSelecionada = new Date(dataInput);
     const hoje = new Date();
-
     const limite = new Date();
     limite.setMonth(limite.getMonth() - 6); // volta 6 meses
 
@@ -464,46 +3386,196 @@ function dataMaiorQue6Meses(dataInput) {
 }
 
 function validarTabelaPedido() {
-    const linhas = document.querySelectorAll('#dadosPedido tbody tr');
+    const todasAsLinhas =
+        Array.from(
+            document.querySelectorAll(
+                '#dadosPedido tbody ' +
+                '.linha-item-devolucao'
+            )
+        );
 
-    if (!linhas.length) {
-        alert("Adicione pelo menos um item no pedido.");
+    const linhasPreenchidas =
+        todasAsLinhas.filter(
+            tr => {
+                return Boolean(
+                    String(
+                        tr.dataset.itemEmpresaId || ''
+                    ).trim()
+                );
+            }
+        );
+
+    if (
+        linhasPreenchidas.length === 0
+    ) {
+        alert(
+            'Adicione pelo menos um item na devolução.'
+        );
+
         return false;
     }
 
-    for (let i = 0; i < linhas.length; i++) {
-        const tr = linhas[i];
-        const inputs = tr.querySelectorAll('input');
+    for (
+        let indice = 0;
+        indice < linhasPreenchidas.length;
+        indice += 1
+    ) {
+        const tr =
+            linhasPreenchidas[
+                indice
+            ];
 
-        // Campos obrigatórios por índice da coluna:
-        // 1 = código
-        // 2 = quantidade
-        // 5 = valor unitário
-        // 6 = total
+        const nf =
+            tr.querySelector(
+                '.campo-nf-origem'
+            )?.value.trim();
 
-        const nf = inputs[0]?.value.trim()
-        const data = inputs[1]?.value.trim();
-        if (!data) {
-            alert(`Preencha a data na linha ${i + 1}`);
-            inputs[1]?.focus();
+        const data =
+            tr.querySelector(
+                '.campo-data-nf'
+            )?.value.trim();
+
+        const codigo =
+            String(
+                tr.dataset.itemEmpresaId || ''
+            ).trim();
+            
+        if (!codigo) {
+            return;
+        }
+
+        const lote =
+            tr.querySelector(
+                '.campo-lote-item'
+            )?.value.trim();
+
+        const quantidade =
+            converterNumero(
+                tr.querySelector(
+                    '.campo-quantidade-item'
+                )?.value
+            );
+
+        const precoSemImpostos =
+            converterNumero(
+                tr.dataset.precoUnitario
+            );
+
+        const precoComIpi =
+            converterNumero(
+                tr.dataset.precoUnitarioIpi
+            );
+
+        const total =
+            converterNumero(
+                tr.dataset.total
+            );
+        
+        const totalIpi =
+            converterNumero(
+                tr.dataset.totalIpi
+            );
+
+        if (!nf) {
+            alert(
+                `Preencha a NF de origem na linha ${indice + 1}.`
+            );
+
+            tr.querySelector(
+                '.campo-nf-origem'
+            )?.focus();
+
             return false;
         }
 
-        // 🚫 BLOQUEIO DE 6 MESES
-       if (dataMaiorQue6Meses(data)) {
-           alert(`A data da linha ${i + 1} é superior a 6 meses. Não é permitido.`);
-           inputs[1]?.focus();
-            return false;   
-        }
-        const codigo = inputs[2]?.value.trim();
-        const lote = inputs[3]?.value.trim();
-        const quantidade = inputs[4]?.value.trim();
-        const valor = inputs[7]?.value.trim();
-        const total = inputs[8]?.value.trim();
+        if (!data) {
+            alert(
+                `Preencha a data da NF na linha ${indice + 1}.`
+            );
 
-        if (!codigo || !quantidade || !valor || !total || !nf || !lote || !data) {
-            alert(`Preencha todos os campos da linha ${i + 1}`);
-            inputs[0]?.focus();
+            tr.querySelector(
+                '.campo-data-nf'
+            )?.focus();
+
+            return false;
+        }
+
+        if (
+            dataMaiorQue6Meses(
+                data
+            )
+        ) {
+            alert(
+                `A data da linha ${indice + 1} é superior a 6 meses.`
+            );
+
+            tr.querySelector(
+                '.campo-data-nf'
+            )?.focus();
+
+            return false;
+        }
+
+        if (!codigo) {
+            alert(
+                `Preencha o item na linha ${indice + 1}.`
+            );
+
+            tr.querySelector(
+                '.campo-item-pesquisa'
+            )?.focus();
+
+            return false;
+        }
+
+        if (!lote) {
+            alert(
+                `Preencha o lote na linha ${indice + 1}.`
+            );
+
+            tr.querySelector(
+                '.campo-lote-item'
+            )?.focus();
+
+            return false;
+        }
+
+        if (quantidade <= 0) {
+            alert(
+                `Informe uma quantidade válida na linha ${indice + 1}.`
+            );
+
+            tr.querySelector(
+                '.campo-quantidade-item'
+            )?.focus();
+
+            return false;
+        }
+
+        if (precoSemImpostos <= 0) {
+            alert(
+                `Informe o preço sem impostos na linha ${indice + 1}.`
+            );
+
+            tr.querySelector(
+                '.campo-preco-unitario-item'
+            )?.focus();
+
+            return false;
+        }
+
+        if (
+            precoSemImpostos <= 0 ||
+            total <= 0
+        )
+        if (
+            precoComIpi <= 0 ||
+            totalIpi <= 0
+        ) {
+            alert(
+                `Não foi possível calcular os valores da linha ${indice + 1}.`
+            );
+
             return false;
         }
     }
@@ -511,264 +3583,729 @@ function validarTabelaPedido() {
     return true;
 }
 
+function converterNumero(
+    valor
+) {
+    if (
+        valor === null ||
+        valor === undefined ||
+        valor === ''
+    ) {
+        return 0;
+    }
+
+    if (
+        typeof valor ===
+        'number'
+    ) {
+        return Number.isFinite(valor)
+            ? valor
+            : 0;
+    }
+
+    let texto =
+        String(
+            valor
+        )
+        .trim()
+        .replace(
+            'R$',
+            ''
+        )
+        .replace(
+            /\s/g,
+            ''
+        );
+
+    if (
+        texto.includes('.') &&
+        texto.includes(',')
+    ) {
+        texto =
+            texto
+                .replace(
+                    /\./g,
+                    ''
+                )
+                .replace(
+                    ',',
+                    '.'
+                );
+    } else {
+        texto =
+            texto.replace(
+                ',',
+                '.'
+            );
+    }
+
+    const numero =
+        Number(
+            texto
+        );
+
+    return Number.isFinite(numero)
+        ? numero
+        : 0;
+}
+
+function formatarMoeda(
+    valor
+) {
+    const numero =
+        Number(
+            valor
+        );
+
+    return (
+        Number.isFinite(numero)
+            ? numero
+            : 0
+    ).toLocaleString(
+        'pt-BR',
+        {
+            style:
+                'currency',
+
+            currency:
+                'BRL'
+        }
+    );
+}
+
+function formatarPercentual(
+    valor
+) {
+    const numero =
+        Number(
+            valor
+        );
+
+    return (
+        Number.isFinite(numero)
+            ? numero
+            : 0
+    ).toLocaleString(
+        'pt-BR',
+        {
+            minimumFractionDigits:
+                2,
+
+            maximumFractionDigits:
+                2
+        }
+    );
+}
+
+function recalcularLinhaDevolucao(
+    tr
+) {
+    const quantidadeInput =
+        tr.querySelector(
+            '.campo-quantidade-item'
+        );
+
+    const precoSemImpostosInput =
+        tr.querySelector(
+            '.campo-preco-unitario-item'
+        );
+
+    const ipiInput =
+        tr.querySelector(
+            '.campo-ipi-item'
+        );
+
+    const precoComIpiInput =
+        tr.querySelector(
+            '.campo-preco-com-ipi-item'
+        );
+
+    const totalInput =
+        tr.querySelector(
+            '.campo-total-item'
+        );
+    const totalIpiInput =
+        tr.querySelector(
+            '.campo-total-item-Ipi'
+        );
+
+    const quantidade =
+        converterNumero(
+            quantidadeInput?.value
+        );
+
+    const precoSemImpostos =
+        converterNumero(
+            precoSemImpostosInput?.value
+        );
+
+    const ipiDecimal =
+        Number(
+            tr.dataset.ipi || 0
+        );
+
+    const precoComIpi =
+        precoSemImpostos *
+        (
+            1 + ipiDecimal
+        );
+
+    const totalLinhaIpi =
+        precoComIpi *
+        quantidade;
+    
+    const totalLinha =
+        precoSemImpostos *
+        quantidade;
+
+    tr.dataset.precoUnitario =
+        String(
+            precoSemImpostos
+        );
+
+    tr.dataset.percentualIpi =
+        String(
+            ipiDecimal * 100
+        );
+
+    tr.dataset.precoUnitarioIpi =
+        String(
+            precoComIpi
+        );
+
+    tr.dataset.total =
+        String(
+            totalLinha
+        );
+    tr.dataset.totalIpi =
+        String(
+            totalLinhaIpi
+        );
+
+    if (ipiInput) {
+        ipiInput.value =
+            (ipiDecimal * 100)
+                .toLocaleString(
+                    'pt-BR',
+                    {
+                        minimumFractionDigits:
+                            2,
+
+                        maximumFractionDigits:
+                            2
+                    }
+                ) +
+            '%';
+    }
+
+    if (precoComIpiInput) {
+        precoComIpiInput.value =
+            precoSemImpostos > 0
+                ? formatarMoeda(
+                    precoComIpi
+                )
+                : '';
+    }
+
+    if (totalInput) {
+        totalInput.value =
+            quantidade > 0 &&
+            precoSemImpostos > 0
+                ? formatarMoeda(
+                    totalLinha
+                )
+                : '';
+    }
+    if (totalIpiInput) {
+        totalIpiInput.value =
+            quantidade > 0 &&
+            precoComIpi > 0
+                ? formatarMoeda(
+                    totalLinhaIpi
+                )
+                : '';
+    }
+
+    atualizarTotais();
+}
+
+function getIpi(
+    classificacao
+) {
+    const somenteNumeros =
+        String(
+            classificacao || ''
+        ).replace(
+            /\D/g,
+            ''
+        );
+
+    if (!somenteNumeros) {
+        return null;
+    }
+
+    const classificacaoNormalizada =
+        Number(
+            somenteNumeros
+        );
+
+    const classificacoesFiscais = [
+        [17041000, 0.0325],
+        [17049020, 0.0325],
+        [17049090, 0.0325],
+        [18069000, 0.0325],
+        [20079923, 0],
+        [20079990, 0],
+        [21069050, 0],
+        [39201099, 0],
+        [49019900, 0],
+        [49111090, 0],
+        [61091000, 0],
+        [84729059, 0],
+        [85061010, 0],
+        [87120010, 0],
+        [94033000, 0],
+        [94037000, 0],
+        [95030022, 0.065],
+        [95030031, 0],
+        [95030039, 0.065],
+        [95030070, 0.065],
+        [95030098, 0.065],
+        [95030099, 0.065],
+        [95049090, 0]
+    ];
+
+    const registro =
+        classificacoesFiscais.find(
+            linha => {
+                return (
+                    linha[0] ===
+                    classificacaoNormalizada
+                );
+            }
+        );
+
+    return registro
+        ? registro[1]
+        : null;
+}
+
+function obterIpiDoItemDevolucao(
+    item
+) {
+    const origem =
+        Number(
+            item?.origem || 0
+        );
+
+    if (origem !== 2) {
+        return 0;
+    }
+
+    const classificacaoFiscal =
+        String(
+            item?.classificacaoFiscal || ''
+        ).replace(
+            /\D/g,
+            ''
+        );
+
+    if (!classificacaoFiscal) {
+        throw new Error(
+            `A classificação fiscal do item ${item?.itemEmpresaId || ''} não foi informada.`
+        );
+    }
+
+    const ipi =
+        getIpi(
+            classificacaoFiscal
+        );
+
+    if (ipi === null) {
+        throw new Error(
+            `A classificação fiscal ${classificacaoFiscal} não está cadastrada na função getIpi.`
+        );
+    }
+
+    return ipi;
+}
+
+function obterMovimentaEstoque() {
+    const campoMovimentaEstoque =
+        document.getElementById(
+            'movimentaEstoque'
+        );
+
+    return campoMovimentaEstoque?.checked
+        ? 1
+        : 0;
+}
+
+function obterUvDevolucao() {
+    return obterMovimentaEstoque() === 1
+        ? 'CX'
+        : 'UN';
+}
+
+function atualizarUvTodasAsLinhas() {
+    const uv =
+        obterUvDevolucao();
+
+    const linhas =
+        document.querySelectorAll(
+            '#dadosPedido tbody ' +
+            '.linha-item-devolucao'
+        );
+
+    linhas.forEach(
+        tr => {
+            const campoUnidade =
+                tr.querySelector(
+                    '.campo-unidade-item'
+                );
+
+            if (campoUnidade) {
+                campoUnidade.value =
+                    uv;
+            }
+
+            tr.dataset.movimentaEstoque =
+                String(
+                    obterMovimentaEstoque()
+                );
+        }
+    );
+}
+
+function configurarMovimentacaoEstoque() {
+    const campoMovimentaEstoque =
+        document.getElementById(
+            'movimentaEstoque'
+        );
+
+    if (!campoMovimentaEstoque) {
+        console.error(
+            'Campo movimentaEstoque não encontrado.'
+        );
+
+        return;
+    }
+
+    campoMovimentaEstoque.addEventListener(
+        'change',
+        () => {
+            atualizarUvTodasAsLinhas();
+
+            console.log(
+                'Movimenta estoque:',
+                obterMovimentaEstoque(),
+                'UV:',
+                obterUvDevolucao()
+            );
+        }
+    );
+
+    atualizarUvTodasAsLinhas();
+}
+
+function preencherLinhaDevolucao(
+    tr,
+    item
+) {
+    const campoPesquisa =
+        tr.querySelector(
+            '.campo-item-pesquisa'
+        );
+
+    const campoQuantidade =
+        tr.querySelector(
+            '.campo-quantidade-item'
+        );
+
+    const campoUnidade =
+        tr.querySelector(
+            '.campo-unidade-item'
+        );
+
+    const campoPreco =
+        tr.querySelector(
+            '.campo-preco-unitario-item'
+        );
+
+    const campoIpi =
+        tr.querySelector(
+            '.campo-ipi-item'
+        );
+
+    const campoItemId =
+        tr.querySelector(
+            '.campo-item-id'
+        );
+
+    const codigo =
+        String(
+            item.itemEmpresaId || ''
+        ).trim();
+
+    const descricao =
+        String(
+            item.descricao || ''
+        ).trim();
+
+    const ipi =
+        obterIpiDoItemDevolucao(
+            item
+        );
+
+    campoPesquisa.value =
+        `${codigo} - ${descricao}`;
+
+    campoQuantidade.value =
+        '';
+
+    campoQuantidade.readOnly =
+        false;
+
+    campoUnidade.value =
+        obterUvDevolucao();
+
+    tr.dataset.movimentaEstoque =
+        String(
+            obterMovimentaEstoque()
+        );
+
+    campoPreco.value =
+        '';
+
+    campoPreco.readOnly =
+        false;
+
+    campoIpi.value =
+        (ipi * 100).toLocaleString(
+            'pt-BR',
+            {
+                minimumFractionDigits:
+                    2,
+
+                maximumFractionDigits:
+                    2
+            }
+        ) + '%';
+
+    campoItemId.value =
+        String(
+            item.itemId ||
+            item.codigo ||
+            ''
+        );
+
+    tr.dataset.itemId =
+        campoItemId.value;
+
+    tr.dataset.itemEmpresaId =
+        codigo;
+
+    tr.dataset.codigo =
+        codigo;
+
+    tr.dataset.descricao =
+        descricao;
+
+    tr.dataset.ipi =
+        String(
+            ipi
+        );
+
+    tr.dataset.percentualIpi =
+        String(
+            ipi * 100
+        );
+
+    tr.dataset.precoUnitario =
+        '';
+
+    tr.dataset.precoUnitarioIpi =
+        '';
+
+    tr.dataset.total =
+        '';
+    
+    tr.dataset.totalIpi =
+        '';
+}
 
 // Função para adicionar uma nova linha à tabela
 function adicionarNovaLinha() {
-    const tbody = document.querySelector('#dadosPedido tbody');
-    const tr = document.createElement('tr');
+    const tbody =
+        document.querySelector(
+            '#dadosPedido tbody'
+        );
 
+    if (!tbody) {
+        console.error(
+            'Não foi possível adicionar a linha: tbody não encontrado.'
+        );
 
-
-    for (let i = 0; i < 11; i++) {
-        const td = document.createElement('td');
-
-        // coluna oculta (ItemId)
-        if (i === 10) {
-            td.style.display = 'none';
-        }
-
-        // 🗑 BOTÃO REMOVER LINHA
-        if (i === 7) {
-            const btn = document.createElement('button');
-            btn.type = 'button';
-            btn.classList.add('btn-remover-linha');
-            btn.textContent = 'REMOVER';
-
-
-                btn.gradient = 'linear-gradient(90deg,rgba(225,0,152) 0%,#f18fc7 100%)';
-                btn.color = '#fafcfa';
-            
-            btn.innerText = 'Excluir';
-            
-
-            btn.addEventListener('click', () => {
-                tr.remove();
-                atualizarTotais();
-                garantirLinhaInicial();
-            });
-             
-
-            td.appendChild(btn);
-            tr.appendChild(td);
-            continue; 
-        }
-
-        
-        
-        // ✏️ INPUT NORMAL
-        const input = document.createElement('input');
-        if(i === 1){
-            input.type = 'date';
-        }
-        else {
-            input.type = 'text';
-        }
-        // TAB só em quase tudo
-        input.tabIndex = (i === 0 || i === 1 || i === 2 || i === 4 || i === 5 || i === 8) ? 0 : -1;
-
-        input.style.padding = '5px';
-        input.style.width = '100%';
-        input.style.boxSizing = 'border-box';
-
-        td.appendChild(input);
-        tr.appendChild(td);
-        
-        // =========================
-        // NAVEGAÇÃO ↑ ↓ TAB
-        // =========================
-        input.addEventListener('keydown', (e) => {
-            const linhas = Array.from(tbody.querySelectorAll('tr'));
-            const linhaAtual = linhas.indexOf(tr);
-
-            if (e.key === 'ArrowUp' && linhaAtual > 0) {
-                e.preventDefault();
-                linhas[linhaAtual - 1].cells[i]?.querySelector('input')?.focus();
-            }
-
-            if (e.key === 'ArrowDown') {
-                e.preventDefault();
-
-                if (linhaAtual === linhas.length - 1 && i === 10) {
-                    adicionarNovaLinha();
-                    setTimeout(() => {
-                        tbody.lastChild.cells[0].querySelector('input').focus();
-                    }, 0);
-                } else {
-                    linhas[linhaAtual + 1]?.cells[i]?.querySelector('input')?.focus();
-                }
-            }
-
-            if (e.key === 'Tab' && !e.shiftKey && i === 10 && linhaAtual === linhas.length - 1) {
-                e.preventDefault();
-                setTimeout(() => {
-                    tbody.lastChild.cells[0].querySelector('input').focus();
-                }, 0);
-            }
-            //enter = tab
-            if ((e.key === 'Tab' || e.key === 'Enter') && !e.shiftKey) {
-    e.preventDefault();
-
-    // se estiver no valor (coluna 6)
-    if (i === 8) {
-        if (linhaAtual === linhas.length - 1) {
-            // última linha → cria nova
-            adicionarNovaLinha();
-            setTimeout(() => {
-                tbody.lastChild.cells[0].querySelector('input')?.focus();
-            }, 0);
-        } else {
-            // próxima linha
-            linhas[linhaAtual + 1]?.cells[0]?.querySelector('input')?.focus();
-        }
-        
+        return null;
     }
-        // se estiver no NF Origem (coluna 0)
-    if (i === 0) {
-        tr.cells[1]?.querySelector('input')?.focus();
+
+    const tr =
+        document.createElement(
+            'tr'
+        );
+
+    tr.classList.add(
+        'linha-item-devolucao'
+    );
+
+    tr.innerHTML = `
+        <td>
+            <input
+                type="text"
+                class="campo-nf-origem"
+                autocomplete="off"
+            >
+        </td>
+
+        <td>
+            <input
+                type="date"
+                class="campo-data-nf"
+            >
+        </td>
+
+        <td>
+            <input
+                type="text"
+                class="campo-item-pesquisa"
+                list="lista-produtos-cliente"
+                placeholder="Digite o código ou a descrição"
+                autocomplete="off"
+            >
+        </td>
+
+        <td>
+            <input
+                type="text"
+                class="campo-lote-item"
+                autocomplete="off"
+            >
+        </td>
+
+        <td>
+            <input
+                type="text"
+                class="campo-quantidade-item"
+                inputmode="decimal"
+                autocomplete="off"
+                readonly
+            >
+        </td>
+
+        <td>
+            <input
+                type="text"
+                class="campo-unidade-item"
+                readonly
+                tabindex="-1"
+            >
+        </td>
+
+        <td class="celula-excluir-item">
+            <button
+                type="button"
+                class="btn-remover-linha"
+                tabindex="-1"
+            >
+                Excluir
+            </button>
+        </td>
+
+        <td>
+            <input
+                type="text"
+                class="campo-preco-unitario-item"
+                placeholder="Preço sem impostos"
+                inputmode="decimal"
+                autocomplete="off"
+                readonly
+            >
+        </td>
+
+        <td>
+            <input
+                type="text"
+                class="campo-ipi-item"
+                readonly
+                tabindex="-1"
+            >
+        </td>
+
+        <td>
+            <input
+                type="text"
+                class="campo-preco-com-ipi-item"
+                readonly
+                tabindex="-1"
+            >
+        </td>
+
+        <td>
+            <input
+                type="text"
+                class="campo-total-item"
+                readonly
+                tabindex="-1"
+            >
+        </td>
+
+        <td>
+            <input
+                type="text"
+                class="campo-total-item-Ipi"
+                readonly
+                tabindex="-1"
+            >
+        </td>
+
+        <td style="display: none;">
+            <input
+                type="hidden"
+                class="campo-item-id"
+            >
+        </td>
+    `;
+
+    tbody.appendChild(
+        tr
+    );
+
+    configurarLinhaDevolucao(
+        tr
+    );
+    const campoUnidade =
+        tr.querySelector(
+            '.campo-unidade-item'
+        );
+
+    if (campoUnidade) {
+        campoUnidade.value =
+            obterUvDevolucao();
     }
-    // se estiver no CÓDIGO (coluna 1)
-    if (i === 1) {
-        tr.cells[2]?.querySelector('input')?.focus();
-    }
-    // se estiver na quantidade (coluna 2)
-    if (i === 2) {
-        tr.cells[4]?.querySelector('input')?.focus();
-    }
-    if (i === 4) {
-        tr.cells[5]?.querySelector('input')?.focus();
-    }
-    if (i === 5) {
-        tr.cells[8]?.querySelector('input')?.focus();
-    }
+
+    tr.dataset.movimentaEstoque =
+        String(
+            obterMovimentaEstoque()
+        );
+    console.log(
+        'Nova linha adicionada. Total:',
+        tbody.querySelectorAll(
+            '.linha-item-devolucao'
+        ).length
+    );
+
+    return tr;
 }
-
-
-        });
-
-        // =========================
-        // CÓDIGO DO ITEM
-        // =========================
-       // =========================
-
-if (i === 2) {
-    input.addEventListener('blur', async function () {
-        const cod = this.value.trim().toUpperCase();
-        if (!cod) return;
-
-        // VERIFICA DUPLICIDADE
-        // if (verificarCodigoDuplicadoNaTabela(cod, tr)) {
-        //     alert('Este item já foi adicionado ao pedido.');
-        //     this.value = '';
-        //     this.focus();
-        //     return;
-        // }
-
-        const listaId = document.getElementById('codgroup').value;
-        const cells = tr.querySelectorAll('td input');
-
-        // 🔄 FEEDBACK VISUAL
-        cells[3].value = 'Carregando item, por favor aguarde...';
-        this.readOnly = true;
-
-
-        try {
-            const response = await fetch(
-                `/api/lista-preco-Sem-Verificar/${listaId}?codigo=${encodeURIComponent(cod)}`
-            );
-
-            if (!response.ok) {
-                const erro = await response.json();
-                throw new Error(erro.message || 'Item não disponível');
-            }
-
-            const data = await response.json();
-            if (!data.length) {
-                throw new Error('Item não encontrado');
-            }
-
-            const item = data[0];
-            cells[6].value = 'UN';
-            cells[6].readOnly = true;
-            cells[3].value = item.ItemDescricao;
-            cells[7].readOnly = false; 
-            cells[8].readOnly = true;
-            cells[3].readOnly = true;
-
-            cells[2].addEventListener('input', (e) => {
-                cells[7].value = '';
-                cells[1].value = '';
-                cells[0].value = '';
-                cells[4].value = '';
-                cells[5].value = '';
-                const preco = parseFloat(cells[8].value.replace(',', '.')) || 0;
-                const qtd = parseFloat(cells[5].value.replace(',', '.')) || 0;
-                console.log(preco);
-                const formatador = new Intl.NumberFormat('pt-BR', {
-                    style: 'currency',
-                    currency: 'BRL',
-                });
-
-            totalLinha = preco * qtd;
-                cells[8].value = formatador.format(totalLinha)
-                tr.dataset.itemId = item.ItemId;
-                atualizarTotais();
-            });
-
-
-            cells[5].addEventListener('input', (e) => {
-
-                const preco = parseFloat(cells[8].value.replace(',', '.')) || 0;
-                const qtd = parseFloat(cells[5].value.replace(',', '.')) || 0;
-                console.log(preco);
-                const formatador = new Intl.NumberFormat('pt-BR', {
-                    style: 'currency',
-                    currency: 'BRL',
-                });
-                
-
-            totalLinha = preco * qtd;
-                cells[8].value = formatador.format(totalLinha)
-                tr.dataset.itemId = item.ItemId;
-                atualizarTotais();
-            });
-
-            cells[7].addEventListener('input', (e) => {
-
-                const preco = parseFloat(cells[7].value.replace(',', '.')) || 0;
-                const qtd = parseFloat(cells[5].value.replace(',', '.')) || 0;
-                console.log(preco);
-                const formatador = new Intl.NumberFormat('pt-BR', {
-                    style: 'currency',
-                    currency: 'BRL',
-                });
-                
-
-            totalLinha = preco * qtd;
-                cells[8].value = formatador.format(totalLinha)
-                tr.dataset.itemId = item.ItemId;
-                atualizarTotais();
-            });
-            
-
-            
-        } catch (error) {
-            alert(error.message);
-            this.value = '';
-            this.focus();
-        } finally {
-            this.readOnly = false;
-        }
-    });
-}
-
-
-
-    }
-
-    tbody.appendChild(tr);
-}
-
-
 // Função para remover a última linha da tabela
 document.getElementById('excluirLinha').addEventListener('click', function () {
     let tbody = document.querySelector('#dadosPedido tbody');
@@ -829,10 +4366,10 @@ function verificarItensSemPreenchimento(codigo, linhaAtual) {
 
 //--inicio-----envio de dados para o sistema DBCorp-----------------------------------------------------------------------------------------////
 const feedbackDiv = document.getElementById('feedback1');
-const modal = document.getElementById('customModal');
+
 const closeButton = document.querySelector('.close-button');
-const confirmButton = document.getElementById('confirmButton');
-const cancelButton = document.getElementById('cancelButton');
+
+
 const cnpjInput = document.getElementById('cnpj');
 
 // Função para abrir o modal
@@ -860,7 +4397,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const emailAttachmentInput = document.getElementById('emailAttachment');
     const attachmentList = document.getElementById('attachmentList');
     const totalSizeDisplay = document.getElementById('totalSizeDisplay');
-    const selector = document.getElementById('seletor');
     
     // Elementos do modal de limite de tamanho
     const sizeLimitModal = document.getElementById('sizeLimitModal');
@@ -981,35 +4517,115 @@ const { uploadUrlDev, key } = await response.json();
 
         // Função para gerar o PDF automaticamente
     async function gerarPDF() {
-        const content = document.querySelector('.container');
-        const razaoSocial = document.getElementById('razao_social').value || "Cliente";
-        const obs = document.getElementById('observation').value 
-        const timestamp = formatarDataBrasileira();
-        const filename = `Devolucao_${razaoSocial}_${timestamp}.pdf`;
+    const razaoSocial =
+        document
+            .getElementById(
+                'razao_social'
+            )
+            ?.value ||
+        'Cliente';
 
-        const options = {
-            margin: [0, 0, 0, 0],
-            filename: filename,
-            html2canvas: { scale: 2 },
-            jsPDF: { unit: "mm", format: "a4", orientation: "landscape" }
-        };
-         try {
-            hideFeedback();
-            buttonPdf.style.display = 'none';
-            selector.style.display = 'none';
+    const codCliente =
+        document
+            .getElementById(
+                'cod_cliente'
+            )
+            ?.value ||
+        '';
 
-            const pdfBlob = await html2pdf().set(options).from(content).output('blob');
-            generatedPdfFile = new File([pdfBlob], filename, { type: 'application/pdf' });
-            return generatedPdfFile;
-        } catch (error) {
-            console.error('Erro ao gerar o PDF:', error);
-            alert('Erro ao gerar o PDF: ' + error.message);
-            return null;
-        } finally {
-            buttonPdf.style.display = 'block';
-            selector.style.display = 'inline-block';
-        }
+    const timestamp =
+        formatarDataBrasileira();
+
+    const nomeCliente =
+        String(
+            razaoSocial
+        )
+            .replace(
+                /[\\/:*?"<>|]/g,
+                ''
+            )
+            .trim();
+
+    const nomeArquivo =
+        `Devolucao - ` +
+        `${nomeCliente} - ` +
+        `${codCliente} - ` +
+        `${timestamp}.pdf`;
+
+    let clonePdf =
+        null;
+
+    try {
+        buttonPdf.disabled =
+            true;
+
+        showFeedback(
+            'Gerando PDF, aguarde...'
+        );
+
+        clonePdf =
+            prepararDevolucaoParaPdf();
+
+        const pdfBlob =
+            await gerarPdfNoNavegador(
+                clonePdf,
+                nomeArquivo
+            );
+
+        generatedPdfFile =
+            new File(
+                [
+                    pdfBlob
+                ],
+                nomeArquivo,
+                {
+                    type:
+                        'application/pdf'
+                }
+            );
+
+        console.log(
+            'Arquivo da devolução preparado:',
+            {
+                nome:
+                    generatedPdfFile.name,
+
+                tamanho:
+                    generatedPdfFile.size,
+
+                tipo:
+                    generatedPdfFile.type
+            }
+        );
+
+        return generatedPdfFile;
+    } catch (error) {
+        generatedPdfFile =
+            null;
+
+        console.error(
+            'Erro ao gerar o PDF:',
+            error
+        );
+
+        alert(
+            'Erro ao gerar o PDF: ' +
+            (
+                error.message ||
+                'Erro desconhecido.'
+            )
+        );
+
+        return null;
+    } finally {
+        clonePdf?.remove();
+
+        buttonPdf.disabled =
+            false;
+
+        hideFeedback();
     }
+}
 
     function atualizarListaAnexos() {
     attachmentList.innerHTML = '';
@@ -1099,7 +4715,6 @@ const { uploadUrlDev, key } = await response.json();
     }
 }
 
-    
     // Função para atualizar os anexos, mantendo o PDF fixo
     function atualizarAnexos() {
         const dataTransfer = new DataTransfer();
@@ -1206,7 +4821,12 @@ const { uploadUrlDev, key } = await response.json();
 
     // Envia o e-mail ao clicar no botão "Enviar"
     sendEmailButton.addEventListener('click', async () => {
-        await salvarDevolucaoMongo();
+        const devolucaoSalva =
+            await salvarDevolucaoMongo();
+
+        if (!devolucaoSalva) {
+            return;
+        }
         let emailTo = emailToInput.value;
         let emailCc = document.getElementById('emailCc').value;
         const emailSubject = emailSubjectInput.value;
@@ -1277,6 +4897,10 @@ const response = await fetch('/send-client-pdf-dev', {
     hideFeedback();
     window.location.reload();
 }
+
+    configurarMovimentacaoEstoque();
+    garantirLinhaInicial();
+    
 });
 });
 
@@ -1302,7 +4926,7 @@ const tutorialSteps = [
 
     {
         element: '#cnpj',
-        text: 'Passo 1. Informe o CNPJ do cliente.\n\nAs demais informações serão carregadas automaticamente.\n\nAperte em próximo para continuar com o tutorial ou pressione finalizar para sair.'
+        text: 'Passo 1. Informe o CNPJ do cliente.\n\nAs demais informações serão carregadas automaticamente.\n\nClique em próximo para continuar com o tutorial ou pressione finalizar para sair.'
     },
 
     {
@@ -1477,6 +5101,109 @@ function bloquearEventosForaDoTutorial(){
         true
     );
 
+}
+
+function removerColunasTecnicasPdf(
+    clone
+) {
+    if (!clone) {
+        return;
+    }
+
+    const tabela =
+        clone.querySelector(
+            '#dadosPedido'
+        );
+
+    if (!tabela) {
+        console.warn(
+            'Tabela de itens não encontrada no clone do PDF.'
+        );
+
+        return;
+    }
+
+    const cabecalhos =
+        Array.from(
+            tabela.querySelectorAll(
+                'thead th'
+            )
+        );
+
+    const indicesRemover =
+        cabecalhos
+            .map(
+                (
+                    cabecalho,
+                    indice
+                ) => {
+                    const texto =
+                        String(
+                            cabecalho.textContent ||
+                            ''
+                        )
+                            .trim()
+                            .toLowerCase();
+
+                    const classe =
+                        String(
+                            cabecalho.className ||
+                            ''
+                        )
+                            .trim()
+                            .toLowerCase();
+
+                    const deveRemover =
+                        texto === 'excluir' ||
+                        texto === 'item id' ||
+                        texto === 'itemid' ||
+                        classe.includes(
+                            'pack'
+                        ) ||
+                        classe.includes(
+                            'itemid'
+                        );
+
+                    return deveRemover
+                        ? indice
+                        : -1;
+                }
+            )
+            .filter(
+                indice => {
+                    return indice >= 0;
+                }
+            )
+            .sort(
+                (
+                    primeiro,
+                    segundo
+                ) => {
+                    return segundo -
+                        primeiro;
+                }
+            );
+
+    indicesRemover.forEach(
+        indice => {
+            tabela
+                .querySelectorAll(
+                    'tr'
+                )
+                .forEach(
+                    linha => {
+                        const celula =
+                            linha.children[
+                                indice
+                            ];
+
+                        if (celula) {
+                            celula.remove();
+                        }
+                    }
+                );
+        }
+    );
 }
 
 function iniciarTutorial(){

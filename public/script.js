@@ -5,9 +5,116 @@ const timestamp = Date.now();
 let clientesData;
 let promocaoData;
 let foraDeLinhaData;
-let listaPrecosData;
 let icmsSTData;
-let listaPrecosIpiData;
+
+let catalogoClienteData =
+    [];
+
+let catalogoClientePorCodigo =
+    new Map();
+
+let catalogoClienteCarregado =
+    false;
+
+let catalogoClienteCarregando =
+    false;
+
+let dadosListaPrecoAtual =
+    null;
+
+function valorBooleanoAtivo(
+    valor
+){
+
+    if(valor === true){
+        return true;
+    }
+
+    if(valor === false){
+        return false;
+    }
+
+    const valorNormalizado =
+        String(
+            valor ?? ''
+        )
+        .trim()
+        .toLowerCase();
+
+    return (
+        valorNormalizado === 'true' ||
+        valorNormalizado === '1' ||
+        valorNormalizado === 'sim' ||
+        valorNormalizado === 's' ||
+        valorNormalizado === 'ativo'
+    );
+
+}
+
+function verificarClienteInativoOuSuspenso(
+    clienteApi
+){
+
+    const clienteAtivo =
+        valorBooleanoAtivo(
+            clienteApi.ATIVO
+        );
+
+    const clienteSuspenso =
+        valorBooleanoAtivo(
+            clienteApi.SUSPENSO
+        );
+
+    if(
+        clienteAtivo &&
+        !clienteSuspenso
+    ){
+
+        return true;
+
+    }
+
+    const motivos =
+        [];
+
+    if(!clienteAtivo){
+
+        motivos.push(
+            'inativo'
+        );
+
+    }
+
+    if(clienteSuspenso){
+
+        motivos.push(
+            'suspenso'
+        );
+
+    }
+
+    const mensagem =
+        'Atenção: o cliente está ' +
+        motivos.join(' e ') +
+        '.\n\n' +
+        'Deseja continuar com o pedido mesmo assim?';
+
+    const desejaContinuar =
+        window.confirm(
+            mensagem
+        );
+
+    if(!desejaContinuar){
+
+        window.location.reload();
+
+        return false;
+
+    }
+
+    return true;
+
+}
 
 
 
@@ -17,11 +124,6 @@ const el = id => document.getElementById(id);
 // ======================================================================
 // 📦 CACHE / FETCH DE DADOS INICIAIS
 // ======================================================================
-
-fetch(`/data/Lista-precos.json?cacheBust=${timestamp}`)
-  .then(r => r.json())
-  .then(d => listaPrecosIpiData = d);
-
 fetch(`/data/cliente.json?cacheBust=${timestamp}`)
   .then(r => r.json())
   .then(d => clientesData = d);
@@ -38,6 +140,239 @@ fetch(`/data/ICMS-ST.json?cacheBust=${timestamp}`)
   .then(r => r.json())
   .then(d => icmsSTData = d);
 
+async function gerarPdfNoNavegador(elemento, nomeArquivo) {
+    if (typeof window.html2canvas !== 'function') {
+        throw new Error('A biblioteca html2canvas não foi carregada.');
+    }
+
+    if (typeof window.jspdf?.jsPDF !== 'function') {
+        throw new Error('A biblioteca jsPDF não foi carregada.');
+    }
+
+    if (!elemento) {
+        throw new Error('O elemento para geração do PDF não foi informado.');
+    }
+
+    await new Promise((resolve) => {
+        requestAnimationFrame(() => requestAnimationFrame(resolve));
+    });
+
+    if (document.fonts?.ready) {
+        await document.fonts.ready;
+    }
+
+    const imagens = Array.from(elemento.querySelectorAll('img'));
+
+    await Promise.all(
+        imagens.map((imagem) => {
+            if (imagem.complete) {
+                return Promise.resolve();
+            }
+
+            return new Promise((resolve) => {
+                let terminou = false;
+
+                const finalizar = () => {
+                    if (terminou) return;
+                    terminou = true;
+                    resolve();
+                };
+
+                imagem.addEventListener('load', finalizar, { once: true });
+                imagem.addEventListener('error', finalizar, { once: true });
+                setTimeout(finalizar, 5000);
+            });
+        })
+    );
+
+    const larguraPadraoPdf = 1120;
+
+    const largura = larguraPadraoPdf;
+
+    const altura = Math.ceil(
+        Math.max(
+            elemento.scrollHeight,
+            elemento.offsetHeight,
+            elemento.getBoundingClientRect().height
+        )
+    );
+
+    if (largura <= 0 || altura <= 1) {
+        throw new Error('O conteúdo preparado para o PDF está vazio.');
+    }
+
+    console.log('Capturando conteúdo igual ao site:', { largura, altura });
+
+    const canvas = await window.html2canvas(
+    elemento,
+    {
+        scale: 1.5,
+        useCORS: true,
+        allowTaint: false,
+        backgroundColor: '#ffffff',
+        logging: false,
+
+        scrollX: 0,
+        scrollY: 0,
+
+        width: larguraPadraoPdf,
+        height: altura,
+
+        windowWidth: larguraPadraoPdf,
+        windowHeight: altura,
+
+        onclone: (documentoClonado) => {
+
+            const containerPdf =
+                documentoClonado.querySelector(
+                    '.container-pdf'
+                );
+
+            if(!containerPdf){
+                return;
+            }
+
+            containerPdf.style.setProperty(
+                'display',
+                'block',
+                'important'
+            );
+
+            containerPdf.style.setProperty(
+                'visibility',
+                'visible',
+                'important'
+            );
+
+            containerPdf.style.setProperty(
+                'opacity',
+                '1',
+                'important'
+            );
+
+            containerPdf.style.setProperty(
+                'width',
+                '1120px',
+                'important'
+            );
+
+            containerPdf.style.setProperty(
+                'min-width',
+                '1120px',
+                'important'
+            );
+
+            containerPdf.style.setProperty(
+                'max-width',
+                '1120px',
+                'important'
+            );
+
+            containerPdf.style.setProperty(
+                'transform',
+                'none',
+                'important'
+            );
+
+        }
+    }
+);
+
+    if (canvas.width <= 0 || canvas.height <= 0) {
+        throw new Error('O canvas do PDF foi gerado vazio.');
+    }
+
+    console.log('Canvas gerado:', {
+        largura: canvas.width,
+        altura: canvas.height
+    });
+
+    const jsPDF = window.jspdf.jsPDF;
+    const pdf = new jsPDF({
+        orientation: 'landscape',
+        unit: 'mm',
+        format: 'a4',
+        compress: true
+    });
+
+    const margem = 5;
+    const larguraPagina = pdf.internal.pageSize.getWidth();
+    const alturaPagina = pdf.internal.pageSize.getHeight();
+    const larguraUtil = larguraPagina - margem * 2;
+    const alturaUtil = alturaPagina - margem * 2;
+    const escalaPdf = larguraUtil / canvas.width;
+    const alturaPaginaPixels = Math.max(
+        1,
+        Math.floor(alturaUtil / escalaPdf)
+    );
+
+    let posicaoY = 0;
+    let pagina = 0;
+
+    while (posicaoY < canvas.height) {
+        const alturaParte = Math.min(
+            alturaPaginaPixels,
+            canvas.height - posicaoY
+        );
+
+        const canvasPagina = document.createElement('canvas');
+        canvasPagina.width = canvas.width;
+        canvasPagina.height = alturaParte;
+
+        const contexto = canvasPagina.getContext('2d');
+        if (!contexto) {
+            throw new Error('Não foi possível preparar uma página do PDF.');
+        }
+
+        contexto.fillStyle = '#ffffff';
+        contexto.fillRect(0, 0, canvasPagina.width, canvasPagina.height);
+        contexto.drawImage(
+            canvas,
+            0,
+            posicaoY,
+            canvas.width,
+            alturaParte,
+            0,
+            0,
+            canvas.width,
+            alturaParte
+        );
+
+        const imagem = canvasPagina.toDataURL('image/jpeg', 0.95);
+
+        if (pagina > 0) {
+            pdf.addPage('a4', 'landscape');
+        }
+
+        pdf.addImage(
+            imagem,
+            'JPEG',
+            margem,
+            margem,
+            larguraUtil,
+            alturaParte * escalaPdf,
+            undefined,
+            'FAST'
+        );
+
+        posicaoY += alturaParte;
+        pagina += 1;
+    }
+
+    const pdfBlob = pdf.output('blob');
+
+    if (!pdfBlob || pdfBlob.size === 0) {
+        throw new Error('O PDF gerado está vazio.');
+    }
+
+    console.log('PDF concluído:', {
+        nomeArquivo,
+        paginas: pagina,
+        tamanho: pdfBlob.size
+    });
+
+    return pdfBlob;
+}
 
 
 async function carregarListaPrecos(listaId) {
@@ -49,7 +384,376 @@ async function carregarListaPrecos(listaId) {
     console.log('DADOS DA LISTA:', listaPrecosData);
 }
 
+function converterParaBooleano(
+    valor
+){
+
+    if(valor === true){
+        return true;
+    }
+
+    if(valor === false){
+        return false;
+    }
+
+    if(valor === 1){
+        return true;
+    }
+
+    if(valor === 0){
+        return false;
+    }
+
+    const texto =
+        String(
+            valor ?? ''
+        )
+        .trim()
+        .toLowerCase();
+
+    return (
+        texto === 'true' ||
+        texto === '1' ||
+        texto === 'sim' ||
+        texto === 's' ||
+        texto === 'ativo'
+    );
+
+}
+
+function itemPodeAparecerNaLista(
+    item
+){
+
+    if(!item){
+        return false;
+    }
+
+    const ativo =
+        converterParaBooleano(
+            item.ativo
+        );
+
+    const suspenso =
+        converterParaBooleano(
+            item.suspenso
+        );
+
+    const foraLinha =
+        converterParaBooleano(
+            item.foraLinha
+        );
+
+    const bloqueado =
+        converterParaBooleano(
+            item.bloqueado
+        );
+
+    const exibeConsultas =
+        item.exibeConsultasListaPreco === undefined ||
+        item.exibeConsultasListaPreco === null
+            ? true
+            : converterParaBooleano(
+                item.exibeConsultasListaPreco
+            );
+
+    const descricao =
+        String(
+            item.descricao || ''
+        )
+        .normalize(
+            'NFD'
+        )
+        .replace(
+            /[\u0300-\u036f]/g,
+            ''
+        )
+        .trim()
+        .toLowerCase();
+
+    const possuiNomeNaoPermitido =
+        descricao.includes(
+            'display'
+        ) ||
+        descricao.includes(
+            'bobina'
+        );
+
+    return (
+        ativo &&
+        !suspenso &&
+        !foraLinha &&
+        !bloqueado &&
+        exibeConsultas &&
+        !possuiNomeNaoPermitido
+    );
+
+}
+
+
+async function carregarCatalogoCliente(
+    clienteCodigo,
+    listaCodigo = null
+){
+
+    const codigoCliente =
+        String(
+            clienteCodigo || ''
+        )
+        .trim();
+
+    if(!codigoCliente){
+
+        throw new Error(
+            'Código do cliente não disponível para carregar o catálogo.'
+        );
+
+    }
+
+    catalogoClienteCarregado =
+        false;
+
+    catalogoClienteCarregando =
+        true;
+
+    catalogoClienteData =
+        [];
+
+    catalogoClientePorCodigo =
+        new Map();
+
+    dadosListaPrecoAtual =
+        null;
+
+    showFeedback(
+        'Carregando lista de produtos do cliente...'
+    );
+
+    try{
+
+        const parametros =
+            new URLSearchParams();
+
+        if(listaCodigo){
+
+            parametros.set(
+                'listaCodigo',
+                listaCodigo
+            );
+
+        }
+
+        const queryString =
+            parametros.toString();
+
+        const url =
+            `/api/catalogo-cliente/${encodeURIComponent(codigoCliente)}` +
+            (
+                queryString
+                    ? `?${queryString}`
+                    : ''
+            );
+
+        const response =
+            await fetch(
+                url,
+                {
+                    method:
+                        'GET',
+
+                    headers: {
+                        Accept:
+                            'application/json'
+                    }
+                }
+            );
+
+        const resultado =
+            await response.json();
+
+        if(!response.ok){
+
+            throw new Error(
+                resultado.mensagem ||
+                resultado.message ||
+                'Não foi possível carregar o catálogo do cliente.'
+            );
+
+        }
+
+        const itensRecebidos =
+            Array.isArray(
+                resultado.itens
+            )
+                ? resultado.itens
+                : [];
+
+        const itensDisponiveis =
+            itensRecebidos.filter(
+                itemPodeAparecerNaLista
+            );
+
+        catalogoClienteData =
+            itensDisponiveis;
+
+        dadosListaPrecoAtual =
+            resultado.listaPreco ||
+            null;
+
+        catalogoClientePorCodigo =
+            new Map();
+
+        itensDisponiveis.forEach(item => {
+
+            const codigoItem =
+                normalizarCodigoItem(
+                    item.itemEmpresaId
+                );
+
+            if(!codigoItem){
+                return;
+            }
+
+            catalogoClientePorCodigo.set(
+                codigoItem,
+                item
+            );
+
+        });
+
+        catalogoClienteCarregado =
+            true;
+
+        if(dadosListaPrecoAtual){
+
+            el('codgroup').value =
+                dadosListaPrecoAtual.codigo ||
+                '';
+
+            el('group').value =
+                dadosListaPrecoAtual.descricao ||
+                '';
+
+        }
+    console.log(
+        'Catálogo do cliente carregado:',
+        {
+            listaPreco:
+                dadosListaPrecoAtual,
+
+            totalRecebido:
+                itensRecebidos.length,
+
+            totalDisponivel:
+                itensDisponiveis.length,
+
+            totalRemovido:
+                itensRecebidos.length -
+                itensDisponiveis.length,
+
+            totalIndexado:
+                catalogoClientePorCodigo.size,
+
+            erros:
+                resultado.erros || []
+        }
+    );
+        return resultado;
+
+    }finally{
+
+        catalogoClienteCarregando =
+            false;
+
+            let datalist = document.getElementById('lista-produtos-cliente');
+
+        if (!datalist) {
+            datalist = document.createElement('datalist');
+            datalist.id = 'lista-produtos-cliente';
+            document.body.appendChild(datalist);
+        }
+
+        datalist.innerHTML = '';
+
+        catalogoClienteData.forEach(item => {
+            const option = document.createElement('option');
+
+            option.value =
+                `${item.itemEmpresaId} - ${item.descricao}`;
+
+            datalist.appendChild(option);
+        });
+
+        hideFeedback();
+
+    }
+
+}
+
+function buscarItemNoCatalogo(
+    codigoDigitado
+){
+
+    const codigo =
+        normalizarCodigoItem(
+            codigoDigitado
+        );
+
+    if(!codigo){
+        return null;
+    }
+
+    return (
+        catalogoClientePorCodigo.get(
+            codigo
+        ) ||
+        null
+    );
+
+}
+
+function limparProdutos(){
+
+    const tbody =
+        document.querySelector(
+            '#dadosPedido tbody'
+        );
+
+    tbody.innerHTML =
+        '';
+
+    catalogoClienteData =
+        [];
+
+    catalogoClientePorCodigo =
+        new Map();
+
+    catalogoClienteCarregado =
+        false;
+
+    catalogoClienteCarregando =
+        false;
+
+    dadosListaPrecoAtual =
+        null;
+
+    atualizarTotais();
+
+}
+
+function normalizarCodigoItem(
+    valor
+){
+
+    return String(valor || '')
+        .trim()
+        .toUpperCase();
+
+}
+
 console.log('script.js carregado');
+
+
 
 // limpar tudo ao atualizar page (run once)
  limparCamposCliente();
@@ -58,8 +762,543 @@ console.log('script.js carregado');
 // ======================================================================
 // 🔧 FUNÇÕES UTILITÁRIAS
 // ======================================================================
-const formatarCNPJ = cnpj =>
-    cnpj.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, "$1.$2.$3/$4-$5");
+function formatarCNPJ(valor){
+
+    const numeros =
+        String(valor || '')
+            .replace(/\D/g, '')
+            .slice(0, 14);
+
+    if(numeros.length <= 2){
+        return numeros;
+    }
+
+    if(numeros.length <= 5){
+
+        return numeros.replace(
+            /^(\d{2})(\d+)/,
+            '$1.$2'
+        );
+
+    }
+
+    if(numeros.length <= 8){
+
+        return numeros.replace(
+            /^(\d{2})(\d{3})(\d+)/,
+            '$1.$2.$3'
+        );
+
+    }
+
+    if(numeros.length <= 12){
+
+        return numeros.replace(
+            /^(\d{2})(\d{3})(\d{3})(\d+)/,
+            '$1.$2.$3/$4'
+        );
+
+    }
+
+    return numeros.replace(
+        /^(\d{2})(\d{3})(\d{3})(\d{4})(\d+)/,
+        '$1.$2.$3/$4-$5'
+    );
+
+}
+
+function obterCNPJNumerico(valor){
+    return ajustarCNPJ(
+        String(valor || '')
+            .replace(/\D/g, '')
+            .slice(0, 14)
+    );
+}
+
+function montarSrcFotoItem(
+    foto
+){
+
+    const valor =
+        String(
+            foto || ''
+        )
+        .trim();
+
+    if(!valor){
+        return '';
+    }
+
+    if(
+        valor.startsWith(
+            'data:image/'
+        )
+    ){
+        return valor;
+    }
+
+    /*
+     * Ajuste o tipo se a API puder retornar JPEG/WebP.
+     * Pelo exemplo apresentado, a imagem começa com
+     * iVBOR, indicando PNG.
+     */
+    return (
+        `data:image/png;base64,${valor}`
+    );
+
+}
+
+function limparDadosLinhaItem(
+    tr,
+    manterPesquisa = true
+){
+
+    if(!tr){
+        return;
+    }
+
+    const campoPesquisa =
+        tr.querySelector(
+            '.campo-item-pesquisa'
+        );
+
+    const campoQuantidade =
+        tr.querySelector(
+            '.campo-quantidade-item'
+        );
+
+    const camposLimpar = [
+        '.campo-unidade-item',
+        '.campo-ipi-item',
+        '.campo-preco-unitario-item',
+        '.campo-preco-com-ipi-item',
+        '.campo-total-item',
+        '.campo-item-id'
+    ];
+
+    if(
+        !manterPesquisa &&
+        campoPesquisa
+    ){
+
+        campoPesquisa.value =
+            '';
+
+    }
+
+    if(campoQuantidade){
+
+        campoQuantidade.value =
+            '';
+
+        campoQuantidade.readOnly =
+            true;
+
+    }
+
+    camposLimpar.forEach(seletor => {
+
+        const campo =
+            tr.querySelector(
+                seletor
+            );
+
+        if(campo){
+
+            campo.value =
+                '';
+
+        }
+
+    });
+
+    const imagem =
+        tr.querySelector(
+            '.foto-item-pedido'
+        );
+
+    if(imagem){
+
+        imagem.removeAttribute(
+            'src'
+        );
+
+        imagem.alt =
+            'Foto do item';
+
+        imagem.classList.add(
+            'sem-foto'
+        );
+
+    }
+
+    tr.dataset.itemId =
+        '';
+
+    tr.dataset.itemEmpresaId =
+        '';
+
+    tr.dataset.descricao =
+        '';
+
+    tr.dataset.preco =
+        '';
+
+    tr.dataset.ipi =
+        '';
+
+}
+
+function preencherLinhaComItem(
+    tr,
+    item
+){
+
+    const campoPesquisa =
+        tr.querySelector(
+            '.campo-item-pesquisa'
+        );
+
+    const campoQuantidade =
+        tr.querySelector(
+            '.campo-quantidade-item'
+        );
+
+    const campoUnidade =
+        tr.querySelector(
+            '.campo-unidade-item'
+        );
+
+    const campoIpi =
+        tr.querySelector(
+            '.campo-ipi-item'
+        );
+
+    const campoPreco =
+        tr.querySelector(
+            '.campo-preco-unitario-item'
+        );
+
+    const campoPrecoComIpi =
+        tr.querySelector(
+            '.campo-preco-com-ipi-item'
+        );
+
+    const campoItemId =
+        tr.querySelector(
+            '.campo-item-id'
+        );
+
+    const imagem =
+        tr.querySelector(
+            '.foto-item-pedido'
+        );
+
+    const preco =
+        Number(
+            item.preco || 0
+        );
+
+    if(
+        !Number.isFinite(preco) ||
+        preco <= 0
+    ){
+
+        throw new Error(
+            'Preço do item inválido ou indisponível.'
+        );
+
+    }
+
+    const ipi =
+        obterIpiDoItem(
+            item
+        );
+
+    const precoComIpi =
+        preco *
+        (
+            1 + ipi
+        );
+
+    const codigo =
+        String(
+            item.itemEmpresaId || ''
+        )
+        .trim();
+
+    const descricao =
+        String(
+            item.descricao || ''
+        )
+        .trim();
+
+    campoPesquisa.value =
+        `${codigo} - ${descricao}`;
+
+    campoUnidade.value =
+        item.unidade ||
+        'CX';
+
+    campoIpi.value =
+        (ipi * 100)
+            .toLocaleString(
+                'pt-BR',
+                {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                }
+            ) +
+        '%';
+
+    campoPreco.value =
+        preco.toLocaleString(
+            'pt-BR',
+            {
+                style: 'currency',
+                currency: 'BRL'
+            }
+        );
+
+    campoPrecoComIpi.value =
+        precoComIpi.toLocaleString(
+            'pt-BR',
+            {
+                style: 'currency',
+                currency: 'BRL'
+            }
+        );
+
+    campoItemId.value =
+        String(
+            item.itemId || ''
+        );
+
+    tr.dataset.itemId =
+        String(
+            item.itemId || ''
+        );
+
+    tr.dataset.itemEmpresaId =
+        codigo;
+
+    tr.dataset.descricao =
+        descricao;
+
+    tr.dataset.preco =
+        String(
+            preco
+        );
+
+    tr.dataset.ipi =
+        String(
+            ipi
+        );
+
+    const srcFoto =
+        montarSrcFotoItem(
+            item.foto
+        );
+
+    if(
+        imagem &&
+        srcFoto
+    ){
+
+        imagem.src =
+            srcFoto;
+
+        imagem.alt =
+            `Foto do item ${codigo}`;
+
+        imagem.classList.remove(
+            'sem-foto'
+        );
+
+    }else if(imagem){
+
+        imagem.removeAttribute(
+            'src'
+        );
+
+        imagem.classList.add(
+            'sem-foto'
+        );
+
+    }
+
+    campoQuantidade.readOnly =
+        false;
+
+}
+
+function validarDisponibilidadeItem(
+    item
+){
+
+    if(!item){
+
+        throw new Error(
+            'Item não encontrado na lista de preços do cliente.'
+        );
+
+    }
+    
+    const descricao =
+        String(
+            item.descricao || ''
+        )
+        .normalize(
+            'NFD'
+        )
+        .replace(
+            /[\u0300-\u036f]/g,
+            ''
+        )
+        .trim()
+        .toLowerCase();
+
+    if(
+        descricao.includes('display') ||
+        descricao.includes('bobina')
+    ){
+
+        throw new Error(
+            'Itens com descrição contendo DISPLAY ou BOBINA não podem ser adicionados ao pedido.'
+        );
+
+    }
+
+    if(
+        !converterParaBooleano(
+            item.ativo
+        )
+    ){
+
+        throw new Error(
+            'Item inativo.'
+        );
+
+    }
+
+    if(
+        converterParaBooleano(
+            item.suspenso
+        )
+    ){
+
+        throw new Error(
+            'Item suspenso.'
+        );
+
+    }
+
+    if(
+        converterParaBooleano(
+            item.foraLinha
+        )
+    ){
+
+        throw new Error(
+            'Item fora de linha.'
+        );
+
+    }
+
+    if(
+        converterParaBooleano(
+            item.bloqueado
+        )
+    ){
+
+        throw new Error(
+            'Item bloqueado.'
+        );
+
+    }
+
+    if(
+        item.exibeConsultasListaPreco !== undefined &&
+        item.exibeConsultasListaPreco !== null &&
+        !converterParaBooleano(
+            item.exibeConsultasListaPreco
+        )
+    ){
+
+        throw new Error(
+            'Item indisponível para consulta na lista de preços.'
+        );
+
+    }
+
+    return true;
+
+}
+
+function configurarMascaraCNPJ(){
+
+    const campoCNPJ =
+        document.getElementById(
+            'cnpj'
+        );
+
+    if(!campoCNPJ){
+        return;
+    }
+
+    campoCNPJ.type =
+        'text';
+
+    campoCNPJ.inputMode =
+        'numeric';
+
+    campoCNPJ.maxLength =
+        18;
+
+    campoCNPJ.autocomplete =
+        'off';
+
+    campoCNPJ.addEventListener(
+        'input',
+        () => {
+
+            campoCNPJ.value =
+                formatarCNPJ(
+                    campoCNPJ.value
+                );
+
+        }
+    );
+
+    campoCNPJ.addEventListener(
+        'paste',
+        evento => {
+
+            evento.preventDefault();
+
+            const textoColado =
+                evento.clipboardData
+                    ?.getData('text') || '';
+
+            campoCNPJ.value =
+                formatarCNPJ(
+                    textoColado
+                );
+
+            campoCNPJ.dispatchEvent(
+                new Event(
+                    'input',
+                    {
+                        bubbles: true
+                    }
+                )
+            );
+
+        }
+    );
+
+}
+
 
 const formatarCEP = cep =>
     cep.replace(/^(\d{5})(\d{3})$/, "$1-$2");
@@ -86,39 +1325,112 @@ function buscarCliente(cnpj) {
     return null;
 }
 
-function validarTabelaPedido() {
-    const linhas = document.querySelectorAll('#dadosPedido tbody tr');
+function validarTabelaPedido(){
 
-    if (!linhas.length) {
-        alert("Adicione pelo menos um item no pedido.");
+    const linhas =
+        Array.from(
+            document.querySelectorAll(
+                '#dadosPedido tbody .linha-item-pedido'
+            )
+        )
+        .filter(tr => {
+
+            return Boolean(
+                tr.dataset.itemEmpresaId
+            );
+
+        });
+
+    if(linhas.length === 0){
+
+        alert(
+            'Adicione pelo menos um item no pedido.'
+        );
+
         return false;
+
     }
 
-    for (let i = 0; i < linhas.length; i++) {
-        const tr = linhas[i];
-        const inputs = tr.querySelectorAll('input');
+    for(
+        let indice = 0;
+        indice < linhas.length;
+        indice++
+    ){
 
-        // Campos obrigatórios por índice da coluna:
-        // 0 = código
-        // 1 = quantidade
-        // 5 = valor unitário
-        // 6 = total
+        const tr =
+            linhas[indice];
 
-        const codigo = inputs[0]?.value.trim()
-        const quantidade = inputs[1]?.value.trim();
-        const valor = inputs[5]?.value.trim();
-        const total = inputs[6]?.value.trim();
+        const campoQuantidade =
+            tr.querySelector(
+                '.campo-quantidade-item'
+            );
 
-        if (!codigo || !quantidade || !valor || !total || quantidade == 0 || isNaN(quantidade)) {
-            alert(`Preencha todos os campos da linha ${i + 1}`);
-            inputs[1]?.focus();
+        const quantidade =
+            Number(
+                String(
+                    campoQuantidade?.value || '0'
+                )
+                .replace(',', '.')
+            );
+
+        const codigo =
+            String(
+                tr.dataset.itemEmpresaId || ''
+            )
+            .trim();
+
+        const descricao =
+            String(
+                tr.dataset.descricao || ''
+            )
+            .trim();
+
+        const preco =
+            Number(
+                tr.dataset.preco || 0
+            );
+
+        if(
+            !codigo ||
+            !descricao ||
+            !Number.isFinite(quantidade) ||
+            quantidade <= 0 ||
+            !Number.isFinite(preco) ||
+            preco <= 0 ||
+            !tr.dataset.itemId
+        ){
+
+            alert(
+                `Preencha corretamente os dados da linha ${indice + 1}.`
+            );
+
+            campoQuantidade?.focus();
+
             return false;
+
         }
+
     }
 
     return true;
+
 }
 
+function buscarItemPorDescricao(texto) {
+    const pesquisa = String(texto || '')
+        .trim()
+        .toUpperCase();
+
+    if (!pesquisa) {
+        return null;
+    }
+
+    return catalogoClienteData.find(item =>
+        String(item.descricao || '')
+            .toUpperCase()
+            .includes(pesquisa)
+    ) || null;
+}
 
 function validarPedidoMinimo() {
 
@@ -205,10 +1517,18 @@ cnpjInput1.addEventListener('focus', () => {
 // ======================================================================
 cnpjInput1.addEventListener('blur', async function () {
     limparProdutos();
-    let cnpj = this.value.replace(/\D/g, '');
-    if (!cnpj || cnpjInvalido(cnpj)) return alert("CNPJ inválido.");
+    let cnpj =
+    ajustarCNPJ(
+        obterCNPJNumerico(
+            this.value
+        )
+    );
+    if (cnpj.length !== 14 || cnpjInvalido(cnpj)) {
+        alert("CNPJ inválido.");
+        this.focus();
+        return;
+    }
 
-    cnpj = ajustarCNPJ(cnpj);
     this.value = formatarCNPJ(cnpj);
 
     showFeedback('Carregando cliente...');
@@ -217,14 +1537,26 @@ cnpjInput1.addEventListener('blur', async function () {
     let clienteApi;
 
     try {
-        const res = await fetch(`/api/cliente/${api}/${cnpj}`);
+        const res = await fetch(`/api/cliente/${api}/${encodeURIComponent(cnpj)}`);
         if (!res.ok) throw new Error();
         clienteApi = await res.json();
 
-        if (!clienteApi.ATIVO || clienteApi.SUSPENSO) {
-            alert('Cliente inativo ou suspenso.');
-            return limparCamposCliente();
+        const podeContinuar =
+            verificarClienteInativoOuSuspenso(
+                clienteApi
+            );
+
+        if(!podeContinuar){
+
+            return;
+
         }
+
+        console.log(
+            'LISTA:',
+            clienteApi["LISTA"]
+        );
+
         console.log('LISTA:', clienteApi["LISTA"]);
         console.log('LISTA NOME1:', clienteApi["LISTA NOME1"]);
         clientesData = [null, [
@@ -247,13 +1579,32 @@ cnpjInput1.addEventListener('blur', async function () {
         const c = buscarCliente(cnpj);
         if (!c) return alert('Cliente não encontrado.');
 
-        preencherCliente(clientesData[1]);
+        preencherCliente(
+            clientesData[1]
+        );
 
-        if (clienteApi.LISTA) await carregarListaPrecos(clienteApi.LISTA);
+        const clienteCodigo =
+            clienteApi.codigo ??
+            clienteApi.Codigo ??
+            clienteApi['COD CLIENTE 2'] ??
+            clienteApi['CODIGO'] ??
+            document.getElementById(
+                'cod_cliente'
+            )?.value;
+
+        const listaCodigoPreferida =
+            clienteApi.LISTA ??
+            clienteApi.listaPrecoCodigo ??
+            null;
+
+        await carregarCatalogoCliente(
+            clienteCodigo,
+            listaCodigoPreferida
+        );
         hideFeedback();
         this.readOnly = false;
         garantirLinhaInicial();
-        setTimeout(() => document.querySelector('#dadosPedido tbody tr input')?.focus(), 0);
+        // setTimeout(() => document.querySelector('#dadosPedido tbody tr input')?.focus(), 0);
     } catch {
         alert("Cliente não encontrado, verificar com o financeiro.");
         hideFeedback();
@@ -280,9 +1631,15 @@ codInput1.addEventListener('blur', async function () {
         if (!res.ok) throw new Error();
         clienteApi = await res.json();
 
-        if (!clienteApi.ATIVO || clienteApi.SUSPENSO) {
-            alert('Cliente inativo ou suspenso.');
-            return limparCamposCliente();
+        const podeContinuar =
+            verificarClienteInativoOuSuspenso(
+                clienteApi
+            );
+
+        if(!podeContinuar){
+
+            return;
+
         }
         console.log('LISTA:', clienteApi["LISTA"]);
         console.log('LISTA NOME1:', clienteApi["LISTA NOME1"]);
@@ -309,11 +1666,28 @@ codInput1.addEventListener('blur', async function () {
             return alert('Cliente não encontrado.');
         }
         preencherCliente(clientesData[1]);
-        if (clienteApi.LISTA) await carregarListaPrecos(clienteApi.LISTA);
+        const clienteCodigo =
+            clienteApi.codigo ??
+            clienteApi.Codigo ??
+            clienteApi['COD CLIENTE 2'] ??
+            clienteApi['CODIGO'] ??
+            document.getElementById(
+                'cod_cliente'
+            )?.value;
+
+        const listaCodigoPreferida =
+            clienteApi.LISTA ??
+            clienteApi.listaPrecoCodigo ??
+            null;
+
+        await carregarCatalogoCliente(
+            clienteCodigo,
+            listaCodigoPreferida
+        );
                 hideFeedback();
         this.readOnly = false;
         garantirLinhaInicial();
-        setTimeout(() => document.querySelector('#dadosPedido tbody tr input')?.focus(), 0);
+        // setTimeout(() => document.querySelector('#dadosPedido tbody tr input')?.focus(), 0);
     } catch {
         alert("Cliente não encontrado, verificar com o financeiro.");
         hideFeedback();
@@ -325,14 +1699,9 @@ codInput1.addEventListener('blur', async function () {
 
 
 
-function limparProdutos(){
-        const tbody = document.querySelector('#dadosPedido tbody');
-        tbody.innerHTML = '';
-        atualizarTotais();
-}
-
 function preencherCliente(c) {
-    el('cnpj').value = formatarCNPJ(c[1].toString());
+    el('cnpj').value = formatarCNPJ(obterCNPJNumerico(c[1]));
+      
     el('razao_social').value = c[3];
     el('ie').value = c[2];
     el('representante').value = `${c[15]} - ${c[16]}`;
@@ -363,8 +1732,6 @@ function preencherCliente(c) {
 // 📦 PEDIDO / TABELA
 // ======================================================================
 
-
-
 function atualizarTotais() {
     atualizarTotalProdutos();
     atualizarTotalVolumes();
@@ -392,15 +1759,13 @@ function zerarCamposPedido() {
     garantirLinhaInicial();
 
 
-    setTimeout(() => {
-        const primeiraLinha = document.querySelector('#dadosPedido tbody tr');
-        primeiraLinha?.cells[0]?.querySelector('input')?.focus();
-    }, 0);
+    // setTimeout(() => {
+    //     const primeiraLinha = document.querySelector('#dadosPedido tbody tr');
+    //     primeiraLinha?.cells[0]?.querySelector('input')?.focus();
+    // }, 0);
 
     atualizarTotais();
 }
-
-
 // Adiciona o evento para zerar os campos quando o tipo de pedido for alterado
 
 document.getElementById('tipo_pedido').addEventListener('change', function () {
@@ -410,56 +1775,107 @@ document.getElementById('tipo_pedido').addEventListener('change', function () {
         document.getElementById('referencia').value = 'BONIFICAÇÃO';
     } else {
         document.getElementById('referencia').value = '';
-    }
+}
 });
 
-
-
-
 // Função para atualizar o total de volumes (quantidades) de todas as linhas
-function atualizarTotalVolumes() {
-    let totalVolumes = 0;
-    const linhas = document.querySelectorAll('#dadosPedido tbody tr');
+function atualizarTotalVolumes(){
 
-    linhas.forEach(tr => {
-        const cell = tr.cells[1]?.querySelector('input');
-        if (cell && cell.value) {
-            const quantidade = parseFloat(cell.value.replace(",", "."));
-            if (!isNaN(quantidade)) {
-                totalVolumes += quantidade;
-                console.log('Quantidade adicionada:', quantidade);
-                console.log('Total de volumes até agora:', totalVolumes);
+    let totalVolumes =
+        0;
+
+    document
+        .querySelectorAll(
+            '#dadosPedido tbody .linha-item-pedido'
+        )
+        .forEach(tr => {
+
+            const campoQuantidade =
+                tr.querySelector(
+                    '.campo-quantidade-item'
+                );
+
+            const quantidade =
+                Number(
+                    String(
+                        campoQuantidade?.value || '0'
+                    )
+                    .replace(',', '.')
+                );
+
+            if(Number.isFinite(quantidade)){
+
+                totalVolumes +=
+                    quantidade;
+
             }
-        }
-    });
 
-    document.getElementById('volume').value = totalVolumes;
+        });
+
+    document.getElementById(
+        'volume'
+    ).value =
+        totalVolumes;
+
 }
 
-
-
-
 // Função para atualizar o total de produtos (quantidade * valor unitário)
-function atualizarTotalProdutos() {
-    let totalProdutos = 0;
-    const linhas = document.querySelectorAll('#dadosPedido tbody tr');
+function atualizarTotalProdutos(){
 
-    linhas.forEach(tr => {
-        const quantidadeCell = tr.cells[1]?.querySelector('input');
-        const valorUnitarioCell = tr.cells[6]?.querySelector('input');
-        console.log('Quantidade cell:', quantidadeCell);
-        console.log('Valor unitário cell:', valorUnitarioCell);
+    let totalProdutos =
+        0;
 
-        if (quantidadeCell && valorUnitarioCell && quantidadeCell.value && valorUnitarioCell.value) {
-            const quantidade = parseFloat(quantidadeCell.value.replace(",", "."));
-            const valorUnitario = parseFloat(valorUnitarioCell.value.replace("R$", "").replace(/\./g, "").replace(",", "."));
-            if (!isNaN(quantidade) && !isNaN(valorUnitario)) {
-                totalProdutos += quantidade * valorUnitario;
+    document
+        .querySelectorAll(
+            '#dadosPedido tbody .linha-item-pedido'
+        )
+        .forEach(tr => {
+
+            const campoQuantidade =
+                tr.querySelector(
+                    '.campo-quantidade-item'
+                );
+
+            const quantidade =
+                Number(
+                    String(
+                        campoQuantidade?.value || '0'
+                    )
+                    .replace(',', '.')
+                );
+
+            const preco =
+                Number(
+                    tr.dataset.preco || 0
+                );
+
+            if(
+                Number.isFinite(quantidade) &&
+                Number.isFinite(preco)
+            ){
+
+                totalProdutos +=
+                    quantidade *
+                    preco;
+
             }
-        }
-    });
 
-    document.getElementById('total').value = totalProdutos.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        });
+
+    document.getElementById(
+        'total'
+    ).value =
+        totalProdutos.toLocaleString(
+            'pt-BR',
+            {
+                style:
+                    'currency',
+
+                currency:
+                    'BRL'
+            }
+        );
+
 }
 
 // Função para atualizar o total com imposto de todas as linhas
@@ -469,372 +1885,239 @@ function atualizarTotalComImposto() {
 }
 
 function totalComIpi(){
-       let total = 0;
-    const linhas = document.querySelectorAll('#dadosPedido tbody tr');
-    
-    linhas.forEach(tr => {
-        const cell = tr.cells[8]?.querySelector('input');
-        if (cell && cell.value) {
-            const cellValue = cell.value.replace("R$", "").replace(/\./g, "").replace(",", ".");
-            const valor = parseFloat(cellValue);
-            if (!isNaN(valor)) {
-                total += valor;
+
+    let total =
+        0;
+
+    document
+        .querySelectorAll(
+            '#dadosPedido tbody .linha-item-pedido'
+        )
+        .forEach(tr => {
+
+            const campoQuantidade =
+                tr.querySelector(
+                    '.campo-quantidade-item'
+                );
+
+            const quantidade =
+                Number(
+                    String(
+                        campoQuantidade?.value || '0'
+                    )
+                    .replace(',', '.')
+                );
+
+            const preco =
+                Number(
+                    tr.dataset.preco || 0
+                );
+
+            const ipi =
+                Number(
+                    tr.dataset.ipi || 0
+                );
+
+            if(
+                Number.isFinite(quantidade) &&
+                Number.isFinite(preco) &&
+                Number.isFinite(ipi)
+            ){
+
+                total +=
+                    quantidade *
+                    preco *
+                    (
+                        1 + ipi
+                    );
+
             }
-        }
-    });
-    return total;
-}
-
-
-//Buscar IPI pelo código do item
-function buscarIpiDoItem(codigoItem) {
-    if (!Array.isArray(listaPrecosIpiData) || listaPrecosIpiData.length < 2) {
-        return 0;
-    }
-
-    const header = listaPrecosIpiData[0];
-    const idxCodigo = header.indexOf("ITEM COD");
-    const idxIpi = header.indexOf("IPI");
-
-    if (idxCodigo === -1 || idxIpi === -1) {
-        console.warn('Coluna ITEM COD ou IPI não encontrada');
-        return 0;
-    }
-
-    const linha = listaPrecosIpiData.find(
-        (row, index) =>
-            index > 0 &&
-            String(row[idxCodigo]).trim().toUpperCase() ===
-            String(codigoItem).trim().toUpperCase()
-    );
-
-    if (!linha) return 0;
-
-    const ipi = Number(linha[idxIpi]);
-    return isNaN(ipi) ? 0 : ipi;
-}
-
-
-function getIpi(classificacao){
-
-      const classificacaoFiscal = [
-                [17041000 , 0.0325],
-                [17049020 , 0.0325],
-                [17049090 , 0.0325],
-                [18069000 , 0.0325],
-                [20079923 , 0],
-                [20079990 , 0],
-                [21069050 , 0],
-                [39201099 , 0],
-                [49019900 , 0],
-                [49111090 , 0],
-                [61091000 , 0],
-                [84729059 , 0],
-                [85061010 , 0],
-                [87120010 , 0],
-                [94033000 , 0],
-                [94037000 , 0],
-                [95030022 , 0.065],
-                [95030031 , 0],
-                [95030039 , 0.065],
-                [95030070 , 0.065],
-                [95030098 , 0.065],
-                [95030099 , 0.065],
-                [95049090 , 0],
-            ];
-            
-            const ipi = classificacaoFiscal.find(
-                row => row[0] == classificacao
-            )
-
-            return ipi ? ipi[1] : 0;
-            
-}
-
-
-
-// Função para adicionar uma nova linha à tabela
-function adicionarNovaLinha() {
-    const tbody = document.querySelector('#dadosPedido tbody');
-    const tr = document.createElement('tr');
-
-
-
-    for (let i = 0; i < 10; i++) {
-        const td = document.createElement('td');
-
-        // coluna oculta (ItemId)
-        if (i === 9) {
-            td.style.display = 'none';
-        }
-
-        // 🗑 BOTÃO REMOVER LINHA
-        if (i === 3) {
-            const btn = document.createElement('button');
-            btn.type = 'button';
-            btn.classList.add('btn-remover-linha');
-            btn.textContent = 'REMOVER';
-
-
-                btn.gradient = 'linear-gradient(90deg,rgba(225,0,152) 0%,#f18fc7 100%)';
-                btn.color = '#fafcfa';
-            
-            btn.innerText = 'Excluir';
-            
-
-            btn.addEventListener('click', () => {
-                tr.remove();
-                atualizarTotais();
-                garantirLinhaInicial();
-            });
-             
-
-            td.appendChild(btn);
-            tr.appendChild(td);
-            continue; // ⬅️ CRÍTICO
-        }
-
-        // ✏️ INPUT NORMAL
-        const input = document.createElement('input');
-        input.type = 'text';
-        
-        // TAB só código e quantidade
-        input.tabIndex = (i === 0 || i === 1) ? 0 : -1;
-
-        input.style.padding = '5px';
-        input.style.width = '100%';
-        input.style.boxSizing = 'border-box';
-
-        td.appendChild(input);
-        tr.appendChild(td);
-        
-        // =========================
-        // NAVEGAÇÃO ↑ ↓ TAB
-        // =========================
-        input.addEventListener('keydown', (e) => {
-            const linhas = Array.from(tbody.querySelectorAll('tr'));
-            const linhaAtual = linhas.indexOf(tr);
-
-            if (e.key === 'ArrowUp' && linhaAtual > 0) {
-                e.preventDefault();
-                linhas[linhaAtual - 1].cells[i]?.querySelector('input')?.focus();
-            }
-
-            if (e.key === 'ArrowDown') {
-                e.preventDefault();
-
-                if (linhaAtual === linhas.length - 1 && i === 1) {
-                    adicionarNovaLinha();
-                    setTimeout(() => {
-                        tbody.lastChild.cells[0].querySelector('input').focus();
-                    }, 0);
-                } else {
-                    linhas[linhaAtual + 1]?.cells[i]?.querySelector('input')?.focus();
-                }
-            }
-
-            if (e.key === 'Tab' && !e.shiftKey && i === 1 && linhaAtual === linhas.length - 1) {
-                e.preventDefault();
-                setTimeout(() => {
-                    tbody.lastChild.cells[0].querySelector('input').focus();
-                }, 0);
-            }
-            //enter = tab
-            if ((e.key === 'Tab' || e.key === 'Enter') && !e.shiftKey) {
-    e.preventDefault();
-
-    // se estiver na QUANTIDADE (coluna 1)
-    if (i === 1) {
-        if (linhaAtual === linhas.length - 1) {
-            // última linha → cria nova
-            adicionarNovaLinha();
-            setTimeout(() => {
-                tbody.lastChild.cells[0].querySelector('input')?.focus();
-            }, 0);
-        } else {
-            // próxima linha
-            linhas[linhaAtual + 1]?.cells[0]?.querySelector('input')?.focus();
-        }
-        
-    }
-
-    // se estiver no CÓDIGO (coluna 0)
-    if (i === 0) {
-        tr.cells[1]?.querySelector('input')?.focus();
-    }
-}
-
 
         });
 
-        // =========================
-        // CÓDIGO DO ITEM
-        // =========================
-       // =========================
+    return total;
 
-if (i === 0) {
-
-    input.addEventListener('blur', async function () {
-
-        const cod = this.value.trim().toUpperCase();
-
-        if (!cod) return;
-
-        if (verificarCodigoDuplicadoNaTabela(cod, tr)) {
-            alert('Este item já foi adicionado ao pedido.');
-            this.value = '';
-            this.focus();
-            return;
-        }
-
-        const listaId = document.getElementById('codgroup').value;
-
-        const cells = tr.querySelectorAll('td input');
-
-        this.readOnly = true;
-
-        // quantidade
-        cells[1].readOnly = true;
-        cells[1].value = '';
-
-        // UV
-        cells[2].value = '';
-
-        // descrição
-        cells[3].value = 'Carregando item...';
-
-        // IPI
-        cells[4].value = '';
-
-        // unitário
-        cells[5].value = '';
-
-        // c/ ipi
-        cells[6].value = '';
-
-        // total
-        cells[7].value = '';
-
-        try {
-
-            const response = await fetch(
-                `/api/lista-preco/${listaId}?codigo=${encodeURIComponent(cod)}`
-            );
-
-            if (!response.ok) {
-
-                const erro = await response.json();
-
-                throw new Error(
-                    erro.message || 'Item não disponível'
-                );
-            }
-
-            const data = await response.json();
-
-            console.log('RETORNO ITEM:', data);
-            console.log('É ARRAY?', Array.isArray(data));
-
-            if (!data.length) {
-                throw new Error('Item não encontrado');
-            }
-
-            const item = data[0];
-            let ipi = 0;
-            const preco = Number(item.PrecoVenda);
-
-            //Verificação automática de IPI
-            console.log('Origem '+item.origem)
-            
-            if(item.origem == 2)
-                ipi = getIpi(item.classificacaoFiscal)
-            else
-                ipi = 0
-            const ipiMult = 1 + ipi;
-
-            // UV
-            cells[2].value = 'CX';
-
-            // descrição
-            cells[3].value = item.ItemDescricao;
-
-            // IPI
-            cells[4].value =
-                (ipi * 100).toFixed(2) + '%';
-
-            const precoComIpi = preco * ipiMult;
-
-            // unitário
-            cells[5].value = preco.toLocaleString(
-                'pt-BR',
-                {
-                    style: 'currency',
-                    currency: 'BRL'
-                }
-            );
-
-            // c/ ipi
-            cells[6].value = precoComIpi.toLocaleString(
-                'pt-BR',
-                {
-                    style: 'currency',
-                    currency: 'BRL'
-                }
-            );
-
-            cells[1].readOnly = false;
-
-            cells[1].focus();
-
-            cells[1].oninput = () => {
-
-                const qtd =
-                    parseFloat(
-                        cells[1].value.replace(',', '.')
-                    ) || 0;
-
-                const totalLinha = qtd * preco;
-
-                const totalComIpi =
-                    totalLinha * ipiMult;
-
-                // TOTAL
-                cells[7].value =
-                    totalComIpi.toLocaleString(
-                        'pt-BR',
-                        {
-                            style: 'currency',
-                            currency: 'BRL'
-                        }
-                    );
-
-                tr.dataset.itemId = item.ItemId;
-
-                atualizarTotais();
-            };
-
-        } catch (error) {
-
-            alert(error.message);
-
-            this.value = '';
-
-            this.focus();
-
-        } finally {
-
-            this.readOnly = false;
-        }
-    });
 }
 
+//Buscar IPI pelo código do item
 
+function getIpi(classificacao){
 
+    const somenteNumeros =
+        String(classificacao || '')
+            .replace(/\D/g, '');
+
+    if(!somenteNumeros){
+        return null;
     }
 
-    tbody.appendChild(tr);
+    const classificacaoNormalizada =
+        Number(
+            somenteNumeros
+        );
+
+    const classificacoesFiscais = [
+        [17041000, 0.0325],
+        [17049020, 0.0325],
+        [17049090, 0.0325],
+        [18069000, 0.0325],
+        [20079923, 0],
+        [20079990, 0],
+        [21069050, 0],
+        [39201099, 0],
+        [49019900, 0],
+        [49111090, 0],
+        [61091000, 0],
+        [84729059, 0],
+        [85061010, 0],
+        [87120010, 0],
+        [94033000, 0],
+        [94037000, 0],
+        [95030022, 0.065],
+        [95030031, 0],
+        [95030039, 0.065],
+        [95030070, 0.065],
+        [95030098, 0.065],
+        [95030099, 0.065],
+        [95049090, 0]
+    ];
+
+    const registro =
+        classificacoesFiscais.find(
+            linha => {
+
+                return (
+                    linha[0] ===
+                    classificacaoNormalizada
+                );
+
+            }
+        );
+
+    return registro
+        ? registro[1]
+        : null;
+
 }
 
+// Função para adicionar uma nova linha à tabela
+function adicionarNovaLinha(){
+
+    const tbody =
+        document.querySelector(
+            '#dadosPedido tbody'
+        );
+
+    const tr =
+        document.createElement(
+            'tr'
+        );
+
+    tr.classList.add(
+        'linha-item-pedido'
+    );
+
+    tr.innerHTML = `
+        <td class="celula-foto-item">
+            <img
+                class="foto-item-pedido sem-foto"
+                alt="Foto do item"
+            >
+        </td>
+
+        <td>
+            <input
+                type="text"
+                class="campo-item-pesquisa"
+                list="lista-produtos-cliente"
+                placeholder="Digite o código ou a descrição"
+                autocomplete="off"
+            >
+        </td>
+
+        <td>
+            <input
+                type="text"
+                class="campo-quantidade-item"
+                inputmode="decimal"
+                autocomplete="off"
+            >
+        </td>
+
+        <td>
+            <input
+                type="text"
+                class="campo-unidade-item"
+                readonly
+                tabindex="-1"
+            >
+        </td>
+
+        <td>
+            <input
+                type="text"
+                class="campo-ipi-item"
+                readonly
+                tabindex="-1"
+            >
+        </td>
+
+        <td>
+            <input
+                type="text"
+                class="campo-preco-unitario-item"
+                readonly
+                tabindex="-1"
+            >
+        </td>
+
+        <td>
+            <input
+                type="text"
+                class="campo-preco-com-ipi-item"
+                readonly
+                tabindex="-1"
+            >
+        </td>
+
+        <td>
+            <input
+                type="text"
+                class="campo-total-item"
+                readonly
+                tabindex="-1"
+            >
+        </td>
+
+        <td class="celula-excluir-item">
+            <button
+                type="button"
+                class="btn-remover-linha"
+                tabindex="-1"
+            >
+                Excluir
+            </button>
+        </td>
+
+        <td style="display: none;">
+            <input
+                type="hidden"
+                class="campo-item-id"
+            >
+        </td>
+    `;
+
+    tbody.appendChild(
+        tr
+    );
+
+    configurarLinhaItemPedido(
+        tr
+    );
+
+    return tr;
+
+}
 
 // Função para remover a última linha da tabela
 document.getElementById('excluirLinha').addEventListener('click', function () {
@@ -866,20 +2149,1248 @@ function verificarCodigoDuplicado(codigo) {
     return contador > 1;
 }
 
-function verificarCodigoDuplicadoNaTabela(codigo, linhaAtual) {
-    const linhas = document.querySelectorAll('#dadosPedido tbody tr');
+function aguardarCarregamentoItem(
+    linha,
+    tempoLimite = 15000
+){
 
-    for (const tr of linhas) {
-        if (tr === linhaAtual) continue; // ignora a própria linha
+    return new Promise(resolve => {
 
-        const inputCodigo = tr.cells[0]?.querySelector('input');
-        if (inputCodigo && inputCodigo.value.trim().toUpperCase() === codigo) {
-            return true;
-        }
-    }
-    return false;
+        let finalizado =
+            false;
+
+        const concluir =
+            resultado => {
+
+                if(finalizado){
+                    return;
+                }
+
+                finalizado =
+                    true;
+
+                clearTimeout(
+                    temporizador
+                );
+
+                linha.removeEventListener(
+                    'carregamento-item-finalizado',
+                    receberResultado
+                );
+
+                resolve(
+                    resultado
+                );
+
+            };
+
+        const receberResultado =
+            evento => {
+
+                concluir({
+                    sucesso:
+                        evento.detail?.sucesso ===
+                        true,
+
+                    codigo:
+                        evento.detail?.codigo ||
+                        '',
+
+                    mensagem:
+                        evento.detail?.mensagem ||
+                        ''
+                });
+
+            };
+
+        const temporizador =
+            setTimeout(
+                () => {
+
+                    concluir({
+                        sucesso: false,
+                        codigo: '',
+                        mensagem:
+                            'Tempo limite excedido ao carregar o item.'
+                    });
+
+                },
+                tempoLimite
+            );
+
+        linha.addEventListener(
+            'carregamento-item-finalizado',
+            receberResultado,
+            {
+                once: true
+            }
+        );
+
+    });
+
 }
 
+function obterIpiDoItem(
+    item
+){
+
+    const origem =
+        Number(
+            item.origem || 0
+        );
+
+    /*
+     * Mantém a regra atual:
+     * somente origem 2 utiliza a tabela getIpi.
+     */
+    if(origem !== 2){
+        return 0;
+    }
+
+    const classificacaoFiscal =
+        String(
+            item.classificacaoFiscal || ''
+        )
+        .replace(/\D/g, '');
+
+    if(!classificacaoFiscal){
+
+        throw new Error(
+            `A classificação fiscal do item ${item.itemEmpresaId || ''} não foi informada.`
+        );
+
+    }
+
+    const ipi =
+        getIpi(
+            classificacaoFiscal
+        );
+
+    if(ipi === null){
+
+        throw new Error(
+            `A classificação fiscal ${classificacaoFiscal} não está cadastrada na função getIpi.`
+        );
+
+    }
+
+    return ipi;
+
+}
+
+function atualizarTotalLinhaItem(
+    tr
+){
+
+    const campoQuantidade =
+        tr.querySelector(
+            '.campo-quantidade-item'
+        );
+
+    const campoTotal =
+        tr.querySelector(
+            '.campo-total-item'
+        );
+
+    const quantidade =
+        Number(
+            String(
+                campoQuantidade?.value || '0'
+            )
+            .replace(',', '.')
+        );
+
+    const preco =
+        Number(
+            tr.dataset.preco || 0
+        );
+
+    const ipi =
+        Number(
+            tr.dataset.ipi || 0
+        );
+
+    const totalComIpi =
+        (
+            Number.isFinite(quantidade)
+                ? quantidade
+                : 0
+        ) *
+        preco *
+        (
+            1 + ipi
+        );
+
+    campoTotal.value =
+        totalComIpi.toLocaleString(
+            'pt-BR',
+            {
+                style:
+                    'currency',
+
+                currency:
+                    'BRL'
+            }
+        );
+
+    atualizarTotais();
+
+}
+
+function buscarItemPorPesquisa(
+    valorDigitado
+){
+
+    const texto =
+        String(
+            valorDigitado || ''
+        )
+        .trim();
+
+    if(!texto){
+        return null;
+    }
+
+    const separador =
+        texto.indexOf(
+            ' - '
+        );
+
+    if(separador >= 0){
+
+        const codigoExtraido =
+            normalizarCodigoItem(
+                texto.substring(
+                    0,
+                    separador
+                )
+            );
+
+        const itemPorCodigoExtraido =
+            buscarItemNoCatalogo(
+                codigoExtraido
+            );
+
+        if(itemPorCodigoExtraido){
+            return itemPorCodigoExtraido;
+        }
+
+    }
+
+    const codigoDireto =
+        normalizarCodigoItem(
+            texto
+        );
+
+    const itemPorCodigo =
+        buscarItemNoCatalogo(
+            codigoDireto
+        );
+
+    if(itemPorCodigo){
+        return itemPorCodigo;
+    }
+
+    const pesquisa =
+        texto.toUpperCase();
+
+    const correspondenciasExatas =
+        catalogoClienteData.filter(item => {
+
+            const descricao =
+                String(
+                    item.descricao || ''
+                )
+                .trim()
+                .toUpperCase();
+
+            return descricao === pesquisa;
+
+        });
+
+    if(correspondenciasExatas.length === 1){
+        return correspondenciasExatas[0];
+    }
+
+    return null;
+
+}
+
+function converterColagemExcelEmItens(texto) {
+    return String(texto || '')
+        .split(/\r?\n/)
+        .map((linha) => {
+            const colunas = linha
+                .split('\t')
+                .map((coluna) => {
+                    return String(coluna || '').trim();
+                });
+
+            const codigo =
+                normalizarCodigoItem(
+                    colunas[0]
+                );
+
+            const quantidade = Number(
+                String(colunas[1] || '')
+                    .replace(',', '.')
+            );
+
+            return {
+                codigo,
+                quantidade
+            };
+        })
+        .filter((item) => {
+            return Boolean(item.codigo);
+        });
+}
+
+async function preencherItensColados(
+    linhaInicial,
+    itens
+) {
+    if (!catalogoClienteCarregado) {
+        alert(
+            'Carregue o cliente antes de colar os itens.'
+        );
+
+        return;
+    }
+
+    const tbody =
+        document.querySelector(
+            '#dadosPedido tbody'
+        );
+
+    if (!tbody || !linhaInicial) {
+        return;
+    }
+
+    const erros = [];
+    let linhaAtual = linhaInicial;
+    let adicionados = 0;
+
+    iniciarBloqueioImportacao(
+        'Adicionando os itens copiados do Excel...'
+    );
+
+    try {
+        for (
+            let indice = 0;
+            indice < itens.length;
+            indice += 1
+        ) {
+            const itemColado =
+                itens[indice];
+
+            atualizarProgressoImportacao(
+                `Processando ${indice + 1} de ${itens.length}`
+            );
+
+            const itemCatalogo =
+                buscarItemNoCatalogo(
+                    itemColado.codigo
+                );
+
+            try {
+                validarDisponibilidadeItem(
+                    itemCatalogo
+                );
+
+                if (
+                    verificarCodigoDuplicadoNaTabela(
+                        itemColado.codigo,
+                        linhaAtual
+                    )
+                ) {
+                    throw new Error(
+                        'O item já está no pedido.'
+                    );
+                }
+
+                limparDadosLinhaItem(
+                    linhaAtual,
+                    false
+                );
+
+                preencherLinhaComItem(
+                    linhaAtual,
+                    itemCatalogo
+                );
+
+                const campoQuantidade =
+                    linhaAtual.querySelector(
+                        '.campo-quantidade-item'
+                    );
+
+                if (
+                    Number.isFinite(
+                        itemColado.quantidade
+                    ) &&
+                    itemColado.quantidade > 0
+                ) {
+                    campoQuantidade.value =
+                        String(
+                            itemColado.quantidade
+                        );
+
+                    atualizarTotalLinhaItem(
+                        linhaAtual
+                    );
+                } else {
+                    campoQuantidade.value =
+                        '';
+                }
+
+                adicionados += 1;
+            } catch (error) {
+                erros.push({
+                    codigo:
+                        itemColado.codigo,
+
+                    motivo:
+                        error.message ||
+                        'Item não carregado.'
+                });
+
+                limparDadosLinhaItem(
+                    linhaAtual,
+                    false
+                );
+            }
+
+            if (indice < itens.length - 1) {
+                linhaAtual =
+                    adicionarNovaLinha();
+            }
+        }
+
+        atualizarTotais();
+
+        const campoQuantidadeFinal =
+            linhaAtual.querySelector(
+                '.campo-quantidade-item'
+            );
+
+        if (
+            campoQuantidadeFinal &&
+            !campoQuantidadeFinal.value
+        ) {
+            campoQuantidadeFinal.focus();
+        }
+
+        if (erros.length > 0) {
+            const detalhes = erros
+                .map((erro) => {
+                    return `${erro.codigo}: ${erro.motivo}`;
+                })
+                .join('\n');
+
+            alert(
+                `${adicionados} itens adicionados.\n\n` +
+                `Itens não adicionados:\n${detalhes}`
+            );
+        }
+    } finally {
+        finalizarBloqueioImportacao();
+    }
+}
+
+
+
+function configurarLinhaItemPedido(
+    tr
+){
+
+    if(!tr){
+        return;
+    }
+
+    const tbody =
+        tr.closest(
+            'tbody'
+        );
+
+    const campoPesquisa =
+        tr.querySelector(
+            '.campo-item-pesquisa'
+        );
+    campoPesquisa.addEventListener(
+        'paste',
+        async (evento) => {
+            const textoColado =
+                evento.clipboardData
+                    ?.getData('text') || '';
+
+            const possuiVariasLinhas =
+                textoColado.includes('\n') ||
+                textoColado.includes('\r');
+
+            const possuiColunas =
+                textoColado.includes('\t');
+
+            if (
+                !possuiVariasLinhas &&
+                !possuiColunas
+            ) {
+                return;
+            }
+
+            evento.preventDefault();
+
+            const itens =
+                converterColagemExcelEmItens(
+                    textoColado
+                );
+
+            if (itens.length === 0) {
+                alert(
+                    'Nenhum item válido foi encontrado no conteúdo copiado.'
+                );
+
+                return;
+            }
+
+            await preencherItensColados(
+                tr,
+                itens
+            );
+        }
+    );
+
+    const campoQuantidade =
+        tr.querySelector(
+            '.campo-quantidade-item'
+        );
+
+    const botaoRemover =
+        tr.querySelector(
+            '.btn-remover-linha'
+        );
+
+    if(
+        !tbody ||
+        !campoPesquisa ||
+        !campoQuantidade
+    ){
+
+        console.error(
+            'A estrutura da linha do pedido está incompleta.',
+            tr
+        );
+
+        return;
+
+    }
+
+    campoPesquisa.tabIndex =
+        0;
+
+    campoQuantidade.tabIndex =
+        0;
+
+    campoQuantidade.readOnly =
+        true;
+
+    let carregandoItem =
+        false;
+
+    let processandoItem =
+        false;
+
+    let ultimoItemCarregado =
+        '';
+
+    async function processarItemSelecionado(){
+
+        if(processandoItem){
+            return false;
+        }
+
+        const valorDigitado =
+            campoPesquisa.value.trim();
+
+        if(!valorDigitado){
+
+            limparDadosLinhaItem(
+                tr,
+                false
+            );
+
+            return false;
+
+        }
+
+        processandoItem =
+            true;
+
+        carregandoItem =
+            true;
+
+        campoPesquisa.readOnly =
+            true;
+
+        try{
+
+            if(catalogoClienteCarregando){
+
+                throw new Error(
+                    'A lista de produtos ainda está sendo carregada. Aguarde.'
+                );
+
+            }
+
+            if(!catalogoClienteCarregado){
+
+                throw new Error(
+                    'Carregue um cliente antes de informar os itens.'
+                );
+
+            }
+
+            const item =
+                buscarItemPorPesquisa(
+                    valorDigitado
+                );
+
+            validarDisponibilidadeItem(
+                item
+            );
+
+            const codigo =
+                normalizarCodigoItem(
+                    item.itemEmpresaId
+                );
+
+            if(
+                verificarCodigoDuplicadoNaTabela(
+                    codigo,
+                    tr
+                )
+            ){
+
+                throw new Error(
+                    'Este item já foi adicionado ao pedido.'
+                );
+
+            }
+
+            limparDadosLinhaItem(
+                tr,
+                true
+            );
+
+            preencherLinhaComItem(
+                tr,
+                item
+            );
+
+            ultimoItemCarregado =
+                codigo;
+
+            tr.dispatchEvent(
+                new CustomEvent(
+                    'carregamento-item-finalizado',
+                    {
+                        detail: {
+                            sucesso: true,
+                            codigo: codigo,
+                            mensagem: ''
+                        }
+                    }
+                )
+            );
+
+            setTimeout(
+                () => {
+
+                    campoQuantidade.focus();
+
+                    campoQuantidade.select();
+
+                },
+                0
+            );
+
+            return true;
+
+        }catch(error){
+
+            const mensagem =
+                error.message ||
+                'Item indisponível.';
+
+            console.warn(
+                'O item não foi carregado:',
+                error
+            );
+
+            ultimoItemCarregado =
+                '';
+
+            limparDadosLinhaItem(
+                tr,
+                false
+            );
+
+            atualizarTotais();
+
+            tr.dispatchEvent(
+                new CustomEvent(
+                    'carregamento-item-finalizado',
+                    {
+                        detail: {
+                            sucesso: false,
+                            codigo: '',
+                            mensagem: mensagem
+                        }
+                    }
+                )
+            );
+
+            const importandoPedido =
+                document.body.classList.contains(
+                    'importando-pedido'
+                );
+
+            if(!importandoPedido){
+
+                alert(
+                    mensagem
+                );
+
+                setTimeout(
+                    () => {
+
+                        campoPesquisa.focus();
+
+                    },
+                    0
+                );
+
+            }
+
+            return false;
+
+        }finally{
+
+            campoPesquisa.readOnly =
+                false;
+
+            carregandoItem =
+                false;
+
+            processandoItem =
+                false;
+
+        }
+
+    }
+
+    campoPesquisa.addEventListener(
+        'input',
+        () => {
+
+            const item =
+                buscarItemPorPesquisa(
+                    campoPesquisa.value
+                );
+
+            if(!item){
+                return;
+            }
+
+            const codigo =
+                normalizarCodigoItem(
+                    item.itemEmpresaId
+                );
+
+            if(
+                codigo &&
+                codigo !== ultimoItemCarregado &&
+                !processandoItem
+            ){
+
+                processarItemSelecionado();
+
+            }
+
+        }
+    );
+
+    campoPesquisa.addEventListener(
+        'change',
+        () => {
+
+            if(
+                campoPesquisa.value.trim() &&
+                !processandoItem
+            ){
+
+                processarItemSelecionado();
+
+            }
+
+        }
+    );
+
+    campoPesquisa.addEventListener(
+        'blur',
+        () => {
+
+            if(
+                campoPesquisa.value.trim() &&
+                !tr.dataset.itemId &&
+                !processandoItem
+            ){
+
+                processarItemSelecionado();
+
+            }
+
+        }
+    );
+
+    campoPesquisa.addEventListener(
+        'keydown',
+        evento => {
+
+            if(
+                evento.key !== 'Tab' &&
+                evento.key !== 'Enter'
+            ){
+                return;
+            }
+
+            if(evento.shiftKey){
+                return;
+            }
+
+            evento.preventDefault();
+
+            if(carregandoItem){
+                return;
+            }
+
+            processarItemSelecionado();
+
+        }
+    );
+
+    campoQuantidade.addEventListener(
+        'input',
+        () => {
+
+            atualizarTotalLinhaItem(
+                tr
+            );
+
+        }
+    );
+
+    campoQuantidade.addEventListener(
+        'keydown',
+        evento => {
+
+            if(
+                evento.key !== 'Tab' &&
+                evento.key !== 'Enter'
+            ){
+                return;
+            }
+
+            if(evento.shiftKey){
+                return;
+            }
+
+            evento.preventDefault();
+
+            const quantidade =
+                Number(
+                    String(
+                        campoQuantidade.value || '0'
+                    )
+                    .replace(',', '.')
+                );
+
+            if(
+                !Number.isFinite(quantidade) ||
+                quantidade <= 0
+            ){
+
+                alert(
+                    'Informe uma quantidade maior que zero.'
+                );
+
+                campoQuantidade.focus();
+
+                campoQuantidade.select();
+
+                return;
+
+            }
+
+            atualizarTotalLinhaItem(
+                tr
+            );
+
+            const linhas =
+                Array.from(
+                    tbody.querySelectorAll(
+                        '.linha-item-pedido'
+                    )
+                );
+
+            const indiceLinhaAtual =
+                linhas.indexOf(
+                    tr
+                );
+
+            let proximaLinha =
+                linhas[
+                    indiceLinhaAtual + 1
+                ];
+
+            if(!proximaLinha){
+
+                proximaLinha =
+                    adicionarNovaLinha();
+
+            }
+
+            const campoProximoItem =
+                proximaLinha?.querySelector(
+                    '.campo-item-pesquisa'
+                );
+
+            setTimeout(
+                () => {
+
+                    campoProximoItem?.focus();
+
+                    campoProximoItem?.select();
+
+                },
+                0
+            );
+
+        }
+    );
+
+    campoQuantidade.addEventListener(
+        'keydown',
+        evento => {
+
+            if(
+                evento.key === 'Tab' &&
+                evento.shiftKey
+            ){
+
+                evento.preventDefault();
+
+                campoPesquisa.focus();
+
+                campoPesquisa.select();
+
+            }
+
+        }
+    );
+
+    botaoRemover?.addEventListener(
+        'click',
+        () => {
+
+            tr.remove();
+
+            atualizarTotais();
+
+            garantirLinhaInicial();
+
+        }
+    );
+
+}
+
+function exportarPedidoExcel(){
+
+    if(typeof XLSX === 'undefined'){
+
+        alert(
+            'A biblioteca de Excel não foi carregada.'
+        );
+
+        return;
+
+    }
+
+    const tableRows =
+        document.querySelectorAll(
+            '#dadosPedido tbody tr'
+        );
+
+    const requestBody = {
+        cnpj:
+            obterCNPJNumerico(
+                document.getElementById('cnpj')
+                    ?.value
+            ),
+
+        ie:
+            document.getElementById('ie')
+                ?.value || '',
+
+        representante:
+            document.getElementById('representante')
+                ?.value || '',
+
+        tipoPedido:
+            document.getElementById('tipo_pedido')
+                ?.value || '',
+
+        razaoSocial:
+            document.getElementById('razao_social')
+                ?.value || '',
+
+        codClienteTexto:
+            document.getElementById('cod_cliente')
+                ?.value || '',
+
+        endereco:
+            document.getElementById('endereco')
+                ?.value || '',
+
+        bairro:
+            document.getElementById('bairro')
+                ?.value || '',
+
+        cidade:
+            document.getElementById('cidade')
+                ?.value || '',
+
+        uf:
+            document.getElementById('uf')
+                ?.value || '',
+
+        cep:
+            document.getElementById('cep')
+                ?.value || '',
+
+        telefone:
+            document.getElementById('telefone')
+                ?.value || '',
+
+        email:
+            document.getElementById('email')
+                ?.value || '',
+
+        emailFiscal:
+            document.getElementById('email_fiscal')
+                ?.value || '',
+
+        condicaoPagamentoTexto:
+            document.getElementById('pay')
+                ?.value || '',
+
+        transporte:
+            document.getElementById('transp')
+                ?.value || '',
+
+        tabelaTexto:
+            document.getElementById('group')
+                ?.value || '',
+
+        formaPagamentoTexto:
+            document.getElementById('formPagDescricao')
+                ?.value || '',
+
+        ListaPrecoId:
+            Number(
+                document.getElementById('codgroup')
+                    ?.value || 0
+            ),
+
+        CondicaoPagamentoId:
+            Number(
+                document.getElementById('condPagId')
+                    ?.value || 0
+            ),
+
+        FormaPagamentoId:
+            Number(
+                document.getElementById('formPagId')
+                    ?.value || 0
+            ),
+
+        ClienteId:
+            Number(
+                document.getElementById('cod_cliente')
+                    ?.value || 0
+            ),
+
+        ContatoClienteId:
+            Number(
+                document.getElementById('ContatoClienteId')
+                    ?.value || 0
+            ),
+
+        NumeroReferencia:
+            document.getElementById('referencia')
+                ?.value || '',
+
+        Observacao:
+            document.getElementById('observation')
+                ?.value || ''
+    };
+
+    const itensExcel =
+    Array.from(tableRows)
+        .map(row => {
+
+            const codigo =
+                String(
+                    row.dataset.itemEmpresaId || ''
+                )
+                .trim();
+
+            const descricao =
+                String(
+                    row.dataset.descricao || ''
+                )
+                .trim();
+
+            const quantidade =
+                Number(
+                    String(
+                        row.querySelector(
+                            '.campo-quantidade-item'
+                        )
+                        ?.value || '0'
+                    )
+                    .replace(',', '.')
+                );
+
+
+            if(
+                !codigo ||
+                quantidade <= 0 ||
+                !descricao ||
+                !row.dataset.itemId
+            ){
+                return null;
+            }
+
+            return {
+                Codigo:
+                    codigo,
+
+                Quantidade:
+                    quantidade,
+
+                Unidade:
+                    row.querySelector(
+                        '.campo-unidade-item'
+                    )
+                    ?.value || '',
+
+                Descricao:
+                    descricao,
+
+                IPI:
+                    row.querySelector(
+                        '.campo-ipi-item'
+                    )
+                    ?.value || '',
+
+                PrecoUnitario:
+                    row.querySelector(
+                        '.campo-preco-unitario-item'
+                    )
+                    ?.value || '',
+
+                PrecoComIPI:
+                    row.querySelector(
+                        '.campo-preco-com-ipi-item'
+                    )
+                    ?.value || '',
+
+                Total:
+                    row.querySelector(
+                        '.campo-total-item'
+                    )
+                    ?.value || ''
+            };
+
+        })
+        .filter(Boolean);
+
+    if(itensExcel.length === 0){
+
+        alert(
+            'Não existem itens válidos para exportar.'
+        );
+
+        return;
+
+    }
+
+    const workbook =
+        XLSX.utils.book_new();
+
+    /*
+     * Aba Pedido.
+     */
+    const pedidoSheet =
+        XLSX.utils.json_to_sheet([
+            requestBody
+        ]);
+
+    XLSX.utils.book_append_sheet(
+        workbook,
+        pedidoSheet,
+        'Pedido'
+    );
+
+    /*
+     * Aba Itens.
+     */
+    const itensSheet =
+        XLSX.utils.json_to_sheet(
+            itensExcel
+        );
+
+    XLSX.utils.book_append_sheet(
+        workbook,
+        itensSheet,
+        'Itens'
+    );
+
+    /*
+     * Remove caracteres inválidos do nome do arquivo.
+     */
+    const nomeCliente =
+        String(
+            requestBody.razaoSocial ||
+            'Pedido'
+        )
+        .replace(/[\\/:*?"<>|]/g, '')
+        .trim();
+
+    const dataHora =
+        new Date()
+            .toISOString()
+            .replace(/[:.]/g, '-');
+
+    const nomeArquivo =
+        `${nomeCliente || 'Pedido'} - ${dataHora}.xlsx`;
+
+    XLSX.writeFile(
+        workbook,
+        nomeArquivo
+    );
+
+}
 
 
 
@@ -900,363 +3411,7 @@ const cancelButton = document.getElementById('cancelButton');
 const cnpjInput = document.getElementById('cnpj');
 const btPdfGeneration = document.getElementById('button_pdf');
 
-document.getElementById('baixarJson').addEventListener('click', () => {
 
-        // Captura as linhas da tabela
-        const tableRows = document.querySelectorAll('#dadosPedido tbody tr');
-
-        // Cria o array dinâmico para ItensPedidoVenda
-        const itensPedidoVenda = Array.from(tableRows)
-            .map(row => {
-                const cells = row.querySelectorAll('td input'); // Captura os inputs da linha
-
-                // Verifica se a linha tem dados válidos antes de adicioná-la
-                const itemId = row.dataset.itemId || 0;
-                const quantidade = Number(cells[1]?.value || 0); // Quantidade na segunda célula
-
-                // Só adiciona a linha se tiver um ItemId e Quantidade válidos
-                if (itemId > 0 && quantidade > 0) {
-                    return {
-                        ItemValorDesconto: 0,
-                        ItemPercentualDesconto: 0,
-
-                        EntregasItemPedidoVenda: [
-                            {
-                                Data: new Date().toISOString(),
-                                DataPrevista: new Date().toISOString(),
-                                Quantidade: quantidade,
-                            }
-                        ],
-
-                        ItemId: itemId,
-
-                        Codigo: cells[0]?.value || '',
-
-                        Quantidade: quantidade,
-                    };
-                }
-
-                return null; // Retorna null para linhas inválidas
-            })
-            .filter(item => item !== null); // Remove itens nulos do array
-
-        // Cria o corpo da requisição com base nos inputs
-        const requestBody = {
-
-    // =========================
-    // CLIENTE
-    // =========================
-    cnpj: document.getElementById('cnpj').value,
-    ie: document.getElementById('ie').value,
-    representante: document.getElementById('representante').value,
-    tipoPedido: document.getElementById('tipo_pedido').value,
-    razaoSocial: document.getElementById('razao_social').value,
-    codClienteTexto: document.getElementById('cod_cliente').value,
-    endereco: document.getElementById('endereco').value,
-    bairro: document.getElementById('bairro').value,
-    cidade: document.getElementById('cidade').value,
-    uf: document.getElementById('uf').value,
-    cep: document.getElementById('cep').value,
-    telefone: document.getElementById('telefone').value,
-    email: document.getElementById('email').value,
-    emailFiscal: document.getElementById('email_fiscal').value,
-    condicaoPagamentoTexto: document.getElementById('pay').value,
-    transporte: document.getElementById('transp').value,
-    tabelaTexto: document.getElementById('group').value,
-    formaPagamentoTexto: document.getElementById('formPagDescricao').value,
-
-    // =========================
-    // IDs SISTEMA
-    // =========================
-    ListaPrecoId: Number(document.getElementById('codgroup').value),
-    CondicaoPagamentoId: Number(document.getElementById('condPagId').value),
-    FormaPagamentoId: Number(document.getElementById('formPagId').value),
-
-    ValorDesconto: 0,
-    PercentualDesconto: 0,
-
-    ItensPedidoVenda: itensPedidoVenda,
-
-    RepresentantesPedidoVendas: [
-        {
-            RepresentanteId: Number(document.getElementById('representanteId').value),
-            RepresentantePrincipal: true,
-            PercentualComissaoItem: Number(document.getElementById('PercentualComissaoItem').value),
-            PercentualComissaoServico: Number(document.getElementById('PercentualComissaoServico').value),
-        }
-    ],
-
-    ClienteId: Number(document.getElementById('cod_cliente').value),
-
-    ContatoClienteId: Number(document.getElementById('ContatoClienteId').value || 0),
-
-    NumeroReferencia: document.getElementById('referencia').value,
-
-    Observacao: document.getElementById('observation').value,
-};
-
-   const workbook = XLSX.utils.book_new();
-
-// ======================
-// ABA PEDIDO
-// ======================
-
-const pedidoSheet = XLSX.utils.json_to_sheet([{
-    cnpj: requestBody.cnpj,
-    ie: requestBody.ie,
-    representante: requestBody.representante,
-    tipoPedido: requestBody.tipoPedido,
-    razaoSocial: requestBody.razaoSocial,
-    codClienteTexto: requestBody.codClienteTexto,
-    endereco: requestBody.endereco,
-    bairro: requestBody.bairro,
-    cidade: requestBody.cidade,
-    uf: requestBody.uf,
-    cep: requestBody.cep,
-    telefone: requestBody.telefone,
-    email: requestBody.email,
-    emailFiscal: requestBody.emailFiscal,
-    condicaoPagamentoTexto: requestBody.condicaoPagamentoTexto,
-    transporte: requestBody.transporte,
-    tabelaTexto: requestBody.tabelaTexto,
-    formaPagamentoTexto: requestBody.formaPagamentoTexto,
-    ListaPrecoId: requestBody.ListaPrecoId,
-    CondicaoPagamentoId: requestBody.CondicaoPagamentoId,
-    FormaPagamentoId: requestBody.FormaPagamentoId,
-    ClienteId: requestBody.ClienteId,
-    ContatoClienteId: requestBody.ContatoClienteId,
-    NumeroReferencia: requestBody.NumeroReferencia,
-    Observacao: requestBody.Observacao
-}]);
-
-XLSX.utils.book_append_sheet(
-    workbook,
-    pedidoSheet,
-    "Pedido"
-);
-// ======================
-// ABA ITENS
-// ======================
-
-const itensExcel = Array.from(tableRows)
-    .map(row => {
-
-        const cells = row.querySelectorAll('td input');
-
-        const quantidade =
-            Number(cells[1]?.value || 0);
-
-        const itemId =
-            row.dataset.itemId || 0;
-
-        if (itemId > 0 && quantidade > 0) {
-
-            return {
-                Codigo: cells[0]?.value || '',
-                Quantidade: quantidade,
-                Unidade: cells[2]?.value || '',
-                Descricao: cells[3]?.value || '',
-                IPI: cells[4]?.value || '',
-                PrecoUnitario: cells[5]?.value || '',
-                PrecoComIPI: cells[6]?.value || '',
-                Total: cells[7]?.value || ''
-            };
-        }
-
-        return null;
-
-    })
-    .filter(Boolean);
-
-const itensSheet =
-    XLSX.utils.json_to_sheet(itensExcel);
-
-XLSX.utils.book_append_sheet(
-    workbook,
-    itensSheet,
-    "Itens"
-);
-
-// DOWNLOAD
-
-const agora = new Date();
-
-const dataExportacao =
-    agora.toLocaleDateString('pt-BR') +
-    ' ' +
-    agora.toLocaleTimeString('pt-BR');
-const resumoSheet =
-    XLSX.utils.json_to_sheet([
-        {
-            DataExportacao: dataExportacao,
-            Cliente: requestBody.razaoSocial,
-            CodigoCliente: requestBody.codClienteTexto,
-            Representante: requestBody.representante,
-            TipoPedido: requestBody.tipoPedido,
-            Volumes: document.getElementById('volume').value,
-            TotalProdutos: document.getElementById('total').value,
-            TotalComIPI: document.getElementById('totalComIpi').value
-        }
-    ]);
-
-XLSX.utils.book_append_sheet(
-    workbook,
-    resumoSheet,
-    'Resumo'
-);
-XLSX.writeFile(
-    workbook,
-    `${requestBody.razaoSocial} ${document.getElementById('totalComIpi').value}.xlsx`
-);
-});
-
-
-
-//input via json
-
-const inputJsonButton = document.getElementById('inputJson');
-const jsonFileInput = document.getElementById('jsonFileInput');
-
-// abre seletor de arquivo ao clicar no botão
-inputJsonButton.addEventListener('click', () => {
-    jsonFileInput.click();
-});
-
-// Ao clicar no botão abre seletor de arquivo
-jsonFileInput.addEventListener('change', async (event) => {
-
-    const file = event.target.files[0];
-
-    if (!file) return;
-
-    try {
-
-        const data =
-    await file.arrayBuffer();
-
-const workbook =
-    XLSX.read(data, {
-        type: 'array'
-    });
-
-const pedido =
-    XLSX.utils.sheet_to_json(
-        workbook.Sheets['Pedido']
-    )[0];
-
-const itens =
-    XLSX.utils.sheet_to_json(
-        workbook.Sheets['Itens']
-    );
-
-const requestBody = {
-    ...pedido,
-    ItensPedidoVenda: itens
-};
-        // =========================
-        // CARREGA CLIENTE APENAS PELO CNPJ
-        // =========================
-
-        const cnpjInput =
-            document.getElementById('cnpj');
-
-        cnpjInput.value =
-            requestBody.cnpj || '';
-
-        // dispara o mesmo evento que ocorre
-        // quando o usuário informa o CNPJ manualmente
-
-        cnpjInput.dispatchEvent(
-            new Event('blur')
-        );
-        await new Promise(resolve => {
-
-            const verificar = setInterval(() => {
-
-                const clienteId =
-                    document.getElementById('cod_cliente').value;
-
-                if (clienteId) {
-
-                    clearInterval(verificar);
-                    resolve();
-
-                }
-
-            }, 100);
-
-        });
-        document.getElementById('referencia').value =
-            requestBody.NumeroReferencia || '';
-
-        document.getElementById('observation').value =
-            requestBody.Observacao || '';
-
-        // =========================
-        // LIMPA TABELA
-        // =========================
-
-        const tbody = document.querySelector('#dadosPedido tbody');
-        tbody.innerHTML = '';
-
-        // =========================
-        // PREENCHE ITENS
-        // =========================
-
-        for (const item of itens) {
-
-            adicionarNovaLinha();
-
-            const tr = tbody.lastElementChild;
-            const cells = tr.querySelectorAll('td input');
-
-            // ItemId
-            // tr.dataset.itemId = item.ItemId;
-
-           // Código do item
-                cells[0].value = item.Codigo;
-
-                // dispara blur primeiro
-                cells[0].dispatchEvent(new Event('blur'));
-
-                // espera carregar o item
-                await new Promise(resolve => {
-
-                    const verificar = setInterval(() => {
-
-                        // preço carregado e quantidade liberada
-                        if (cells[5]?.value && !cells[1].readOnly) {
-
-                            clearInterval(verificar);
-
-                            // AGORA define a quantidade
-                            cells[1].value = item.Quantidade;
-
-                            // dispara cálculo
-                            cells[1].dispatchEvent(new Event('input'));
-
-                            resolve();
-                        }
-
-                    }, 100);
-
-                });
-        }
-
-        atualizarTotais();
-
-        alert("Pedido carregado na tela com sucesso!");
-
-    } catch (error) {
-
-        console.error("Erro ao importar Pedido:", error);
-
-        alert("Erro ao processar o arquivo Pedido.");
-    } finally {
-
-        jsonFileInput.value = '';
-    }
-});
 
 // Função para abrir o modal
 btSistema.addEventListener("click", () => {
@@ -1296,35 +3451,74 @@ confirmButton.addEventListener("click", async () => {
         const tableRows = document.querySelectorAll('#dadosPedido tbody tr');
 
         // Cria o array dinâmico para ItensPedidoVenda
-        const itensPedidoVenda = Array.from(tableRows)
-            .map(row => {
-                const cells = row.querySelectorAll('td input'); // Captura os inputs da linha
+ 
+        const itensPedidoVenda =
+    Array.from(tableRows)
+        .map(row => {
 
-                // Verifica se a linha tem dados válidos antes de adicioná-la
-                const itemId = row.dataset.itemId || 0;
-                const quantidade = Number(cells[1]?.value || 0); // Quantidade na segunda célula
+            const itemId =
+                Number(
+                    row.dataset.itemId || 0
+                );
 
-                // Só adiciona a linha se tiver um ItemId e Quantidade válidos
-                if (itemId > 0 && quantidade > 0) {
-                    return {
-                        ItemValorDesconto: 0,
-                        ItemPercentualDesconto: 0,
-                        EntregasItemPedidoVenda: [
-                            {
-                                Data: new Date().toISOString(), 
-                                DataPrevista: new Date().toISOString(),
-                                Quantidade: quantidade,
-                            }
-                        ],
-                        ItemId: itemId,
-                        Codigo: cells[0]?.value || '',
-                        Quantidade: quantidade,
-                    };
-                }
+            const codigo =
+                String(
+                    row.dataset.itemEmpresaId || ''
+                )
+                .trim();
 
-                return null; // Retorna null para linhas inválidas
-            })
-            .filter(item => item !== null); // Remove itens nulos do array
+            const quantidade =
+                Number(
+                    String(
+                        row.querySelector(
+                            '.campo-quantidade-item'
+                        )
+                        ?.value || '0'
+                    )
+                    .replace(',', '.')
+                );
+
+            if(
+                itemId <= 0 ||
+                quantidade <= 0
+            ){
+                return null;
+            }
+
+            return {
+                ItemValorDesconto:
+                    0,
+
+                ItemPercentualDesconto:
+                    0,
+
+                EntregasItemPedidoVenda: [
+                    {
+                        Data:
+                            new Date()
+                                .toISOString(),
+
+                        DataPrevista:
+                            new Date()
+                                .toISOString(),
+
+                        Quantidade:
+                            quantidade
+                    }
+                ],
+
+                ItemId:
+                    itemId,
+
+                Codigo:
+                    codigo,
+
+                Quantidade:
+                    quantidade
+            };
+
+        })
+        .filter(Boolean);
 
         // Cria o corpo da requisição com base nos inputs
         const requestBody = {
@@ -1382,6 +3576,1355 @@ console.log('Itens:', itensPedidoVenda);
 }
 });
 
+function escaparHtml(valor){
+
+    return String(valor || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+
+}
+function iniciarBloqueioImportacao(
+    mensagem = 'Aguarde enquanto as informações são importadas.'
+){
+
+    const overlay =
+        document.getElementById(
+            'overlayImportacaoPedido'
+        );
+
+    const mensagemElemento =
+        document.getElementById(
+            'mensagemImportacaoPedido'
+        );
+
+    const progressoElemento =
+        document.getElementById(
+            'progressoImportacaoPedido'
+        );
+
+    if(mensagemElemento){
+
+        mensagemElemento.textContent =
+            mensagem;
+
+    }
+
+    if(progressoElemento){
+
+        progressoElemento.textContent =
+            '';
+
+    }
+
+    if(overlay){
+
+        overlay.classList.add(
+            'ativo'
+        );
+
+        overlay.setAttribute(
+            'aria-hidden',
+            'false'
+        );
+
+    }
+
+    document.body.classList.add(
+        'importando-pedido'
+    );
+
+}
+
+function atualizarProgressoImportacao(
+    mensagem
+){
+
+    const progressoElemento =
+        document.getElementById(
+            'progressoImportacaoPedido'
+        );
+
+    if(progressoElemento){
+
+        progressoElemento.textContent =
+            mensagem || '';
+
+    }
+
+}
+
+function finalizarBloqueioImportacao(){
+
+    const overlay =
+        document.getElementById(
+            'overlayImportacaoPedido'
+        );
+
+    if(overlay){
+
+        overlay.classList.remove(
+            'ativo'
+        );
+
+        overlay.setAttribute(
+            'aria-hidden',
+            'true'
+        );
+
+    }
+
+    document.body.classList.remove(
+        'importando-pedido'
+    );
+
+}
+async function importarPedidoExcel(event){
+    
+
+    const campoArquivo =
+        event.target;
+
+    const arquivo =
+        campoArquivo.files?.[0];
+
+    if(!arquivo){
+        return;
+    }
+
+    iniciarBloqueioImportacao(
+'Lendo o arquivo do pedido...'
+);
+
+    if(typeof XLSX === 'undefined'){
+        finalizarBloqueioImportacao()
+        alert(
+            'A biblioteca de Excel não foi carregada.'
+        );
+
+        campoArquivo.value =
+            '';
+
+        return;
+
+    }
+
+    try{
+
+        const dadosArquivo =
+            await arquivo.arrayBuffer();
+
+        const workbook =
+            XLSX.read(
+                dadosArquivo,
+                {
+                    type: 'array'
+                }
+            );
+
+        const planilhaPedido =
+            workbook.Sheets['Pedido'];
+
+        const planilhaItens =
+            workbook.Sheets['Itens'];
+
+        if(!planilhaPedido){
+
+            throw new Error(
+                'A planilha Pedido não foi encontrada.'
+            );
+
+        }
+
+        if(!planilhaItens){
+
+            throw new Error(
+                'A planilha Itens não foi encontrada.'
+            );
+
+        }
+
+        const pedido =
+            XLSX.utils.sheet_to_json(
+                planilhaPedido
+            )[0];
+
+        const itens =
+            XLSX.utils.sheet_to_json(
+                planilhaItens
+            );
+
+        if(!pedido){
+
+            throw new Error(
+                'A planilha Pedido está vazia.'
+            );
+
+        }
+
+        limparCamposCliente();
+        limparProdutos();
+
+        const campoCnpj =
+            document.getElementById(
+                'cnpj'
+            );
+
+        if(!campoCnpj){
+
+            throw new Error(
+                'Campo de CNPJ não encontrado.'
+            );
+
+        }
+
+        campoCnpj.value =
+            formatarCNPJ(
+                obterCNPJNumerico(
+                    pedido.cnpj
+                )
+            );
+        atualizarProgressoImportacao(
+    'Consultando os dados do cliente'
+    );
+        campoCnpj.dispatchEvent(
+            new Event(
+                'blur',
+                {
+                    bubbles: true
+                }
+            )
+        );
+
+        await aguardarClienteImportacao();
+
+        document
+            .getElementById(
+                'referencia'
+            )
+            .value =
+                pedido.NumeroReferencia || '';
+
+        document
+            .getElementById(
+                'observation'
+            )
+            .value =
+                pedido.Observacao || '';
+
+        const tbody =
+            document.querySelector(
+                '#dadosPedido tbody'
+            );
+
+        if(!tbody){
+
+            throw new Error(
+                'Tabela do pedido não encontrada.'
+            );
+
+        }
+
+        tbody.innerHTML =
+            '';
+
+        const itensRemovidos =
+            [];
+
+        const totalItens =
+            itens.length;
+
+        let indiceItem =
+            0;
+
+        for(const item of itens){
+            indiceItem++;
+            const codigoItem =
+                String(
+                    item.Codigo || ''
+                )
+                .trim()
+                .toUpperCase();
+
+            const quantidadeItem =
+                Number(
+                    item.Quantidade || 0
+                );
+
+            if(!codigoItem){
+
+                itensRemovidos.push({
+                    codigo:
+                        'Sem código',
+
+                    motivo:
+                        'Código não informado.'
+                });
+
+                continue;
+
+            }
+
+            adicionarNovaLinha();
+
+            const linha =
+                tbody.lastElementChild;
+
+            if(!linha){
+
+                itensRemovidos.push({
+                    codigo:
+                        codigoItem,
+
+                    motivo:
+                        'Não foi possível criar a linha.'
+                });
+
+                continue;
+
+            }
+
+            const campoCodigo =
+                linha.querySelector(
+                    '.campo-item-pesquisa'
+                );
+
+            const campoQuantidade =
+                linha.querySelector(
+                    '.campo-quantidade-item'
+                );
+
+            if(
+                !campoCodigo ||
+                !campoQuantidade
+            ){
+
+                itensRemovidos.push({
+                    codigo:
+                        codigoItem,
+
+                    motivo:
+                        'A estrutura da linha está incompleta.'
+                });
+
+                linha.remove();
+
+                continue;
+
+            }
+
+            const resultadoPendente =
+                aguardarCarregamentoItem(
+                    linha
+                );
+
+            campoCodigo.value =
+                codigoItem;
+
+            campoCodigo.dispatchEvent(
+                new Event(
+                    'blur',
+                    {
+                        bubbles: true
+                    }
+                )
+            );
+
+            const resultado =
+                await resultadoPendente;
+
+            if(!resultado.sucesso){
+
+                itensRemovidos.push({
+                    codigo:
+                        codigoItem,
+
+                    motivo:
+                        resultado.mensagem ||
+                        'Item suspenso, inativo ou indisponível.'
+                });
+
+                linha.remove();
+
+                continue;
+
+            }
+
+            if(!linha.isConnected){
+
+                itensRemovidos.push({
+                    codigo:
+                        codigoItem,
+
+                    motivo:
+                        'A linha foi removida durante o carregamento.'
+                });
+
+                continue;
+
+            }
+
+            campoQuantidade.value =
+                String(
+                    quantidadeItem
+                );
+
+            campoQuantidade.dispatchEvent(
+                new Event(
+                    'input',
+                    {
+                        bubbles: true
+                    }
+                )
+            );
+
+        }
+
+        const linhasRestantes =
+    tbody.querySelectorAll(
+        'tr'
+    );
+
+linhasRestantes.forEach(linha => {
+
+    const codigo =
+        String(
+            linha.dataset.itemEmpresaId || ''
+        )
+        .trim();
+
+    const descricao =
+        String(
+            linha.dataset.descricao || ''
+        )
+        .trim();
+
+    const quantidade =
+        Number(
+            String(
+                linha.querySelector(
+                    '.campo-quantidade-item'
+                )
+                ?.value || '0'
+            )
+            .replace(',', '.')
+        );
+
+    const preco =
+        Number(
+            linha.dataset.preco || 0
+        );
+
+    const linhaInvalida =
+        !codigo ||
+        !Number.isFinite(quantidade) ||
+        quantidade <= 0 ||
+        !descricao ||
+        !Number.isFinite(preco) ||
+        preco <= 0 ||
+        !linha.dataset.itemId;
+
+    if(linhaInvalida){
+
+        const codigoRemovido =
+            codigo ||
+            'Sem código';
+
+        const jaRegistrado =
+            itensRemovidos.some(item => {
+
+                return (
+                    item.codigo ===
+                    codigoRemovido
+                );
+
+            });
+
+        if(!jaRegistrado){
+
+            itensRemovidos.push({
+                codigo:
+                    codigoRemovido,
+
+                motivo:
+                    'Item não pôde ser carregado.'
+            });
+
+        }
+
+        linha.remove();
+
+    }
+
+});
+
+        atualizarTotais();
+
+        if(!tbody.querySelector('tr')){
+
+            adicionarNovaLinha();
+
+        }
+
+        if(itensRemovidos.length > 0){
+
+            const detalhes =
+                itensRemovidos
+                    .map(item => {
+
+                        return (
+                            `${item.codigo}: ` +
+                            `${item.motivo}`
+                        );
+
+                    })
+                    .join('\n');
+
+            alert(
+                'Pedido importado. Os itens abaixo foram removidos:\n\n' +
+                detalhes
+            );
+
+        }else{
+
+            alert(
+                'Pedido carregado na tela com sucesso.'
+            );
+
+        }
+
+    }catch(error){
+
+        console.error(
+            'Erro ao importar pedido:',
+            error
+        );
+
+        alert(
+            error.message ||
+            'Erro ao processar o arquivo do pedido.'
+        );
+
+    }finally{
+        finalizarBloqueioImportacao();
+        campoArquivo.value =
+            '';
+
+    }
+
+}
+
+function verificarCodigoDuplicadoNaTabela(
+    codigo,
+    linhaAtual
+){
+
+    const codigoNormalizado =
+        normalizarCodigoItem(
+            codigo
+        );
+
+    const linhas =
+        document.querySelectorAll(
+            '#dadosPedido tbody .linha-item-pedido'
+        );
+
+    for(const tr of linhas){
+
+        if(tr === linhaAtual){
+            continue;
+        }
+
+        const codigoLinha =
+            normalizarCodigoItem(
+                tr.dataset.itemEmpresaId
+            );
+
+        if(
+            codigoLinha ===
+            codigoNormalizado
+        ){
+
+            return true;
+
+        }
+
+    }
+
+    return false;
+
+}
+
+function aguardarClienteImportacao(
+    tempoLimite = 120000
+){
+
+    return new Promise(
+        (resolve, reject) => {
+
+            const inicio =
+                Date.now();
+
+            const verificar =
+                setInterval(
+                    () => {
+
+                        const clienteId =
+                            document
+                                .getElementById(
+                                    'cod_cliente'
+                                )
+                                ?.value;
+
+                        if(
+                            clienteId &&
+                            catalogoClienteCarregado &&
+                            !catalogoClienteCarregando
+                        ){
+
+                            clearInterval(
+                                verificar
+                            );
+
+                            resolve();
+
+                            return;
+
+                        }
+
+                        if(
+                            Date.now() - inicio >=
+                            tempoLimite
+                        ){
+
+                            clearInterval(
+                                verificar
+                            );
+
+                            reject(
+                                new Error(
+                                    'Não foi possível carregar o cliente e o catálogo de produtos.'
+                                )
+                            );
+
+                        }
+
+                    },
+                    200
+                );
+
+        }
+    );
+
+}
+
+document.addEventListener(
+    'DOMContentLoaded',
+    () => {
+        configurarMascaraCNPJ();
+        const botaoExportarPedido =
+            document.getElementById(
+                'baixarJson'
+            );
+
+        const botaoImportarPedido =
+            document.getElementById(
+                'inputJson'
+            );
+
+        const campoArquivoPedido =
+            document.getElementById(
+                'jsonFileInput'
+            );
+
+        if(!botaoExportarPedido){
+
+            console.error(
+                'Botão #baixarJson não encontrado.'
+            );
+
+        }
+
+        if(!botaoImportarPedido){
+
+            console.error(
+                'Botão #inputJson não encontrado.'
+            );
+
+        }
+
+        if(!campoArquivoPedido){
+
+            console.error(
+                'Campo #jsonFileInput não encontrado.'
+            );
+
+        }
+
+        botaoExportarPedido?.addEventListener(
+            'click',
+            exportarPedidoExcel
+        );
+
+        botaoImportarPedido?.addEventListener(
+            'click',
+            () => {
+
+                campoArquivoPedido.value =
+                    '';
+
+                campoArquivoPedido.click();
+
+            }
+        );
+
+        campoArquivoPedido?.addEventListener(
+            'change',
+            importarPedidoExcel
+        );
+
+    }
+);
+
+function baixarBlob(blob, fileName){
+
+    const pdfURL =
+        URL.createObjectURL(
+            blob
+        );
+
+    const a =
+        document.createElement(
+            'a'
+        );
+
+    a.href =
+        pdfURL;
+
+    a.download =
+        fileName;
+
+    document.body.appendChild(
+        a
+    );
+
+    a.click();
+
+    document.body.removeChild(
+        a
+    );
+
+    URL.revokeObjectURL(
+        pdfURL
+    );
+
+}
+
+function blobParaDataUri(blob){
+
+    return new Promise((resolve, reject) => {
+
+        const reader =
+            new FileReader();
+
+        reader.onloadend =
+            () => resolve(
+                reader.result
+            );
+
+        reader.onerror =
+            reject;
+
+        reader.readAsDataURL(
+            blob
+        );
+
+    });
+
+}
+
+function prepararPedidoParaPdf(){
+
+    const containerOriginal =
+        document.querySelector(
+            '.container'
+        );
+
+    if(!containerOriginal){
+
+        throw new Error(
+            'O conteúdo do pedido não foi encontrado.'
+        );
+
+    }
+
+    const clone =
+        containerOriginal.cloneNode(
+            true
+        );
+
+        clone.classList.add(
+            'container-pdf'
+        );
+
+        clone.classList.add(
+            'layout-pdf-desktop'
+        );
+    /*
+     * Copia os valores atuais dos inputs,
+     * selects e textareas para o clone.
+     */
+    const camposOriginais =
+        containerOriginal.querySelectorAll(
+            'input, textarea, select'
+        );
+
+    const camposClone =
+        clone.querySelectorAll(
+            'input, textarea, select'
+        );
+
+    camposOriginais.forEach(
+        (
+            campoOriginal,
+            indice
+        ) => {
+
+            const campoClone =
+                camposClone[indice];
+
+            if(!campoClone){
+                return;
+            }
+
+            if(
+                campoOriginal.type === 'checkbox' ||
+                campoOriginal.type === 'radio'
+            ){
+
+                campoClone.checked =
+                    campoOriginal.checked;
+
+                return;
+
+            }
+
+            campoClone.value =
+                campoOriginal.value;
+
+            campoClone.setAttribute(
+                'value',
+                campoOriginal.value
+            );
+
+            if(campoOriginal.tagName === 'TEXTAREA'){
+
+                campoClone.textContent =
+                    campoOriginal.value;
+
+                campoClone.style.whiteSpace =
+                    'pre-wrap';
+
+            }
+
+            if(campoOriginal.tagName === 'SELECT'){
+
+                campoClone.selectedIndex =
+                    campoOriginal.selectedIndex;
+
+                Array.from(
+                    campoClone.options
+                )
+                .forEach(
+                    (
+                        opcao,
+                        indiceOpcao
+                    ) => {
+
+                        opcao.selected =
+                            indiceOpcao ===
+                            campoOriginal.selectedIndex;
+
+                    }
+                );
+
+            }
+
+        }
+    );
+
+    /*
+     * Remove apenas elementos de interação
+     * que não devem aparecer no PDF.
+     */
+    clone
+        .querySelectorAll([
+            '.no-print',
+            '.button-group',
+            '.btn-remover-linha',
+            '.celula-excluir-item',
+            '.cabecalho-excluir-item',
+            '.cabecalho-item-id',
+            '.esconder',
+            '#esconder',
+            '[hidden]',
+            'input[type="hidden"]',
+            '#helpContainer',
+            '#overlay',
+            '#overlayImportacaoPedido',
+            '#helpModal',
+            '#customModal',
+            '#customModal1',
+            '#blockModal',
+            '.modal',
+            '.modal1',
+            '.overlay',
+            '.overlay-importacao-pedido',
+            '#baixarJson',
+            '#inputJson',
+            '#jsonFileInput',
+            '#feedback1',
+            '#excluirLinha',
+            '#adicionarLinha',
+            '#button_pdf',
+            '#button_sistema'
+        ].join(','))
+        .forEach(elemento => {
+
+            elemento.remove();
+
+        });
+
+    /*
+     * Remove colunas técnicas da tabela.
+     */
+    const tabela =
+        clone.querySelector(
+            '#dadosPedido'
+        );
+
+    if(tabela){
+
+        const cabecalhos =
+            Array.from(
+                tabela.querySelectorAll(
+                    'thead th'
+                )
+            );
+
+        const indicesRemover =
+            cabecalhos
+                .map(
+                    (
+                        cabecalho,
+                        indice
+                    ) => {
+
+                        const texto =
+                            String(
+                                cabecalho.textContent || ''
+                            )
+                            .trim()
+                            .toLowerCase();
+
+                        if(
+                            texto === 'excluir' ||
+                            texto === 'itemid' ||
+                            texto === 'item id'
+                        ){
+
+                            return indice;
+
+                        }
+
+                        return -1;
+
+                    }
+                )
+                .filter(indice => {
+
+                    return indice >= 0;
+
+                })
+                .sort(
+                    (
+                        primeiro,
+                        segundo
+                    ) => {
+
+                        return segundo - primeiro;
+
+                    }
+                );
+
+        indicesRemover.forEach(indice => {
+
+            tabela
+                .querySelectorAll(
+                    'tr'
+                )
+                .forEach(linha => {
+
+                    const celula =
+                        linha.children[indice];
+
+                    if(celula){
+
+                        celula.remove();
+
+                    }
+
+                });
+
+        });
+
+    }
+
+    /*
+     * Remove somente linhas vazias.
+     */
+    clone
+        .querySelectorAll(
+            '#dadosPedido tbody tr'
+        )
+        .forEach(linha => {
+
+            const campoItem =
+                linha.querySelector(
+                    '.campo-item-pesquisa'
+                );
+
+            if(
+                !campoItem ||
+                !String(
+                    campoItem.value || ''
+                ).trim()
+            ){
+
+                linha.remove();
+
+            }
+
+        });
+
+    /*
+     * Mantém a mesma largura visual que o site
+     * apresenta no momento da geração.
+     */
+
+    const larguraPadraoPdf =
+        1120;
+
+    clone.style.setProperty(
+        'width',
+        `${larguraPadraoPdf}px`,
+        'important'
+    );
+
+    clone.style.setProperty(
+        'min-width',
+        `${larguraPadraoPdf}px`,
+        'important'
+    );
+
+    clone.style.setProperty(
+        'max-width',
+        `${larguraPadraoPdf}px`,
+        'important'
+    );
+
+    clone.style.setProperty(
+        'position',
+        'absolute',
+        'important'
+    );
+
+    clone.style.setProperty(
+        'top',
+        '0',
+        'important'
+    );
+
+    clone.style.setProperty(
+        'left',
+        '0',
+        'important'
+    );
+
+    clone.style.setProperty(
+        'margin',
+        '0',
+        'important'
+    );
+
+    clone.style.setProperty(
+        'display',
+        'block',
+        'important'
+    );
+
+    clone.style.setProperty(
+        'visibility',
+        'visible',
+        'important'
+    );
+
+    clone.style.setProperty(
+        'opacity',
+        '1',
+        'important'
+    );
+
+    clone.style.setProperty(
+        'overflow',
+        'visible',
+        'important'
+    );
+
+    clone.style.setProperty(
+        'transform',
+        'none',
+        'important'
+    );
+
+    clone.style.setProperty(
+        'z-index',
+        '999999',
+        'important'
+    );
+
+    clone.style.setProperty(
+        'pointer-events',
+        'none',
+        'important'
+    );
+
+    /*
+ * Substitui somente a observação no clone.
+ * O div preserva as quebras feitas com Enter.
+ */
+const observacaoOriginal =
+    containerOriginal.querySelector(
+        '#observation'
+    );
+
+const observacaoClone =
+    clone.querySelector(
+        '#observation'
+    );
+
+    if(
+        observacaoOriginal &&
+        observacaoClone
+    ){
+
+        const observacaoPdf =
+            document.createElement(
+                'div'
+            );
+
+        observacaoPdf.id =
+            'observation-pdf';
+
+        observacaoPdf.className =
+            'observacao-pdf';
+
+        observacaoPdf.textContent =
+            observacaoOriginal.value ||
+            '';
+
+        observacaoClone.replaceWith(
+            observacaoPdf
+        );
+
+    }
+
+    document.body.appendChild(
+        clone
+    );
+
+    return clone;
+
+}
+
+function converterTextoColadoEmItens(texto) {
+    return String(texto || '')
+        .split(/\r?\n/)
+        .map((linha) => {
+            const colunas = linha
+                .split(/\t|;/)
+                .map((valor) => {
+                    return String(valor || '').trim();
+                });
+
+            return {
+                codigo: colunas[0] || '',
+                quantidade: Number(
+                    String(colunas[1] || '0')
+                        .replace(',', '.')
+                )
+            };
+        })
+        .filter((item) => {
+            return item.codigo &&
+                Number.isFinite(item.quantidade) &&
+                item.quantidade > 0;
+        });
+}
+
+async function adicionarItemColado(
+    codigo,
+    quantidade
+) {
+    const codigoNormalizado =
+        normalizarCodigoItem(
+            codigo
+        );
+
+    const item =
+        buscarItemNoCatalogo(
+            codigoNormalizado
+        );
+
+    validarDisponibilidadeItem(
+        item
+    );
+
+    if (
+        verificarCodigoDuplicadoNaTabela(
+            codigoNormalizado,
+            null
+        )
+    ) {
+        throw new Error(
+            'O item já está no pedido.'
+        );
+    }
+
+    const linha =
+        adicionarNovaLinha();
+
+    preencherLinhaComItem(
+        linha,
+        item
+    );
+
+    const campoQuantidade =
+        linha.querySelector(
+            '.campo-quantidade-item'
+        );
+
+    campoQuantidade.value =
+        String(quantidade);
+
+    campoQuantidade.dispatchEvent(
+        new Event(
+            'input',
+            {
+                bubbles: true
+            }
+        )
+    );
+
+    return linha;
+}
+
+async function importarListaColada() {
+    const campoLista =
+        document.getElementById(
+            'listaItensColada'
+        );
+
+    if (!campoLista) {
+        return;
+    }
+
+    if (!catalogoClienteCarregado) {
+        alert(
+            'Carregue o cliente antes de colar os itens.'
+        );
+
+        return;
+    }
+
+    const itens =
+        converterTextoColadoEmItens(
+            campoLista.value
+        );
+
+    if (itens.length === 0) {
+        alert(
+            'Nenhum código e quantidade válidos foram encontrados.'
+        );
+
+        return;
+    }
+
+    const itensComErro = [];
+    let itensAdicionados = 0;
+
+    iniciarBloqueioImportacao(
+        'Adicionando itens colados...'
+    );
+
+    try {
+        for (
+            let indice = 0;
+            indice < itens.length;
+            indice += 1
+        ) {
+            const item = itens[indice];
+
+            atualizarProgressoImportacao(
+                `Processando ${indice + 1} de ${itens.length}`
+            );
+
+            try {
+                await adicionarItemColado(
+                    item.codigo,
+                    item.quantidade
+                );
+
+                itensAdicionados += 1;
+            } catch (error) {
+                itensComErro.push({
+                    codigo: item.codigo,
+                    motivo:
+                        error.message ||
+                        'Item não carregado.'
+                });
+            }
+        }
+
+        atualizarTotais();
+
+        campoLista.value = '';
+
+        let mensagem =
+            `${itensAdicionados} itens adicionados.`;
+
+        if (itensComErro.length > 0) {
+            const detalhes = itensComErro
+                .map((item) => {
+                    return `${item.codigo}: ${item.motivo}`;
+                })
+                .join('\n');
+
+            mensagem +=
+                '\n\nItens não adicionados:\n' +
+                detalhes;
+        }
+
+        alert(
+            mensagem
+        );
+    } finally {
+        finalizarBloqueioImportacao();
+    }
+}
+
 //--fim-----envio de dados para o sistema DBCorp------------------------------------------------------------
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -1394,154 +4937,246 @@ document.addEventListener("DOMContentLoaded", () => {
     const helpWhats = document.getElementById('helpContainer');
     const feedbackDiv = document.getElementById('feedback1');
     const cnpjInput = document.getElementById('cnpj');
+    const botaoImportarLista =
+        document.getElementById(
+            'importarListaColada'
+        );
 
-    async function gerarEEnviarPDF() {
-        console.log('Botão de PDF clicado');
+    botaoImportarLista?.addEventListener(
+        'click',
+        importarListaColada
+    );
+async function gerarEEnviarPDF(){
 
-        // Validação das linhas da tabela
-        let itemsToCheck = [];
-        const tableRows = document.querySelectorAll('#dadosPedido tbody tr');
+    console.log(
+        'Botão de PDF clicado'
+    );
 
-        // Verifica cada linha da tabela
-        for (const row of tableRows) {
-            // Garante que a linha tenha células e pelo menos 9 colunas (índices 0 a 8)
-            if (row.cells.length >= 9) {
-                const cell0 = row.cells[0];
-                const cell1 = row.cells[1];
-                const cell8 = row.cells[8];
+    const razaoSocial =
+        document.getElementById(
+            'razao_social'
+        ).value;
 
-                // Verifica se os inputs existem antes de acessá-los
-                const input0 = cell0.querySelector('input');
-                const input1 = cell1.querySelector('input');
-                const input8 = cell8.querySelector('input');
+    const codCliente =
+        document.getElementById(
+            'cod_cliente'
+        ).value;
 
-                if (input0 && input1 && input8) {
-                    const code = parseInt(input0.value);
-                    const quantity = input1.value;
-                    const total = input8.value;
+    const representante =
+        document.getElementById(
+            'representante'
+        ).value;
 
-                    // Verifica se o código é maior que 0 e se a quantidade é 0 ou o total está vazio
-                    if (!isNaN(code) && code > 0 && (quantity === '0' || total === '')) {
-                        itemsToCheck.push(input0.value);
-                    }
-                }
-            }
+    const emailRep =
+        document.getElementById(
+            'email_rep'
+        ).value;
+
+    const dataHora =
+        new Date()
+            .toISOString()
+            .replace(
+                /[:.]/g,
+                '-'
+            );
+
+    const filename =
+        `Pedido de Venda ${razaoSocial} - ${codCliente} e Rep ${representante} - ${dataHora}.pdf`;
+
+    let pdfBlob =
+        null;
+
+    let clonePdf =
+        null;
+
+    try{
+
+        btPdfGeneration.disabled =
+            true;
+
+        feedbackDiv.textContent =
+            'Gerando PDF, aguarde...';
+
+        feedbackDiv.style.display =
+            'block';
+
+        clonePdf =
+            prepararPedidoParaPdf();
+
+        pdfBlob =
+            await gerarPdfNoNavegador(
+                clonePdf,
+                filename
+            );
+
+        baixarBlob(
+            pdfBlob,
+            filename
+        );
+
+        alert(
+            'PDF criado e salvo nos downloads.'
+        );
+
+        if(!modal1){
+
+            throw new Error(
+                'Modal de confirmação não encontrado.'
+            );
+
         }
 
-        // Se houver itens problemáticos, exibe o alerta e interrompe o processo
-        if (itemsToCheck.length > 0) {
-            const message = "Por favor, digite a quantidade dos seguintes itens: " + itemsToCheck.join(', ');
-            alert(message);
-            return;
-        }
+        modal1.style.display =
+            'block';
 
-        const elementsToHide = document.querySelectorAll('.no-print');
-        const elementsToHide1 = document.querySelectorAll('.button-group');
+        const fecharModal =
+            () => {
 
-        elementsToHide.forEach(el => el.style.display = 'none');
-        elementsToHide1.forEach(el1 => el1.style.display = 'none');
-        helpWhats.style.display = 'none';
+                modal1.style.display =
+                    'none';
 
-        const content = document.querySelector('.container');
-        const razaoSocial = document.getElementById('razao_social').value;
-        const codCliente = document.getElementById('cod_cliente').value;
-        const representante = document.getElementById('representante').value;
-        const emailRep = document.getElementById('email_rep').value;
-
-        const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-        const filename = `Pedido de Venda ${razaoSocial} - ${codCliente} e Rep ${representante} - ${timestamp}.pdf`;
-        const options = {
-            margin: [0, 0, 0, 0],
-            filename: filename,
-            html2canvas: { scale: 2 },
-            jsPDF: { unit: "mm", format: "a4", orientation: "landscape" },
-            pagebreak: {
-                mode: ['css', 'legacy']
-            }
-        };
-
-        try {
-            btPdfGeneration.disabled = true;
-            console.log('Iniciando geração do PDF...');
-
-            const pdfBlob = await html2pdf().set(options).from(content).output('blob');
-            const pdfURL = URL.createObjectURL(pdfBlob);
-            const a = document.createElement('a');
-            a.href = pdfURL;
-            a.download = filename;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            console.log('PDF baixado com sucesso.');
-            alert('PDF criado e salvo nos downloads.');
-
-            if (!modal1) {
-                throw new Error('Modal1 não encontrado no DOM.');
-            }
-            console.log('Exibindo modal de confirmação...');
-            modal1.style.display = "block";
-
-            function fecharModal() {
-                console.log('Fechando modal...');
-                modal1.style.display = "none";
-                elementsToHide.forEach(el => el.style.display = 'block');
-                elementsToHide1.forEach(el1 => el1.style.display = 'flex');
-                helpWhats.style.display = 'block';
-            }
-
-            closeButton1.onclick = fecharModal;
-            cancelButton1.onclick = fecharModal;
-
-            const currentConfirmButton = document.getElementById('confirmButton1');
-            currentConfirmButton.onclick = async () => {
-                console.log('Confirmação de envio clicada.');
-                modal1.style.display = "none";
-                feedbackDiv.textContent = 'Aguarde, estamos enviando o e-mail...';
-                feedbackDiv.style.display = 'block';
-                helpWhats.style.display = 'none';
-                elementsToHide.forEach(el => el.style.display = 'none');
-                cnpjInput.readOnly = true;
-
-                try {
-                    // Oculta a mensagem de feedback antes de gerar o PDF para envio
-                    feedbackDiv.style.display = 'none';
-                    
-                    // Reexibe os elementos antes de gerar o PDF para envio
-                    elementsToHide1.forEach(el1 => el1.style.display = 'none');
-
-                    const pdfBase64 = await html2pdf().set(options).from(content).outputPdf('datauristring');
-                    console.log('PDF gerado para envio, iniciando requisição...');
-
-                    const response = await fetch('/send-pdf', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ pdfBase64, razaoSocial, codCliente, representante, emailRep })
-                    });
-
-                    const result = await response.text();
-                    console.log('Resposta do servidor:', result);
-                    alert(result);
-                } catch (error) {
-                    console.error('Erro ao enviar o e-mail:', error);
-                    alert('Erro ao enviar o e-mail.');
-                } finally {
-                    // Agora restauramos a visibilidade de todos os elementos, incluindo elementsToHide1 e feedbackDiv
-                    feedbackDiv.style.display = 'none';
-                    elementsToHide.forEach(el => el.style.display = 'block');
-                    elementsToHide1.forEach(el1 => el1.style.display = 'flex');
-                    helpWhats.style.display = 'block';
-                }
             };
-        } catch (error) {
-            console.error('Erro ao salvar ou enviar o PDF:', error);
-            alert('Erro no processo: ' + error.message);
-        } finally {
-            btPdfGeneration.disabled = false;
-            elementsToHide.forEach(el => el.style.display = 'block');
-            elementsToHide1.forEach(el1 => el1.style.display = 'flex');
-            helpWhats.style.display = 'block';
+
+        if(closeButton1){
+
+            closeButton1.onclick =
+                fecharModal;
+
         }
+
+        if(cancelButton1){
+
+            cancelButton1.onclick =
+                fecharModal;
+
+        }
+
+        const botaoConfirmar =
+            document.getElementById(
+                'confirmButton1'
+            );
+
+        if(botaoConfirmar){
+
+            botaoConfirmar.onclick =
+                async () => {
+
+                    modal1.style.display =
+                        'none';
+
+                    feedbackDiv.textContent =
+                        'Aguarde, enviando o e-mail...';
+
+                    feedbackDiv.style.display =
+                        'block';
+
+                    try{
+
+                        const pdfBase64 =
+                            await blobParaDataUri(
+                                pdfBlob
+                            );
+
+                        const response =
+                            await fetch(
+                                '/send-pdf',
+                                {
+                                    method:
+                                        'POST',
+
+                                    headers: {
+                                        'Content-Type':
+                                            'application/json'
+                                    },
+
+                                    body:
+                                        JSON.stringify({
+                                            pdfBase64:
+                                                pdfBase64,
+
+                                            razaoSocial:
+                                                razaoSocial,
+
+                                            codCliente:
+                                                codCliente,
+
+                                            representante:
+                                                representante,
+
+                                            emailRep:
+                                                emailRep
+                                        })
+                                }
+                            );
+
+                        const resultado =
+                            await response.text();
+
+                        if(!response.ok){
+
+                            throw new Error(
+                                resultado ||
+                                'Erro ao enviar o PDF.'
+                            );
+
+                        }
+
+                        alert(
+                            resultado
+                        );
+
+                    }catch(error){
+
+                        console.error(
+                            'Erro ao enviar o e-mail:',
+                            error
+                        );
+
+                        alert(
+                            error.message ||
+                            'Erro ao enviar o e-mail.'
+                        );
+
+                    }finally{
+
+                        feedbackDiv.style.display =
+                            'none';
+
+                    }
+
+                };
+
+        }
+
+    }catch(error){
+
+        console.error(
+            'Erro ao gerar o PDF:',
+            error
+        );
+
+        alert(
+            'Erro no processo: ' +
+            error.message
+        );
+
+    }finally{
+
+        if(clonePdf){
+
+            clonePdf.remove();
+
+        }
+
+        feedbackDiv.style.display =
+            'none';
+
+        btPdfGeneration.disabled =
+            false;
+
     }
+
+}
 
     function resetForm(excludeCnpj = false) {
         if (cnpjInput.readOnly) {
@@ -1568,7 +5203,17 @@ document.addEventListener("DOMContentLoaded", () => {
         // Limpa os campos de totais ("VOLUMES", "TOTAL PRODUTOS", "TOTAL C/IMP")
         document.getElementById('volume').value = '';
         document.getElementById('total').value = '';
-        document.getElementById('total_imp').value = '';
+        const campoTotalComIpi =
+            document.getElementById(
+                'totalComIpi'
+            );
+
+        if(campoTotalComIpi){
+
+            campoTotalComIpi.value =
+                '';
+
+        }
 
         // Limpa o campo de observações
         document.getElementById('observation').value = '';

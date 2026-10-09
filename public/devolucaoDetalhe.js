@@ -36,7 +36,7 @@ function exportarDetalheExcel() {
     }
 
     const dev = devolucaoAtual;
-
+    
     let csv = [];
 
     // ===== DADOS GERAIS =====
@@ -61,8 +61,11 @@ function exportarDetalheExcel() {
         "Quantidade",
         "UV",
         "Descrição",
+        "Preço Unitário",
+        "IPI",
         "Preço Unitário com IPI",
-        "Total"
+        "Total",
+        "Total Ipi"
     ]);
 
     dev.produtos.forEach(p => {
@@ -71,21 +74,25 @@ function exportarDetalheExcel() {
             p.data,
             p.codigoItem,
             p.lote,
-            p.quantidade,
+            p.quantidade.replaceAll(".",","),
             p.uv,
             p.descricao,
-            p.precoUnitario,
-            p.total
+            p.precoUnitario.replaceAll(".",","),
+            p.ipi.replaceAll(".",","),
+            p.precoUnitarioIPI.replaceAll(".",","),
+            p.total.replaceAll(".",","),
+            p.totalIpi.replaceAll(".",",")
         ]);
     });
 
     // ===== TOTAIS =====
-    const { totalVolumes, totalValor } = calcularTotais(dev.produtos);
+    const { totalVolumes, totalValor, totalValorIpi } = calcularTotais(dev.produtos);
 
     csv.push([]);
     csv.push(["Totais"]);
     csv.push(["Total Volumes", totalVolumes]);
     csv.push(["Total R$", totalValor]);
+    csv.push(["Total R$ com IPI", totalValorIpi]);
 
     // ===== CONVERTE CSV =====
     const conteudo = csv.map(linha => linha.join(";")).join("\n");
@@ -106,28 +113,33 @@ function exportarDetalheExcel() {
 function calcularTotais(produtos) {
     let totalVolumes = 0;
     let totalValor = 0;
+    let totalValorIpi = 0;
 
     produtos.forEach(p => {
         const qtd = parseFloat(p.quantidade) || 0;
         const total = parseFloat(p.total) || 0;
+        const totalIpi = parseFloat(p.totalIpi) || 0;
 
         totalVolumes += qtd;
         totalValor += total;
+        totalValorIpi += totalIpi
     });
     return {
         totalVolumes,
-        totalValor
+        totalValor,
+        totalValorIpi
     };
 }
 
 function renderizarResumo(produtos) {
-    const { totalVolumes, totalValor } = calcularTotais(produtos);
+    const { totalVolumes, totalValor, totalValorIpi} = calcularTotais(produtos);
 
     const container = document.getElementById('resumoTotais');
 
     container.innerHTML = `
         <div><b>Total de Volumes:</b> ${totalVolumes}</div>
         <div><b>Total em R$:</b> ${formatarMoeda(totalValor)}</div>
+        <div><b>Total em R$:</b> ${formatarMoeda(totalValorIpi)}</div>
     `;
 }
 
@@ -154,12 +166,14 @@ function renderizarDados(dev) {
     `;
 }
 
-function renderizarProdutos(produtos) {
+function renderizarProdutos(produtos) 
+{
+    
     const tbody = document.getElementById('tabelaProdutos');
     tbody.innerHTML = '';
     produtos.forEach(p => {
         const tr = document.createElement('tr');
-
+        console.log(p);
         tr.innerHTML = `
             <td>${p.nfOrigem}</td>
             <td>${formatarProdData(p.ProdData)}</td>
@@ -168,8 +182,11 @@ function renderizarProdutos(produtos) {
             <td>${p.lote}</td>
             <td>${p.quantidade}</td>
             <td>${p.uv}</td>
-            <td>R$${formatarMoeda(p.precoUnitario)}</td>
-            <td>R$${formatarMoeda(p.total)}</td>
+            <td>R$ ${formatarMoeda(p.precoUnitario) }</td>
+            <td>${p.ipi}%</td>
+            <td>R$ ${formatarMoeda(p.precoUnitarioIPI )}</td>
+            <td>R$ ${formatarMoeda(p.total )}</td>
+            <td>R$ ${formatarMoeda(p.totalIpi)}</td>
         `;
 
         tbody.appendChild(tr);

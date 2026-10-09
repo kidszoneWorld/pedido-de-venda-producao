@@ -5,12 +5,28 @@ const timestamp = Date.now();
 let clientesData;
 let promocaoData;
 let foraDeLinhaData;
-let listaPrecosData;
 let icmsSTData;
 let listaPrecosIpiData;
-  
-let step = 0;
+let catalogoClienteData =
+    [];
 
+let catalogoClientePorCodigo =
+    new Map();
+
+let catalogoClienteCarregado =
+    false;
+
+let catalogoClienteCarregando =
+    false;
+
+let dadosListaPrecoAtual =
+    null;
+let step = 0;
+let tutorialAtivo = false;
+
+const estadosCamposTutorial =
+    new Map();
+    
 // Helper DOM
 const el = id => document.getElementById(id);
 
@@ -38,12 +54,515 @@ fetch(`/data/ICMS-ST.json?cacheBust=${timestamp}`)
   .then(r => r.json())
   .then(d => icmsSTData = d);
 
+function normalizarCodigoItem(
+    valor
+) {
+    return String(
+        valor || ''
+    )
+        .trim()
+        .toUpperCase();
+}
 
+function converterParaBooleano(
+    valor
+) {
+    if (
+        valor === true ||
+        valor === 1
+    ) {
+        return true;
+    }
 
-async function carregarListaPrecos(listaId) {
-    const response = await fetch(`/api/lista-preco-Sem-Verificar/${listaId}`);
-    listaPrecosData = await response.json();
-    console.log('LISTA DE PREÇOS CARREGADA:', Array.isArray(listaPrecosData) ? listaPrecosData.length : listaPrecosData);
+    if (
+        valor === false ||
+        valor === 0
+    ) {
+        return false;
+    }
+
+    const texto =
+        String(
+            valor ?? ''
+        )
+            .trim()
+            .toLowerCase();
+
+    return (
+        texto === 'true' ||
+        texto === '1' ||
+        texto === 'sim' ||
+        texto === 's' ||
+        texto === 'ativo'
+    );
+}
+
+function normalizarTextoPesquisa(
+    valor
+) {
+    return String(
+        valor || ''
+    )
+        .normalize(
+            'NFD'
+        )
+        .replace(
+            /[\u0300-\u036f]/g,
+            ''
+        )
+        .trim()
+        .toUpperCase();
+}
+
+function itemPodeAparecerNaLista(
+    item
+) {
+    if (!item) {
+        return false;
+    }
+
+    const ativo =
+        item.ativo === undefined ||
+        item.ativo === null
+            ? true
+            : converterParaBooleano(
+                item.ativo
+            );
+
+    const suspenso =
+        converterParaBooleano(
+            item.suspenso
+        );
+
+    const foraLinha =
+        converterParaBooleano(
+            item.foraLinha
+        );
+
+    const bloqueado =
+        converterParaBooleano(
+            item.bloqueado
+        );
+
+    const exibeConsultas =
+        item.exibeConsultasListaPreco ===
+            undefined ||
+        item.exibeConsultasListaPreco ===
+            null
+            ? true
+            : converterParaBooleano(
+                item.exibeConsultasListaPreco
+            );
+
+    const descricao =
+        normalizarTextoPesquisa(
+            item.descricao
+        );
+
+    const descricoesBloqueadas = [
+        'DISPLAY',
+        'BOBINA',
+        'CATALOGO',
+        'CAMISETA',
+        'SCOOTER',
+        'SACOLA',
+        'PATINETE',
+        'LCD',
+        'BICICLETA'
+    ];
+
+    const descricaoBloqueada =
+        descricoesBloqueadas.some(
+            texto => {
+                return descricao.includes(
+                    texto
+                );
+            }
+        );
+
+    return (
+        // ativo &&
+        // !suspenso &&
+        // !foraLinha &&
+        // !bloqueado &&
+        // exibeConsultas &&
+        !descricaoBloqueada
+    );
+}
+
+async function carregarCatalogoCliente(
+    clienteCodigo,
+    listaCodigo = null
+) {
+    const codigoCliente =
+        String(
+            clienteCodigo || ''
+        ).trim();
+
+    if (!codigoCliente) {
+        throw new Error(
+            'Código do cliente não disponível para carregar o catálogo.'
+        );
+    }
+
+    catalogoClienteCarregado =
+        false;
+
+    catalogoClienteCarregando =
+        true;
+
+    catalogoClienteData =
+        [];
+
+    catalogoClientePorCodigo =
+        new Map();
+
+    dadosListaPrecoAtual =
+        null;
+
+    showFeedback(
+        'Carregando lista de produtos do cliente...'
+    );
+
+    try {
+        const parametros =
+            new URLSearchParams();
+
+        if (
+            listaCodigo !== null &&
+            listaCodigo !== undefined &&
+            listaCodigo !== ''
+        ) {
+            parametros.set(
+                'listaCodigo',
+                String(
+                    listaCodigo
+                )
+            );
+        }
+
+        const queryString =
+            parametros.toString();
+
+        const url =
+            `/api/catalogo-cliente/${encodeURIComponent(codigoCliente)}` +
+            (
+                queryString
+                    ? `?${queryString}`
+                    : ''
+            );
+
+        console.log(
+            'Consultando catálogo da rebaixa:',
+            url
+        );
+
+        const response =
+            await fetch(
+                url,
+                {
+                    method:
+                        'GET',
+
+                    headers: {
+                        Accept:
+                            'application/json'
+                    }
+                }
+            );
+
+        const textoResposta =
+            await response.text();
+
+        let resultado =
+            null;
+
+        if (textoResposta) {
+            try {
+                resultado =
+                    JSON.parse(
+                        textoResposta
+                    );
+            } catch {
+                throw new Error(
+                    'O catálogo retornou uma resposta inválida.'
+                );
+            }
+        }
+
+        if (!response.ok) {
+            throw new Error(
+                resultado?.mensagem ||
+                resultado?.message ||
+                textoResposta ||
+                `Erro HTTP ${response.status}`
+            );
+        }
+
+        const itensRecebidos =
+            Array.isArray(
+                resultado?.itens
+            )
+                ? resultado.itens
+                : [];
+
+        const itensDisponiveis =
+            itensRecebidos.filter(
+                itemPodeAparecerNaLista
+            );
+
+        catalogoClienteData =
+            itensDisponiveis;
+
+        dadosListaPrecoAtual =
+            resultado?.listaPreco ||
+            null;
+
+        catalogoClientePorCodigo =
+            new Map();
+
+        itensDisponiveis.forEach(
+            item => {
+                const codigo =
+                    normalizarCodigoItem(
+                        item.itemEmpresaId
+                    );
+
+                if (!codigo) {
+                    return;
+                }
+
+                catalogoClientePorCodigo.set(
+                    codigo,
+                    item
+                );
+            }
+        );
+
+        catalogoClienteCarregado =
+            true;
+
+        if (dadosListaPrecoAtual) {
+            const campoCodigoLista =
+                document.getElementById(
+                    'codgroup'
+                );
+
+            const campoNomeLista =
+                document.getElementById(
+                    'group'
+                );
+
+            if (campoCodigoLista) {
+                campoCodigoLista.value =
+                    dadosListaPrecoAtual.codigo ||
+                    '';
+            }
+
+            if (campoNomeLista) {
+                campoNomeLista.value =
+                    dadosListaPrecoAtual.descricao ||
+                    '';
+            }
+        }
+
+        criarDatalistCatalogoRebaixa();
+
+        console.log(
+            'Catálogo da rebaixa carregado:',
+            {
+                clienteCodigo:
+                    codigoCliente,
+
+                listaPreco:
+                    dadosListaPrecoAtual,
+
+                totalRecebido:
+                    itensRecebidos.length,
+
+                totalDisponivel:
+                    itensDisponiveis.length,
+
+                totalIndexado:
+                    catalogoClientePorCodigo.size,
+
+                erros:
+                    resultado?.erros || []
+            }
+        );
+
+        return resultado;
+    } catch (error) {
+        catalogoClienteData =
+            [];
+
+        catalogoClientePorCodigo =
+            new Map();
+
+        catalogoClienteCarregado =
+            false;
+
+        console.error(
+            'Erro ao carregar catálogo da rebaixa:',
+            error
+        );
+
+        throw error;
+    } finally {
+        catalogoClienteCarregando =
+            false;
+
+        hideFeedback();
+    }
+}
+
+function criarDatalistCatalogoRebaixa() {
+    let datalist =
+        document.getElementById(
+            'lista-produtos-rebaixa'
+        );
+
+    if (!datalist) {
+        datalist =
+            document.createElement(
+                'datalist'
+            );
+
+        datalist.id =
+            'lista-produtos-rebaixa';
+
+        document.body.appendChild(
+            datalist
+        );
+    }
+
+    datalist.innerHTML =
+        '';
+
+    catalogoClienteData.forEach(
+        item => {
+            const codigo =
+                String(
+                    item.itemEmpresaId ||
+                    ''
+                ).trim();
+
+            const descricao =
+                String(
+                    item.descricao ||
+                    ''
+                ).trim();
+
+            if (
+                !codigo ||
+                !descricao
+            ) {
+                return;
+            }
+
+            const option =
+                document.createElement(
+                    'option'
+                );
+
+            option.value =
+                `${codigo} - ${descricao}`;
+
+            datalist.appendChild(
+                option
+            );
+        }
+    );
+}
+
+function buscarItemNoCatalogo(
+    codigoDigitado
+) {
+    const codigo =
+        normalizarCodigoItem(
+            codigoDigitado
+        );
+
+    if (!codigo) {
+        return null;
+    }
+
+    return (
+        catalogoClientePorCodigo.get(
+            codigo
+        ) ||
+        null
+    );
+}
+
+function buscarItemPorPesquisa(
+    valorDigitado
+) {
+    const texto =
+        String(
+            valorDigitado || ''
+        ).trim();
+
+    if (!texto) {
+        return null;
+    }
+
+    const separador =
+        texto.indexOf(
+            ' - '
+        );
+
+    if (separador >= 0) {
+        const codigoExtraido =
+            normalizarCodigoItem(
+                texto.substring(
+                    0,
+                    separador
+                )
+            );
+
+        const itemPorCodigo =
+            buscarItemNoCatalogo(
+                codigoExtraido
+            );
+
+        if (itemPorCodigo) {
+            return itemPorCodigo;
+        }
+    }
+
+    const itemPorCodigo =
+        buscarItemNoCatalogo(
+            texto
+        );
+
+    if (itemPorCodigo) {
+        return itemPorCodigo;
+    }
+
+    const pesquisa =
+        normalizarTextoPesquisa(
+            texto
+        );
+
+    const correspondencias =
+        catalogoClienteData.filter(
+            item => {
+                const descricao =
+                    normalizarTextoPesquisa(
+                        item.descricao
+                    );
+
+                return (
+                    descricao ===
+                    pesquisa
+                );
+            }
+        );
+
+    return correspondencias.length === 1
+        ? correspondencias[0]
+        : null;
 }
 
 console.log('script.js carregado');
@@ -52,7 +571,7 @@ console.log('script.js carregado');
 
 //  limparCamposCliente();
 //  atualizarTotais();
-//alert('Olá Sr(a).Representante,\nSomente serão aceitas rebaixas com até 180 dias, a partir entrega da nota fiscal de origem!!!')
+// alert('Olá Sr(a).Representante,\nSomente serão aceitas devoluções com até 180 dias, a partir entrega da nota fiscal de origem!!!')
 // ======================================================================
 // 🔧 FUNÇÕES UTILITÁRIAS
 // ======================================================================
@@ -106,14 +625,32 @@ const cnpjInput1 = el('cnpj');
 const codInput1 = el('cod_cliente');
 const blockModal = el('blockModal');
 
-cnpjInput1.addEventListener('focus', () => {
-    if (cnpjInput1.readOnly) {
-        blockModal.style.display = "block";
-        el('timestamp').textContent = new Date().toLocaleString('pt-BR');
-        return;
+cnpjInput1.addEventListener(
+    'focus',
+    () => {
+        if (!cnpjInput1.readOnly) {
+            return;
+        }
+
+        if (blockModal) {
+            blockModal.style.display =
+                'block';
+        }
+
+        const campoTimestamp =
+            el(
+                'timestamp'
+            );
+
+        if (campoTimestamp) {
+            campoTimestamp.textContent =
+                new Date()
+                    .toLocaleString(
+                        'pt-BR'
+                    );
+        }
     }
-   // limparCamposCliente();
-});
+);
 
 // ======================================================================
 // 🔄 BLUR CNPJ → API CLIENTE
@@ -127,10 +664,10 @@ cnpjInput1.addEventListener('blur', async function () {
 
     showFeedback('Carregando cliente...');
     this.readOnly = true;
-
+    let api = "documento"
     let clienteApi;
 
-   try {
+    try {
         const res = await fetch(`/api/cliente/${api}/${cnpj}`);
         if (!res.ok) throw new Error();
         clienteApi = await res.json();
@@ -161,16 +698,43 @@ cnpjInput1.addEventListener('blur', async function () {
 
         preencherCliente(clientesData[1]);
 
-        if (clienteApi.LISTA) await carregarListaPrecos(clienteApi.LISTA);
+        const clienteCodigo =
+    clienteApi.codigo ??
+    clienteApi.Codigo ??
+    clienteApi['COD CLIENTE 2'] ??
+    document
+        .getElementById(
+            'cod_cliente'
+        )
+        ?.value;
 
-    } catch {
-        alert("Cliente não encontrado, verificar com o financeiro.");
-    } finally {
+const listaCodigo =
+    clienteApi.LISTA ??
+    clienteApi.listaPrecoCodigo ??
+    null;
+
+await carregarCatalogoCliente(
+    clienteCodigo,
+    listaCodigo
+);
+
+    } catch (error) {
+    console.error(
+        'Erro ao carregar cliente ou catálogo:',
+        error
+    );
+
+    alert(
+        error.message ||
+        'Não foi possível carregar o cliente e o catálogo.'
+    );
+}finally {
         hideFeedback();
         this.readOnly = false;
         garantirLinhaInicial();
     }
 });
+
 
 
 codInput1.addEventListener('blur', async function () {
@@ -217,11 +781,37 @@ codInput1.addEventListener('blur', async function () {
             return alert('Cliente não encontrado.');
         }
         preencherCliente(clientesData[1]);
-        if (clienteApi.LISTA) await carregarListaPrecos(clienteApi.LISTA);
+        const clienteCodigo =
+            clienteApi.codigo ??
+            clienteApi.Codigo ??
+            clienteApi['COD CLIENTE 2'] ??
+            document
+                .getElementById(
+                    'cod_cliente'
+                )
+                ?.value;
 
-    } catch {
-        alert("Cliente não encontrado, verificar com o financeiro.");
-    } finally {
+        const listaCodigo =
+            clienteApi.LISTA ??
+            clienteApi.listaPrecoCodigo ??
+            null;
+
+        await carregarCatalogoCliente(
+            clienteCodigo,
+            listaCodigo
+        );
+
+    } catch (error) {
+        console.error(
+            'Erro ao carregar cliente ou catálogo:',
+            error
+        );
+
+        alert(
+            error.message ||
+            'Não foi possível carregar o cliente e o catálogo.'
+        );
+        } finally {
         hideFeedback();
         this.readOnly = false;
         garantirLinhaInicial();
@@ -258,6 +848,7 @@ function preencherCliente(c) {
 
 
 
+
 // ======================================================================
 // 📦 PEDIDO / TABELA
 // ======================================================================
@@ -270,10 +861,104 @@ function atualizarTotais() {
 }
 
 function garantirLinhaInicial() {
-    const tbody = el('dadosPedido').querySelector('tbody');
-    tbody.querySelectorAll('tr').forEach(tr => !tr.querySelector('input') && tr.remove());
-    if (!tbody.querySelector('tr')) adicionarNovaLinha();
+    const tbody =
+        document.querySelector(
+            '#dadosPedido tbody'
+        );
+
+    if (!tbody) {
+        console.error(
+            'Tabela de rebaixa não encontrada.'
+        );
+
+        return;
+    }
+
+    const linhas =
+        tbody.querySelectorAll(
+            '.linha-item-rebaixa'
+        );
+
+    if (linhas.length === 0) {
+        adicionarNovaLinha();
+    }
 }
+
+function moedaBRParaNumero(valor){
+
+    if(
+        valor === null ||
+        valor === undefined ||
+        valor === ''
+    ){
+        return 0;
+    }
+
+    const normalizado =
+        String(valor)
+            .replace('R$', '')
+            .replace(/\./g, '')
+            .replace(',', '.')
+            .trim();
+
+    const numero =
+        Number(normalizado);
+
+    return isNaN(numero)
+        ? 0
+        : numero;
+
+}
+
+function numeroParaMoedaBR(valor){
+
+    const numero =
+        Number(valor || 0);
+
+    return numero.toLocaleString(
+        'pt-BR',
+        {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        }
+    );
+
+}
+
+function formatarCampoMoedaBR(input){
+
+    if(!input.value){
+        input.value = '';
+        return;
+    }
+
+    const numero =
+        moedaBRParaNumero(
+            input.value
+        );
+
+    input.value =
+        numeroParaMoedaBR(
+            numero
+        );
+
+}
+
+function numeroQuantidade(valor){
+
+    const numero =
+        Number(
+            String(valor || '')
+                .replace(',', '.')
+                .trim()
+        );
+
+    return isNaN(numero)
+        ? 0
+        : numero;
+
+}
+
 
 // ======================================================================
 // 🚀 ENVIO DO PEDIDO
@@ -316,43 +1001,94 @@ document.getElementById('tipo_pedido').addEventListener('change', function () {
 }
 });
 
-//mongo
 const dataBR = new Date()
 const dataFormatada = dataBR.toLocaleDateString('pt-BR', {
     timeZone: 'UTC'
 });
+
 function montarObjetoRebaixa() {
     const linhas = document.querySelectorAll('#dadosPedido tbody tr');
 
     const produtos = [];
 
-    linhas.forEach(tr => {
-        const cells = tr.querySelectorAll('input');
+    linhas.forEach(
+        tr => {
+            const codigo =
+                String(
+                    tr.dataset.itemEmpresaId ||
+                    ''
+                ).trim();
 
-        if (!cells[1]?.value) return; // ignora linha vazia
+            if (!codigo) {
+                return;
+            }
 
-        produtos.push({
-            nforigem: cells[0]?.value,
-            codigoItem: cells[1]?.value,
-            descricao: cells[2]?.value,
-            lote: cells[3]?.value,
-            precounitario: parseFloat(
-                cells[4]?.value.replace("R$", "").replace(/\./g, "").replace(",", ".")
-            ) || 0,
-            rebaixa: parseFloat(
-                cells[5]?.value.replace("R$", "").replace(/\./g, "").replace(",", ".")
-            ) || 0,
-            atual: parseFloat(
-                cells[6]?.value.replace("R$", "").replace(/\./g, "").replace(",", ".")
-            ) || 0,
-            quantidade: cells[7]?.value || 0,
+            produtos.push({
+                nforigem:
+                    tr.querySelector(
+                        '.campo-nf-origem-rebaixa'
+                    )?.value || '',
 
+                codigoItem:
+                    codigo,
 
-            total: parseFloat(
-                cells[8]?.value.replace("R$", "").replace(/\./g, "").replace(",", ".")
-            ) || 0
-        });
-    });
+                descricao:
+                    String(
+                        tr.dataset.descricao ||
+                        ''
+                    ).trim(),
+
+                lote:
+                    tr.querySelector(
+                        '.campo-lote-rebaixa'
+                    )?.value || '',
+
+                precounitario:
+                    moedaBRParaNumero(
+                        tr.querySelector(
+                            '.campo-preco-rebaixa'
+                        )?.value
+                    ),
+
+                rebaixa:
+                    moedaBRParaNumero(
+                        tr.querySelector(
+                            '.campo-valor-rebaixa'
+                        )?.value
+                    ),
+
+                atual:
+                    moedaBRParaNumero(
+                        tr.querySelector(
+                            '.campo-preco-atual-rebaixa'
+                        )?.value
+                    ),
+
+                quantidade:
+                    numeroQuantidade(
+                        tr.querySelector(
+                            '.campo-quantidade-rebaixa'
+                        )?.value
+                    ),
+
+                total:
+                    moedaBRParaNumero(
+                        tr.querySelector(
+                            '.campo-total-rebaixa'
+                        )?.value
+                    ),
+
+                itemId:
+                    Number(
+                        tr.dataset.itemId ||
+                        tr.querySelector(
+                            '.campo-item-id-rebaixa'
+                        )?.value ||
+                        0
+                    )
+            });
+        }
+    );
 
     const rebaixa = {
         cnpj: document.getElementById('cnpj').value.replace(/\D/g, ''),
@@ -395,7 +1131,7 @@ async function salvarRebaixaMongo() {
         const result = await res.json();
 
         if (res.ok) {
-            console.log('Rebaixa salva, aperte ok para enviar o email......');
+            console.log('Rebaixa salva, Clique ok para enviar o email......');
         } else {
             throw new Error(result.error);
         }
@@ -410,48 +1146,75 @@ async function salvarRebaixaMongo() {
 
 // Função para atualizar o total de volumes (quantidades) de todas as linhas
 function atualizarTotalVolumes() {
-    let totalVolumes = 0;
-    const linhas = document.querySelectorAll('#dadosPedido tbody tr');
+    let totalVolumes =
+        0;
 
-    linhas.forEach(tr => {
-        const cell = tr.cells[4]?.querySelector('input');
-        if (cell && cell.value) {
-            const quantidade = parseFloat(cell.value.replace(",", "."));
-            if (!isNaN(quantidade)) {
-                totalVolumes += quantidade;
-                console.log('Quantidade adicionada:', quantidade);
-                console.log('Total de volumes até agora:', totalVolumes);
+    document
+        .querySelectorAll(
+            '#dadosPedido tbody ' +
+            '.linha-item-rebaixa'
+        )
+        .forEach(
+            tr => {
+                totalVolumes +=
+                    numeroQuantidade(
+                        tr.querySelector(
+                            '.campo-quantidade-rebaixa'
+                        )?.value
+                    );
             }
-        }
-    });
+        );
 
-    document.getElementById('volume').value = totalVolumes;
+    const campoVolume =
+        document.getElementById(
+            'volume'
+        );
+
+    if (campoVolume) {
+        campoVolume.value =
+            totalVolumes;
+    }
 }
-
-
-
 
 // Função para atualizar o total de produtos (quantidade * valor unitário)
 function atualizarTotalProdutos() {
-    let totalProdutos = 0;
-    const linhas = document.querySelectorAll('#dadosPedido tbody tr');
+    let totalProdutos =
+        0;
 
-    linhas.forEach(tr => {
-        const quantidadeCell = tr.cells[4]?.querySelector('input');
-        const valorTotalLinhaCell = tr.cells[8]?.querySelector('input');
-        console.log('Quantidade cell:', quantidadeCell);
-        console.log('Valor unitário cell:', valorTotalLinhaCell);
-
-        if (quantidadeCell && valorTotalLinhaCell && quantidadeCell.value && valorTotalLinhaCell.value) {
-            const quantidade = parseFloat(quantidadeCell.value.replace(",", "."));
-            const valorTotalLinha = parseFloat(valorTotalLinhaCell.value.replace("R$", "").replace(/\./g, "").replace(",", "."));
-            if (!isNaN(quantidade) && !isNaN(valorTotalLinha)) {
-                totalProdutos += valorTotalLinha;
+    document
+        .querySelectorAll(
+            '#dadosPedido tbody ' +
+            '.linha-item-rebaixa'
+        )
+        .forEach(
+            tr => {
+                totalProdutos +=
+                    moedaBRParaNumero(
+                        tr.querySelector(
+                            '.campo-total-rebaixa'
+                        )?.value
+                    );
             }
-        }
-    });
+        );
 
-    document.getElementById('total').value = totalProdutos.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    const campoTotal =
+        document.getElementById(
+            'total'
+        );
+
+    if (campoTotal) {
+        campoTotal.value =
+            totalProdutos.toLocaleString(
+                'pt-BR',
+                {
+                    style:
+                        'currency',
+
+                    currency:
+                        'BRL'
+                }
+            );
+    }
 }
 
 function dataMaiorQue6Meses(dataInput) {
@@ -465,46 +1228,174 @@ function dataMaiorQue6Meses(dataInput) {
 }
 
 function validarTabelaPedido() {
-    const linhas = document.querySelectorAll('#dadosPedido tbody tr');
+    const linhas =
+        Array.from(
+            document.querySelectorAll(
+                '#dadosPedido tbody ' +
+                '.linha-item-rebaixa'
+            )
+        ).filter(
+            tr => {
+                return Boolean(
+                    String(
+                        tr.dataset.itemEmpresaId ||
+                        ''
+                    ).trim()
+                );
+            }
+        );
 
-    if (!linhas.length) {
-        alert("Adicione pelo menos um item no pedido.");
+    if (linhas.length === 0) {
+        alert(
+            'Adicione pelo menos um item na rebaixa.'
+        );
+
         return false;
     }
 
-    for (let i = 0; i < linhas.length; i++) {
-        const tr = linhas[i];
-        const inputs = tr.querySelectorAll('input');
+    for (
+        let indice = 0;
+        indice < linhas.length;
+        indice += 1
+    ) {
+        const tr =
+            linhas[indice];
 
-        // Campos obrigatórios por índice da coluna:
-        // 1 = código
-        // 2 = quantidade
-        // 5 = valor unitário
-        // 6 = total
+        const numeroLinha =
+            indice + 1;
 
-        const nf = inputs[0]?.value.trim()
-        const data = inputs[1]?.value.trim();
-        if (!data) {
-            alert(`Preencha a data na linha ${i + 1}`);
-            inputs[1]?.focus();
+        const nf =
+            tr.querySelector(
+                '.campo-nf-origem-rebaixa'
+            )?.value.trim();
+
+        const codigo =
+            String(
+                tr.dataset.itemEmpresaId ||
+                ''
+            ).trim();
+
+        const descricao =
+            String(
+                tr.dataset.descricao ||
+                ''
+            ).trim();
+
+        const lote =
+            tr.querySelector(
+                '.campo-lote-rebaixa'
+            )?.value.trim();
+
+        const preco =
+            moedaBRParaNumero(
+                tr.querySelector(
+                    '.campo-preco-rebaixa'
+                )?.value
+            );
+
+        const rebaixa =
+            moedaBRParaNumero(
+                tr.querySelector(
+                    '.campo-valor-rebaixa'
+                )?.value
+            );
+
+        const atual =
+            moedaBRParaNumero(
+                tr.querySelector(
+                    '.campo-preco-atual-rebaixa'
+                )?.value
+            );
+
+        const quantidade =
+            numeroQuantidade(
+                tr.querySelector(
+                    '.campo-quantidade-rebaixa'
+                )?.value
+            );
+
+        const total =
+            moedaBRParaNumero(
+                tr.querySelector(
+                    '.campo-total-rebaixa'
+                )?.value
+            );
+
+        if (!nf) {
+            alert(
+                `Preencha a NF de origem na linha ${numeroLinha}.`
+            );
+
+            tr.querySelector(
+                '.campo-nf-origem-rebaixa'
+            )?.focus();
+
             return false;
         }
 
-        // 🚫 BLOQUEIO DE 6 MESES
-/*        if (dataMaiorQue6Meses(data)) {
-            alert(`A data da linha ${i + 1} é superior a 6 meses. Não é permitido.`);
-            inputs[1]?.focus();
-            return false;
-}*/
-        const codigo = inputs[2]?.value.trim();
-        const lote = inputs[3]?.value.trim();
-        const quantidade = inputs[4]?.value.trim();
-        const valor = inputs[7]?.value.trim();
-        const total = inputs[8]?.value.trim();
+        if (
+            !codigo ||
+            !descricao
+        ) {
+            alert(
+                `Selecione um item válido na linha ${numeroLinha}.`
+            );
 
-        if (!codigo || !quantidade || !valor || !total || !nf || !lote || !data) {
-            alert(`Preencha todos os campos da linha ${i + 1}`);
-            inputs[0]?.focus();
+            tr.querySelector(
+                '.campo-item-pesquisa-rebaixa'
+            )?.focus();
+
+            return false;
+        }
+
+        if (!lote) {
+            alert(
+                `Preencha o lote na linha ${numeroLinha}.`
+            );
+
+            tr.querySelector(
+                '.campo-lote-rebaixa'
+            )?.focus();
+
+            return false;
+        }
+
+        if (preco <= 0) {
+            alert(
+                `Informe o preço unitário na linha ${numeroLinha}.`
+            );
+
+            tr.querySelector(
+                '.campo-preco-rebaixa'
+            )?.focus();
+
+            return false;
+        }
+
+        if (
+            rebaixa <= 0 ||
+            rebaixa > preco
+        ) {
+            alert(
+                `Informe uma rebaixa válida na linha ${numeroLinha}.`
+            );
+
+            tr.querySelector(
+                '.campo-valor-rebaixa'
+            )?.focus();
+
+            return false;
+        }
+
+        if (
+            atual < 0 ||
+            quantidade <= 0 ||
+            total <= 0
+        ) {
+            alert(
+                `Verifique os valores da linha ${numeroLinha}.`
+            );
+
             return false;
         }
     }
@@ -512,278 +1403,1061 @@ function validarTabelaPedido() {
     return true;
 }
 
+function recalcularLinhaRebaixa(
+    tr
+) {
+    const campoPreco =
+        tr.querySelector(
+            '.campo-preco-rebaixa'
+        );
 
-// Função para adicionar uma nova linha à tabela
-function adicionarNovaLinha() {
-    const tbody = document.querySelector('#dadosPedido tbody');
-    const tr = document.createElement('tr');
+    const campoRebaixa =
+        tr.querySelector(
+            '.campo-valor-rebaixa'
+        );
 
+    const campoAtual =
+        tr.querySelector(
+            '.campo-preco-atual-rebaixa'
+        );
 
+    const campoQuantidade =
+        tr.querySelector(
+            '.campo-quantidade-rebaixa'
+        );
 
-    for (let i = 0; i < 11; i++) {
-        const td = document.createElement('td');
+    const campoTotal =
+        tr.querySelector(
+            '.campo-total-rebaixa'
+        );
 
-        // coluna oculta (ItemId)
-        if (i === 10) {
-            td.style.display = 'none';
-        }
+    const preco =
+        moedaBRParaNumero(
+            campoPreco?.value
+        );
 
-        // 🗑 BOTÃO REMOVER LINHA
-        if (i === 9) {
-            const btn = document.createElement('button');
-            btn.type = 'button';
-            btn.classList.add('btn-remover-linha');
-            btn.textContent = 'REMOVER';
+    const rebaixa =
+        moedaBRParaNumero(
+            campoRebaixa?.value
+        );
 
+    const quantidade =
+        numeroQuantidade(
+            campoQuantidade?.value
+        );
 
-                btn.gradient = 'linear-gradient(90deg,rgba(225,0,152) 0%,#f18fc7 100%)';
-                btn.color = '#fafcfa';
-            
-            btn.innerText = 'Excluir';
-            
+    const atual =
+        preco -
+        rebaixa;
 
-            btn.addEventListener('click', () => {
-                tr.remove();
-                atualizarTotais();
-                garantirLinhaInicial();
-            });
-             
+    const total =
+        rebaixa *
+        quantidade;
 
-            td.appendChild(btn);
-            tr.appendChild(td);
-            continue; 
-        }
-
-        
-        
-        // ✏️ INPUT NORMAL
-        const input = document.createElement('input');
-
-            input.type = 'text';
-
-        // TAB só em quase tudo
-        input.tabIndex = (i === 0 || i === 1 || i === 2 || i === 3 || i === 4 || i === 8) ? 0 : -1;
-
-        input.style.padding = '5px';
-        input.style.width = '100%';
-        input.style.boxSizing = 'border-box';
-
-        td.appendChild(input);
-        tr.appendChild(td);
-        
-        // =========================
-        // NAVEGAÇÃO ↑ ↓ TAB
-        // =========================
-        input.addEventListener('keydown', (e) => {
-            const linhas = Array.from(tbody.querySelectorAll('tr'));
-            const linhaAtual = linhas.indexOf(tr);
-
-            if (e.key === 'ArrowUp' && linhaAtual > 0) {
-                e.preventDefault();
-                linhas[linhaAtual - 1].cells[i]?.querySelector('input')?.focus();
-            }
-
-            if (e.key === 'ArrowDown') {
-                e.preventDefault();
-
-                if (linhaAtual === linhas.length - 1 && i === 10) {
-                    adicionarNovaLinha();
-                    setTimeout(() => {
-                        tbody.lastChild.cells[0].querySelector('input').focus();
-                    }, 0);
-                } else {
-                    linhas[linhaAtual + 1]?.cells[i]?.querySelector('input')?.focus();
-                }
-            }
-
-            if (e.key === 'Tab' && !e.shiftKey && i === 10 && linhaAtual === linhas.length - 1) {
-                e.preventDefault();
-                setTimeout(() => {
-                    tbody.lastChild.cells[0].querySelector('input').focus();
-                }, 0);
-            }
-            //enter = tab
-            if ((e.key === 'Tab' || e.key === 'Enter') && !e.shiftKey) {
-    e.preventDefault();
-
-    // se estiver no qtd (coluna 7)
-    if (i === 7) {
-        if (linhaAtual === linhas.length - 1) {
-            // última linha → cria nova
-            adicionarNovaLinha();
-            setTimeout(() => {
-                tbody.lastChild.cells[0].querySelector('input')?.focus();
-            }, 0);
-        } else {
-            // próxima linha
-            linhas[linhaAtual + 1]?.cells[0]?.querySelector('input')?.focus();
-        }
-        
+    if (campoAtual) {
+        campoAtual.value =
+            numeroParaMoedaBR(
+                atual
+            );
     }
-        // se estiver no NF Origem (coluna 0)
-    if (i === 0) {
-        tr.cells[1]?.querySelector('input')?.focus();
+
+    if (campoTotal) {
+        campoTotal.value =
+            numeroParaMoedaBR(
+                total
+            );
     }
-    // se estiver no CÓDIGO (coluna 1)
-    else if (i === 1) {
-        tr.cells[3]?.querySelector('input')?.focus();
-    }
-    // se estiver na quantidade (coluna 2)
-    else if (i === 3) {
-        tr.cells[4]?.querySelector('input')?.focus();
-    }
-    else if (i === 4) {
-        tr.cells[5]?.querySelector('input')?.focus();
-    }
-    else if (i === 5) {
-        tr.cells[7]?.querySelector('input')?.focus();
-    }
+
+    atualizarTotais();
 }
 
+function limparItemLinhaRebaixa(
+    tr
+) {
+    const seletoresCampos = [
+        '.campo-item-pesquisa-rebaixa',
+        '.campo-lote-rebaixa',
+        '.campo-preco-rebaixa',
+        '.campo-valor-rebaixa',
+        '.campo-preco-atual-rebaixa',
+        '.campo-quantidade-rebaixa',
+        '.campo-total-rebaixa',
+        '.campo-item-id-rebaixa'
+    ];
 
-        });
+    seletoresCampos.forEach(
+        seletor => {
+            const campo =
+                tr.querySelector(
+                    seletor
+                );
 
-        // =========================
-        // CÓDIGO DO ITEM
-        // =========================
-       // =========================
+            if (campo) {
+                campo.value =
+                    '';
+            }
+        }
+    );
 
-if (i === 1) {
-    input.addEventListener('blur', async function () {
-        const cod = this.value.trim().toUpperCase();
-        if (!cod) return;
+    tr.dataset.itemId =
+        '';
 
-        // VERIFICA DUPLICIDADE
-        if (verificarCodigoDuplicadoNaTabela(cod, tr)) {
-            alert('Este item já foi adicionado ao pedido.');
-            this.value = '';
-            this.focus();
+    tr.dataset.itemEmpresaId =
+        '';
+
+    tr.dataset.codigo =
+        '';
+
+    tr.dataset.descricao =
+        '';
+
+    tr.dataset.itemCarregado =
+        'false';
+
+    atualizarTotais();
+}
+
+function preencherItemLinhaRebaixa(
+    tr,
+    item
+) {
+    const campoPesquisa =
+        tr.querySelector(
+            '.campo-item-pesquisa-rebaixa'
+        );
+
+    const campoLote =
+        tr.querySelector(
+            '.campo-lote-rebaixa'
+        );
+
+    const campoItemId =
+        tr.querySelector(
+            '.campo-item-id-rebaixa'
+        );
+
+    const codigo =
+        String(
+            item.itemEmpresaId || ''
+        ).trim();
+
+    const descricao =
+        String(
+            item.descricao || ''
+        ).trim();
+
+    const itemId =
+        item.itemId ??
+        item.ItemId ??
+        item.codigo ??
+        '';
+
+    campoPesquisa.value =
+        `${codigo} - ${descricao}`;
+
+    if (campoItemId) {
+        campoItemId.value =
+            String(
+                itemId
+            );
+    }
+
+    tr.dataset.itemId =
+        String(
+            itemId
+        );
+
+    tr.dataset.itemEmpresaId =
+        codigo;
+
+    tr.dataset.codigo =
+        codigo;
+
+    tr.dataset.descricao =
+        descricao;
+
+    tr.dataset.itemCarregado =
+        'true';
+
+    recalcularLinhaRebaixa(
+        tr
+    );
+
+    setTimeout(
+        () => {
+            campoLote?.focus();
+            campoLote?.select();
+        },
+        0
+    );
+}
+
+function configurarPesquisaItemRebaixa(
+    tr,
+    campoPesquisa
+) {
+    let processandoItem =
+        false;
+
+    async function processarItem() {
+        if (processandoItem) {
+            return false;
+        }
+
+        const valorDigitado =
+            campoPesquisa.value.trim();
+
+        if (!valorDigitado) {
+            return false;
+        }
+
+        processandoItem =
+            true;
+
+        campoPesquisa.readOnly =
+            true;
+
+        try {
+            if (catalogoClienteCarregando) {
+                throw new Error(
+                    'O catálogo ainda está sendo carregado. Aguarde.'
+                );
+            }
+
+            if (!catalogoClienteCarregado) {
+                throw new Error(
+                    'Carregue um cliente antes de informar os itens.'
+                );
+            }
+
+            const item =
+                buscarItemPorPesquisa(
+                    valorDigitado
+                );
+
+            if (!item) {
+                throw new Error(
+                    'Item não encontrado no catálogo do cliente.'
+                );
+            }
+
+            const codigo =
+                normalizarCodigoItem(
+                    item.itemEmpresaId
+                );
+
+            if (!codigo) {
+                throw new Error(
+                    'O item selecionado não possui código de empresa.'
+                );
+            }
+
+            const itemDuplicado =
+                Array.from(
+                    document.querySelectorAll(
+                        '#dadosPedido tbody tr'
+                    )
+                ).some(
+                    linha => {
+                        if (linha === tr) {
+                            return false;
+                        }
+
+                        const codigoLinha =
+                            normalizarCodigoItem(
+                                linha.dataset
+                                    .itemEmpresaId
+                            );
+
+                        return (
+                            codigoLinha &&
+                            codigoLinha === codigo
+                        );
+                    }
+                );
+
+            if (itemDuplicado) {
+                throw new Error(
+                    'Este item já foi adicionado à rebaixa.'
+                );
+            }
+
+            preencherItemLinhaRebaixa(
+                tr,
+                item
+            );
+
+            tr.dataset.itemCarregado =
+                'true';
+
+            return true;
+        } catch (error) {
+            console.error(
+                'Erro ao carregar item da rebaixa:',
+                error
+            );
+
+            limparItemLinhaRebaixa(
+                tr
+            );
+
+            alert(
+                error.message ||
+                'Não foi possível carregar o item.'
+            );
+
+            setTimeout(
+                () => {
+                    campoPesquisa.focus();
+                    campoPesquisa.select();
+                },
+                0
+            );
+
+            return false;
+        } finally {
+            processandoItem =
+                false;
+
+            campoPesquisa.readOnly =
+                false;
+        }
+    }
+
+    function limparItemSelecionadoAoEditar() {
+        if (
+            processandoItem ||
+            !tr.dataset.itemEmpresaId
+        ) {
             return;
         }
 
-        const listaId = document.getElementById('codgroup').value;
-        const cells = tr.querySelectorAll('td input');
+        const valorDigitado =
+            String(
+                campoPesquisa.value || ''
+            ).trim();
 
-        // 🔄 FEEDBACK VISUAL
-        cells[2].value = 'Carregando item, por favor aguarde...';
-        
-
-        try {
-            const response = await fetch(
-                `/api/lista-preco-Sem-Verificar/${listaId}?codigo=${encodeURIComponent(cod)}`
+        const separador =
+            valorDigitado.indexOf(
+                ' - '
             );
 
-            if (!response.ok) {
-                const erro = await response.json();
-                throw new Error(erro.message || 'Item não disponível');
-            }
+        const codigoDigitado =
+            separador >= 0
+                ? valorDigitado.substring(
+                    0,
+                    separador
+                )
+                : valorDigitado;
 
-            const data = await response.json();
-            if (!data.length) {
-                throw new Error('Item não encontrado');
-            }
+        const codigoNormalizado =
+            normalizarCodigoItem(
+                codigoDigitado
+            );
 
-            const item = data[0];
-            cells[2].value = item.ItemDescricao;
+        const codigoCarregado =
+            normalizarCodigoItem(
+                tr.dataset.itemEmpresaId
+            );
 
-            cells[1].addEventListener('input', (e) => {
-                cells[2].value = '';
-                cells[3].value = '';
-                cells[4].value = '';
-                cells[5].value = '';
-                cells[6].value = '';
-                cells[7].value = '';
-                cells[8].value = '';               
-                
-                const preco = parseFloat(cells[5].value.replace(',', '.')) || 0;
-                const qtd = parseFloat(cells[7].value.replace(',', '.')) || 0;
-                console.log(preco);
-                const formatador = new Intl.NumberFormat('pt-BR', {
-                    style: 'currency',
-                    currency: 'BRL',
-                });
-
-            totalLinha = preco * qtd;
-                cells[8].value = formatador.format(totalLinha)
-                tr.dataset.itemId = item.ItemId;
-                atualizarTotais();
-            });
-
-
-            cells[7].addEventListener('input', (e) => {
-
-                const rebaixa = parseFloat(cells[5].value.replace(',', '.')) || 0;
-                const qtd = parseFloat(cells[7].value.replace(',', '.')) || 0;
-
-                const formatador = new Intl.NumberFormat('pt-BR', {
-                    style: 'currency',
-                    currency: 'BRL',
-                });
-                
-
-            totalLinha = rebaixa * qtd;
-                cells[8].value = formatador.format(totalLinha)
-                tr.dataset.itemId = item.ItemId;
-                atualizarTotais();
-            });
-
-            cells[5].addEventListener('input', (e) => {
-
-                const preco = parseFloat(cells[4].value.replace(',', '.')) || 0;
-                const qtd = parseFloat(cells[7].value.replace(',', '.')) || 0;
-                const rebaixa = parseFloat(cells[5].value.replace(',', '.')) || 0;
-                console.log(preco);
-                const formatador = new Intl.NumberFormat('pt-BR', {
-                    style: 'currency',
-                    currency: 'BRL',
-                });
-                
-
-            totalLinha = rebaixa * qtd;
-                cells[8].value = formatador.format(totalLinha)
-                tr.dataset.itemId = item.ItemId;
-                atualizarTotais();
-
-            totalAtual= preco - rebaixa;
-                cells[6].value = formatador.format(totalAtual)
-                tr.dataset.itemId = item.ItemId;
-                atualizarTotais();
-            });
-
-            cells[4].addEventListener('input', (e) => {
-                const preco = parseFloat(cells[4].value.replace(',', '.')) || 0;
-                const rebaixa = parseFloat(cells[5].value.replace(',', '.')) || 0;
-                const formatador = new Intl.NumberFormat('pt-BR', {
-                    style: 'currency',
-                    currency: 'BRL',
-                });
-                
-
-
-            totalAtual = preco - rebaixa;
-                cells[6].value = formatador.format(totalAtual)
-                tr.dataset.itemId = item.ItemId;
-                atualizarTotais();
-            });
-
-
-        } catch (error) {
-            alert(error.message);
-            this.value = '';
-            this.focus();
-        } finally {
-            this.readOnly = false;
+        if (
+            codigoNormalizado ===
+            codigoCarregado
+        ) {
+            return;
         }
-    });
-}
 
+        const campoDescricao =
+            tr.querySelector(
+                '.campo-descricao-rebaixa'
+            );
 
+        const campoItemId =
+            tr.querySelector(
+                '.campo-item-id-rebaixa'
+            );
 
+        if (campoDescricao) {
+            campoDescricao.value =
+                '';
+        }
+
+        if (campoItemId) {
+            campoItemId.value =
+                '';
+        }
+
+        tr.dataset.itemId =
+            '';
+
+        tr.dataset.itemEmpresaId =
+            '';
+
+        tr.dataset.codigo =
+            '';
+
+        tr.dataset.descricao =
+            '';
+
+        tr.dataset.itemCarregado =
+            'false';
     }
 
-    tbody.appendChild(tr);
+    campoPesquisa.addEventListener(
+        'input',
+        () => {
+            limparItemSelecionadoAoEditar();
+
+            const item =
+                buscarItemPorPesquisa(
+                    campoPesquisa.value
+                );
+
+            if (
+                item &&
+                !processandoItem
+            ) {
+                processarItem();
+            }
+        }
+    );
+
+    campoPesquisa.addEventListener(
+        'change',
+        () => {
+            processarItem();
+        }
+    );
+
+    campoPesquisa.addEventListener(
+        'blur',
+        () => {
+            const possuiValor =
+                Boolean(
+                    campoPesquisa.value.trim()
+                );
+
+            const possuiItemCarregado =
+                Boolean(
+                    String(
+                        tr.dataset.itemEmpresaId ||
+                        ''
+                    ).trim()
+                );
+
+            if (
+                possuiValor &&
+                !possuiItemCarregado &&
+                !processandoItem
+            ) {
+                processarItem();
+            }
+        }
+    );
+
+    campoPesquisa.addEventListener(
+        'keydown',
+        async evento => {
+            const pressionouEnter =
+                evento.key ===
+                'Enter';
+
+            const pressionouTab =
+                evento.key ===
+                'Tab';
+
+            if (
+                !pressionouEnter &&
+                !pressionouTab
+            ) {
+                return;
+            }
+
+            if (
+                pressionouTab &&
+                evento.shiftKey
+            ) {
+                return;
+            }
+
+            evento.preventDefault();
+            evento.stopPropagation();
+
+            const itemCarregado =
+                await processarItem();
+
+            if (!itemCarregado) {
+                return;
+            }
+
+            const campoLote =
+                tr.querySelector(
+                    '.campo-lote-rebaixa'
+                );
+
+            setTimeout(
+                () => {
+                    campoLote?.focus();
+                    campoLote?.select();
+                },
+                0
+            );
+        }
+    );
 }
 
+// Função para adicionar uma nova linha à tabela
+function adicionarNovaLinha() {
+    const tbody =
+        document.querySelector(
+            '#dadosPedido tbody'
+        );
+
+    if (!tbody) {
+        console.error(
+            'O tbody da tabela de rebaixa não foi encontrado.'
+        );
+
+        return null;
+    }
+
+    const tr =
+        document.createElement(
+            'tr'
+        );
+
+    tr.classList.add(
+        'linha-item-rebaixa'
+    );
+
+    const criarCelulaInput = ({
+        classeCelula,
+        classeInput,
+        tipo = 'text',
+        somenteLeitura = false,
+        tabIndex = 0,
+        placeholder = '',
+        inputMode = '',
+        oculto = false
+    }) => {
+        const td =
+            document.createElement(
+                'td'
+            );
+
+        if (classeCelula) {
+            td.classList.add(
+                classeCelula
+            );
+        }
+
+        if (oculto) {
+            td.style.display =
+                'none';
+        }
+
+        const input =
+            document.createElement(
+                'input'
+            );
+
+        input.type =
+            tipo;
+
+        if (classeInput) {
+            input.classList.add(
+                classeInput
+            );
+        }
+
+        input.readOnly =
+            somenteLeitura;
+
+        input.tabIndex =
+            tabIndex;
+
+        input.placeholder =
+            placeholder;
+
+        if (inputMode) {
+            input.inputMode =
+                inputMode;
+        }
+
+        input.autocomplete =
+            'off';
+
+        td.appendChild(
+            input
+        );
+
+        tr.appendChild(
+            td
+        );
+
+        return {
+            td,
+            input
+        };
+    };
+
+    /*
+     * 0 - NF origem
+     */
+    const campoNf =
+        criarCelulaInput({
+            classeCelula:
+                'col-reb-nf',
+
+            classeInput:
+                'campo-nf-origem-rebaixa'
+        }).input;
+
+    /*
+     * 1 - Código / descrição
+     */
+    const campoPesquisa =
+        criarCelulaInput({
+            classeCelula:
+                'col-reb-codigo-descricao',
+
+            classeInput:
+                'campo-item-pesquisa-rebaixa',
+
+            placeholder:
+                'Digite o código ou a descrição'
+        }).input;
+
+    campoPesquisa.setAttribute(
+        'list',
+        'lista-produtos-rebaixa'
+    );
+
+    /*
+     * 2 - Lote
+     */
+    const campoLote =
+        criarCelulaInput({
+            classeCelula:
+                'col-reb-lote',
+
+            classeInput:
+                'campo-lote-rebaixa'
+        }).input;
+
+    /*
+     * Função auxiliar para campos monetários.
+     */
+    function criarCampoMoeda(
+        classeCelula,
+        classeInput,
+        somenteLeitura = false
+    ) {
+        const td =
+            document.createElement(
+                'td'
+            );
+
+        td.classList.add(
+            classeCelula
+        );
+
+        const wrapper =
+            document.createElement(
+                'div'
+            );
+
+        wrapper.classList.add(
+            'campo-moeda'
+        );
+
+        const simbolo =
+            document.createElement(
+                'span'
+            );
+
+        simbolo.textContent =
+            'R$';
+
+        const input =
+            document.createElement(
+                'input'
+            );
+
+        input.type =
+            'text';
+
+        input.classList.add(
+            classeInput,
+            'campo-dinheiro-reb'
+        );
+
+        input.inputMode =
+            'decimal';
+
+        input.autocomplete =
+            'off';
+
+        input.readOnly =
+            somenteLeitura;
+
+        input.tabIndex =
+            somenteLeitura
+                ? -1
+                : 0;
+
+        wrapper.appendChild(
+            simbolo
+        );
+
+        wrapper.appendChild(
+            input
+        );
+
+        td.appendChild(
+            wrapper
+        );
+
+        tr.appendChild(
+            td
+        );
+
+        return input;
+    }
+
+    /*
+     * 3 - Preço unitário com impostos
+     */
+    const campoPreco =
+        criarCampoMoeda(
+            'col-reb-preco',
+            'campo-preco-rebaixa'
+        );
+
+    /*
+     * 4 - Valor da rebaixa
+     */
+    const campoRebaixa =
+        criarCampoMoeda(
+            'col-reb-rebaixa',
+            'campo-valor-rebaixa'
+        );
+
+    /*
+     * 5 - Preço atual calculado
+     */
+    const campoAtual =
+        criarCampoMoeda(
+            'col-reb-atual',
+            'campo-preco-atual-rebaixa',
+            true
+        );
+
+    /*
+     * 6 - Quantidade
+     */
+    const campoQuantidade =
+        criarCelulaInput({
+            classeCelula:
+                'col-reb-quantidade',
+
+            classeInput:
+                'campo-quantidade-rebaixa',
+
+            inputMode:
+                'decimal'
+        }).input;
+
+    /*
+     * 7 - Total calculado
+     */
+    const campoTotal =
+        criarCampoMoeda(
+            'col-reb-total',
+            'campo-total-rebaixa',
+            true
+        );
+
+    /*
+     * 8 - Excluir
+     */
+    const celulaExcluir =
+        document.createElement(
+            'td'
+        );
+
+    celulaExcluir.classList.add(
+        'col-reb-excluir'
+    );
+
+    const botaoRemover =
+        document.createElement(
+            'button'
+        );
+
+    botaoRemover.type =
+        'button';
+
+    botaoRemover.classList.add(
+        'btn-remover-linha'
+    );
+
+    botaoRemover.textContent =
+        'Excluir';
+
+    celulaExcluir.appendChild(
+        botaoRemover
+    );
+
+    tr.appendChild(
+        celulaExcluir
+    );
+
+    /*
+     * 9 - Item ID oculto
+     */
+    const campoItemId =
+        criarCelulaInput({
+            classeCelula:
+                'col-reb-itemid',
+
+            classeInput:
+                'campo-item-id-rebaixa',
+
+            tipo:
+                'hidden',
+
+            tabIndex:
+                -1,
+
+            oculto:
+                true
+        }).input;
+
+    /*
+     * A linha precisa ser adicionada antes da configuração
+     * dos eventos que consultam os campos dentro de "tr".
+     */
+    tbody.appendChild(
+        tr
+    );
+
+    configurarPesquisaItemRebaixa(
+        tr,
+        campoPesquisa
+    );
+
+    const camposCalculados = [
+        campoPreco,
+        campoRebaixa,
+        campoQuantidade
+    ];
+
+    camposCalculados.forEach(
+        campo => {
+            campo.addEventListener(
+                'input',
+                () => {
+                    recalcularLinhaRebaixa(
+                        tr
+                    );
+                }
+            );
+        }
+    );
+
+    [
+        campoPreco,
+        campoRebaixa
+    ].forEach(
+        campo => {
+            campo.addEventListener(
+                'focus',
+                () => {
+                    campo.select();
+                }
+            );
+
+            campo.addEventListener(
+                'blur',
+                () => {
+                    formatarCampoMoedaBR(
+                        campo
+                    );
+
+                    recalcularLinhaRebaixa(
+                        tr
+                    );
+                }
+            );
+        }
+    );
+
+    function configurarEnterTab(
+        campo,
+        proximoCampo,
+        callback = null
+    ) {
+        campo.addEventListener(
+            'keydown',
+            evento => {
+                const enter =
+                    evento.key ===
+                    'Enter';
+
+                const tab =
+                    evento.key ===
+                    'Tab';
+
+                if (
+                    !enter &&
+                    !tab
+                ) {
+                    return;
+                }
+
+                if (
+                    tab &&
+                    evento.shiftKey
+                ) {
+                    return;
+                }
+
+                evento.preventDefault();
+
+                callback?.();
+
+                setTimeout(
+                    () => {
+                        proximoCampo?.focus();
+                        proximoCampo?.select();
+                    },
+                    0
+                );
+            }
+        );
+    }
+
+    configurarEnterTab(
+        campoNf,
+        campoPesquisa
+    );
+
+    configurarEnterTab(
+        campoLote,
+        campoPreco
+    );
+
+    configurarEnterTab(
+        campoPreco,
+        campoRebaixa,
+        () => {
+            formatarCampoMoedaBR(
+                campoPreco
+            );
+
+            recalcularLinhaRebaixa(
+                tr
+            );
+        }
+    );
+
+    configurarEnterTab(
+        campoRebaixa,
+        campoQuantidade,
+        () => {
+            formatarCampoMoedaBR(
+                campoRebaixa
+            );
+
+            recalcularLinhaRebaixa(
+                tr
+            );
+        }
+    );
+
+    campoQuantidade.addEventListener(
+        'keydown',
+        evento => {
+            const enter =
+                evento.key ===
+                'Enter';
+
+            const tab =
+                evento.key ===
+                'Tab';
+
+            if (
+                !enter &&
+                !tab
+            ) {
+                return;
+            }
+
+            if (
+                tab &&
+                evento.shiftKey
+            ) {
+                return;
+            }
+
+            evento.preventDefault();
+
+            recalcularLinhaRebaixa(
+                tr
+            );
+
+            let proximaLinha =
+                tr.nextElementSibling;
+
+            if (
+                !proximaLinha ||
+                !proximaLinha.classList.contains(
+                    'linha-item-rebaixa'
+                )
+            ) {
+                proximaLinha =
+                    adicionarNovaLinha();
+            }
+
+            setTimeout(
+                () => {
+                    proximaLinha
+                        ?.querySelector(
+                            '.campo-nf-origem-rebaixa'
+                        )
+                        ?.focus();
+                },
+                0
+            );
+        }
+    );
+
+    botaoRemover.addEventListener(
+        'click',
+        () => {
+            tr.remove();
+
+            atualizarTotais();
+
+            garantirLinhaInicial();
+        }
+    );
+
+    /*
+     * Referências opcionais no dataset.
+     */
+    tr.dataset.itemId =
+        campoItemId.value || '';
+
+    tr.dataset.itemEmpresaId =
+        '';
+
+    tr.dataset.descricao =
+        '';
+
+    return tr;
+}
 
 // Função para remover a última linha da tabela
 document.getElementById('excluirLinha').addEventListener('click', function () {
@@ -800,6 +2474,997 @@ document.getElementById('excluirLinha').addEventListener('click', function () {
                     adicionarNovaLinha(); 
     });
 
+
+function obterValorCampoPdf(
+    id,
+    valorPadrao = '-'
+) {
+    const campo =
+        document.getElementById(
+            id
+        );
+
+    const valor =
+        String(
+            campo?.value ?? ''
+        ).trim();
+
+    return valor || valorPadrao;
+}
+
+function criarCampoClientePdf(
+    rotulo,
+    valor,
+    classeExtra = ''
+) {
+    const campo =
+        document.createElement(
+            'div'
+        );
+
+    campo.className =
+        `pdf-campo-cliente ${classeExtra}`
+            .trim();
+
+    const titulo =
+        document.createElement(
+            'strong'
+        );
+
+    titulo.textContent =
+        rotulo;
+
+    const conteudo =
+        document.createElement(
+            'span'
+        );
+
+    conteudo.textContent =
+        String(
+            valor || '-'
+        );
+
+    campo.appendChild(
+        titulo
+    );
+
+    campo.appendChild(
+        conteudo
+    );
+
+    return campo;
+}
+
+function criarCelulaPdf(
+    valor,
+    classe = ''
+) {
+    const td =
+        document.createElement(
+            'td'
+        );
+
+    if (classe) {
+        td.className =
+            classe;
+    }
+
+    td.textContent =
+        String(
+            valor ?? ''
+        ).trim() || '-';
+
+    return td;
+}
+
+function formatarNumeroPdf(
+    valor
+) {
+    return Number(
+        valor || 0
+    ).toLocaleString(
+        'pt-BR',
+        {
+            minimumFractionDigits:
+                2,
+
+            maximumFractionDigits:
+                2
+        }
+    );
+}
+
+function formatarMoedaPdf(
+    valor
+) {
+    return Number(
+        valor || 0
+    ).toLocaleString(
+        'pt-BR',
+        {
+            style:
+                'currency',
+
+            currency:
+                'BRL'
+        }
+    );
+}
+
+function criarCabecalhoRebaixaPdf() {
+    const cabecalho =
+        document.createElement(
+            'div'
+        );
+
+    cabecalho.className =
+        'pdf-cabecalho';
+
+    const areaLogo =
+        document.createElement(
+            'div'
+        );
+
+    areaLogo.className =
+        'pdf-logo-container';
+
+    const logoOriginal =
+        document.querySelector(
+            '.header img'
+        );
+
+    if (logoOriginal) {
+        const logo =
+            logoOriginal.cloneNode(
+                true
+            );
+
+        areaLogo.appendChild(
+            logo
+        );
+    }
+
+    const titulo =
+        document.createElement(
+            'h1'
+        );
+
+    titulo.textContent =
+        'SOLICITAÇÃO DE REBAIXA';
+
+    const data =
+        document.createElement(
+            'div'
+        );
+
+    data.className =
+        'pdf-data';
+
+    data.textContent =
+        new Date()
+            .toLocaleString(
+                'pt-BR'
+            );
+
+    cabecalho.appendChild(
+        areaLogo
+    );
+
+    cabecalho.appendChild(
+        titulo
+    );
+
+    cabecalho.appendChild(
+        data
+    );
+
+    return cabecalho;
+}
+
+function criarDadosClienteRebaixaPdf() {
+    const secao =
+        document.createElement(
+            'section'
+        );
+
+    secao.className =
+        'pdf-secao pdf-dados-cliente';
+
+    const titulo =
+        document.createElement(
+            'h2'
+        );
+
+    titulo.textContent =
+        'DADOS DO CLIENTE';
+
+    const grade =
+        document.createElement(
+            'div'
+        );
+
+    grade.className =
+        'pdf-grade-cliente';
+
+    grade.appendChild(
+        criarCampoClientePdf(
+            'CNPJ',
+            obterValorCampoPdf(
+                'cnpj'
+            )
+        )
+    );
+
+    grade.appendChild(
+        criarCampoClientePdf(
+            'CÓD CLIENTE',
+            obterValorCampoPdf(
+                'cod_cliente'
+            )
+        )
+    );
+
+    grade.appendChild(
+        criarCampoClientePdf(
+            'RAZÃO SOCIAL',
+            obterValorCampoPdf(
+                'razao_social'
+            ),
+            'pdf-campo-duplo'
+        )
+    );
+
+    grade.appendChild(
+        criarCampoClientePdf(
+            'REPRESENTANTE',
+            obterValorCampoPdf(
+                'representante'
+            )
+        )
+    );
+
+    grade.appendChild(
+        criarCampoClientePdf(
+            'ENDEREÇO',
+            obterValorCampoPdf(
+                'endereco'
+            ),
+            'pdf-campo-duplo'
+        )
+    );
+
+    grade.appendChild(
+        criarCampoClientePdf(
+            'BAIRRO',
+            obterValorCampoPdf(
+                'bairro'
+            )
+        )
+    );
+
+    grade.appendChild(
+        criarCampoClientePdf(
+            'CIDADE',
+            obterValorCampoPdf(
+                'cidade'
+            )
+        )
+    );
+
+    grade.appendChild(
+        criarCampoClientePdf(
+            'UF',
+            obterValorCampoPdf(
+                'uf'
+            )
+        )
+    );
+
+    grade.appendChild(
+        criarCampoClientePdf(
+            'CEP',
+            obterValorCampoPdf(
+                'cep'
+            )
+        )
+    );
+
+    grade.appendChild(
+        criarCampoClientePdf(
+            'TELEFONE',
+            obterValorCampoPdf(
+                'telefone'
+            )
+        )
+    );
+
+    grade.appendChild(
+        criarCampoClientePdf(
+            'E-MAIL',
+            obterValorCampoPdf(
+                'email'
+            ),
+            'pdf-campo-duplo'
+        )
+    );
+
+    grade.appendChild(
+        criarCampoClientePdf(
+            'E-MAIL FISCAL',
+            obterValorCampoPdf(
+                'email_fiscal'
+            ),
+            'pdf-campo-duplo'
+        )
+    );
+
+    secao.appendChild(
+        titulo
+    );
+
+    secao.appendChild(
+        grade
+    );
+
+    return secao;
+}
+
+function criarMotivoRebaixaPdf() {
+    const secao =
+        document.createElement(
+            'section'
+        );
+
+    secao.className =
+        'pdf-secao pdf-motivo';
+
+    const titulo =
+        document.createElement(
+            'h2'
+        );
+
+    titulo.textContent =
+        'MOTIVO DA REBAIXA';
+
+    const texto =
+        document.createElement(
+            'div'
+        );
+
+    texto.className =
+        'pdf-motivo-texto';
+
+    texto.textContent =
+        obterValorCampoPdf(
+            'observation'
+        );
+
+    secao.appendChild(
+        titulo
+    );
+
+    secao.appendChild(
+        texto
+    );
+
+    return secao;
+}
+
+function criarTabelaRebaixaPdf() {
+    const secao =
+        document.createElement(
+            'section'
+        );
+
+    secao.className =
+        'pdf-secao pdf-itens';
+
+    const titulo =
+        document.createElement(
+            'h2'
+        );
+
+    titulo.textContent =
+        'DADOS DA REBAIXA';
+
+    const tabela =
+        document.createElement(
+            'table'
+        );
+
+    tabela.className =
+        'pdf-tabela-itens ' +
+        'pdf-tabela-rebaixa';
+
+    const colgroup =
+        document.createElement(
+            'colgroup'
+        );
+
+    const larguras = [
+        '9%',
+        '30%',
+        '9%',
+        '10%',
+        '9%',
+        '9%',
+        '7%',
+        '10%'
+    ];
+
+    larguras.forEach(
+        largura => {
+            const col =
+                document.createElement(
+                    'col'
+                );
+
+            col.style.width =
+                largura;
+
+            colgroup.appendChild(
+                col
+            );
+        }
+    );
+
+    tabela.appendChild(
+        colgroup
+    );
+
+    const thead =
+        document.createElement(
+            'thead'
+        );
+
+    const linhaCabecalho =
+        document.createElement(
+            'tr'
+        );
+
+    const titulos = [
+        'NF ORIGEM',
+        'CÓDIGO / DESCRIÇÃO',
+        'LOTE',
+        'R$ UNITÁRIO COM IMPOSTOS',
+        'R$ REBAIXA',
+        'R$ ATUAL',
+        'QTD (UN)',
+        'TOTAL R$'
+    ];
+
+    titulos.forEach(
+        texto => {
+            const th =
+                document.createElement(
+                    'th'
+                );
+
+            th.textContent =
+                texto;
+
+            linhaCabecalho.appendChild(
+                th
+            );
+        }
+    );
+
+    thead.appendChild(
+        linhaCabecalho
+    );
+
+    tabela.appendChild(
+        thead
+    );
+
+    const tbody =
+        document.createElement(
+            'tbody'
+        );
+
+    const linhas =
+        document.querySelectorAll(
+            '#dadosPedido tbody ' +
+            '.linha-item-rebaixa'
+        );
+
+    linhas.forEach(
+        tr => {
+            const codigo =
+                String(
+                    tr.dataset.itemEmpresaId ||
+                    ''
+                ).trim();
+
+            if (!codigo) {
+                return;
+            }
+
+            const descricao =
+                String(
+                    tr.dataset.descricao ||
+                    ''
+                ).trim();
+
+            const nf =
+                tr.querySelector(
+                    '.campo-nf-origem-rebaixa'
+                )?.value || '';
+
+            const lote =
+                tr.querySelector(
+                    '.campo-lote-rebaixa'
+                )?.value || '';
+
+            const preco =
+                moedaBRParaNumero(
+                    tr.querySelector(
+                        '.campo-preco-rebaixa'
+                    )?.value
+                );
+
+            const rebaixa =
+                moedaBRParaNumero(
+                    tr.querySelector(
+                        '.campo-valor-rebaixa'
+                    )?.value
+                );
+
+            const atual =
+                moedaBRParaNumero(
+                    tr.querySelector(
+                        '.campo-preco-atual-rebaixa'
+                    )?.value
+                );
+
+            const quantidade =
+                numeroQuantidade(
+                    tr.querySelector(
+                        '.campo-quantidade-rebaixa'
+                    )?.value
+                );
+
+            const total =
+                moedaBRParaNumero(
+                    tr.querySelector(
+                        '.campo-total-rebaixa'
+                    )?.value
+                );
+
+            const linha =
+                document.createElement(
+                    'tr'
+                );
+
+            linha.appendChild(
+                criarCelulaPdf(
+                    nf
+                )
+            );
+
+            linha.appendChild(
+                criarCelulaPdf(
+                    `${codigo} - ${descricao}`,
+                    'pdf-descricao-item'
+                )
+            );
+
+            linha.appendChild(
+                criarCelulaPdf(
+                    lote
+                )
+            );
+
+            linha.appendChild(
+                criarCelulaPdf(
+                    formatarMoedaPdf(
+                        preco
+                    )
+                )
+            );
+
+            linha.appendChild(
+                criarCelulaPdf(
+                    formatarMoedaPdf(
+                        rebaixa
+                    )
+                )
+            );
+
+            linha.appendChild(
+                criarCelulaPdf(
+                    formatarMoedaPdf(
+                        atual
+                    )
+                )
+            );
+
+            linha.appendChild(
+                criarCelulaPdf(
+                    formatarNumeroPdf(
+                        quantidade
+                    )
+                )
+            );
+
+            linha.appendChild(
+                criarCelulaPdf(
+                    formatarMoedaPdf(
+                        total
+                    )
+                )
+            );
+
+            tbody.appendChild(
+                linha
+            );
+        }
+    );
+
+    tabela.appendChild(
+        tbody
+    );
+
+    secao.appendChild(
+        titulo
+    );
+
+    secao.appendChild(
+        tabela
+    );
+
+    return secao;
+}
+
+function criarCampoTotalRebaixaPdf(
+    rotulo,
+    valor
+) {
+    const campo =
+        document.createElement(
+            'div'
+        );
+
+    campo.className =
+        'pdf-total-campo';
+
+    const titulo =
+        document.createElement(
+            'strong'
+        );
+
+    titulo.textContent =
+        rotulo;
+
+    const conteudo =
+        document.createElement(
+            'span'
+        );
+
+    conteudo.textContent =
+        valor;
+
+    campo.appendChild(
+        titulo
+    );
+
+    campo.appendChild(
+        conteudo
+    );
+
+    return campo;
+}
+
+function criarTotaisRebaixaPdf() {
+    const totais =
+        document.createElement(
+            'div'
+        );
+
+    totais.className =
+        'pdf-totais';
+
+    totais.appendChild(
+        criarCampoTotalRebaixaPdf(
+            'VOLUMES',
+            obterValorCampoPdf(
+                'volume',
+                '0'
+            )
+        )
+    );
+
+    totais.appendChild(
+        criarCampoTotalRebaixaPdf(
+            'TOTAL DA REBAIXA',
+            obterValorCampoPdf(
+                'total',
+                'R$ 0,00'
+            )
+        )
+    );
+
+    return totais;
+}
+
+function prepararRebaixaParaPdf() {
+    const relatorio =
+        document.createElement(
+            'div'
+        );
+
+    /*
+     * Usa a classe visual já criada para o PDF da devolução
+     * e uma classe adicional específica da rebaixa.
+     */
+    relatorio.className =
+        'relatorio-devolucao-pdf ' +
+        'relatorio-rebaixa-pdf';
+
+    relatorio.appendChild(
+        criarCabecalhoRebaixaPdf()
+    );
+
+    relatorio.appendChild(
+        criarDadosClienteRebaixaPdf()
+    );
+
+    relatorio.appendChild(
+        criarMotivoRebaixaPdf()
+    );
+
+    relatorio.appendChild(
+        criarTabelaRebaixaPdf()
+    );
+
+    relatorio.appendChild(
+        criarTotaisRebaixaPdf()
+    );
+
+    document.body.appendChild(
+        relatorio
+    );
+
+    return relatorio;
+}
+
+async function gerarBlobRebaixaPdf(
+    elemento
+) {
+    if (
+        typeof window.html2canvas !==
+        'function'
+    ) {
+        throw new Error(
+            'A biblioteca html2canvas não foi carregada.'
+        );
+    }
+
+    if (
+        typeof window.jspdf?.jsPDF !==
+        'function'
+    ) {
+        throw new Error(
+            'A biblioteca jsPDF não foi carregada.'
+        );
+    }
+
+    await new Promise(
+        resolve => {
+            requestAnimationFrame(
+                () => {
+                    requestAnimationFrame(
+                        resolve
+                    );
+                }
+            );
+        }
+    );
+
+    if (document.fonts?.ready) {
+        await document.fonts.ready;
+    }
+
+    const imagens =
+        Array.from(
+            elemento.querySelectorAll(
+                'img'
+            )
+        );
+
+    await Promise.all(
+        imagens.map(
+            imagem => {
+                if (imagem.complete) {
+                    return Promise.resolve();
+                }
+
+                return new Promise(
+                    resolve => {
+                        imagem.addEventListener(
+                            'load',
+                            resolve,
+                            {
+                                once: true
+                            }
+                        );
+
+                        imagem.addEventListener(
+                            'error',
+                            resolve,
+                            {
+                                once: true
+                            }
+                        );
+
+                        setTimeout(
+                            resolve,
+                            3000
+                        );
+                    }
+                );
+            }
+        )
+    );
+
+    const larguraCaptura =
+        1120;
+
+    const alturaCaptura =
+        Math.ceil(
+            Math.max(
+                elemento.scrollHeight,
+                elemento.offsetHeight,
+                elemento
+                    .getBoundingClientRect()
+                    .height
+            )
+        );
+
+    if (alturaCaptura <= 0) {
+        throw new Error(
+            'O relatório da rebaixa está vazio.'
+        );
+    }
+
+    const canvas =
+        await window.html2canvas(
+            elemento,
+            {
+                scale:
+                    2,
+
+                useCORS:
+                    true,
+
+                allowTaint:
+                    false,
+
+                backgroundColor:
+                    '#ffffff',
+
+                logging:
+                    false,
+
+                width:
+                    larguraCaptura,
+
+                height:
+                    alturaCaptura,
+
+                windowWidth:
+                    larguraCaptura,
+
+                windowHeight:
+                    alturaCaptura,
+
+                scrollX:
+                    0,
+
+                scrollY:
+                    0
+            }
+        );
+
+    const jsPDF =
+        window.jspdf.jsPDF;
+
+    const pdf =
+        new jsPDF({
+            orientation:
+                'landscape',
+
+            unit:
+                'mm',
+
+            format:
+                'a4',
+
+            compress:
+                true
+        });
+
+    const margem =
+        4;
+
+    const larguraPagina =
+        pdf.internal.pageSize
+            .getWidth();
+
+    const alturaPagina =
+        pdf.internal.pageSize
+            .getHeight();
+
+    const larguraDisponivel =
+        larguraPagina -
+        margem * 2;
+
+    const alturaDisponivel =
+        alturaPagina -
+        margem * 2;
+
+    const escalaHorizontal =
+        larguraDisponivel /
+        canvas.width;
+
+    const escalaVertical =
+        alturaDisponivel /
+        canvas.height;
+
+    const escalaFinal =
+        Math.min(
+            escalaHorizontal,
+            escalaVertical
+        );
+
+    const larguraFinal =
+        canvas.width *
+        escalaFinal;
+
+    const alturaFinal =
+        canvas.height *
+        escalaFinal;
+
+    const posicaoX =
+        (
+            larguraPagina -
+            larguraFinal
+        ) /
+        2;
+
+    pdf.addImage(
+        canvas.toDataURL(
+            'image/jpeg',
+            0.96
+        ),
+        'JPEG',
+        posicaoX,
+        margem,
+        larguraFinal,
+        alturaFinal,
+        undefined,
+        'FAST'
+    );
+
+    const blob =
+        pdf.output(
+            'blob'
+        );
+
+    if (
+        !blob ||
+        blob.size === 0
+    ) {
+        throw new Error(
+            'O PDF da rebaixa foi gerado vazio.'
+        );
+    }
+
+    return blob;
+}
+
+
+
 // Função para verificar duplicatas de código na tabela
 function verificarCodigoDuplicado(codigo) {
     const linhas = document.querySelectorAll('#dadosPedido tbody tr');
@@ -811,7 +3476,6 @@ function verificarCodigoDuplicado(codigo) {
             contador++;
         }
     });
-
     return contador > 1;
 }
 
@@ -845,26 +3509,13 @@ function verificarItensSemPreenchimento(codigo, linhaAtual) {
 
 //--inicio-----envio de dados para o sistema DBCorp-----------------------------------------------------------------------------------------////
 const feedbackDiv = document.getElementById('feedback1');
-const modal = document.getElementById('customModal');
-const closeButton = document.querySelector('.close-button');
-const confirmButton = document.getElementById('confirmButton');
-const cancelButton = document.getElementById('cancelButton');
 const cnpjInput = document.getElementById('cnpj');
-
-// Função para abrir o modal
-
-// Fecha o modal ao clicar no botão "Não" ou no botão de fechar
-closeButton.addEventListener("click", () => {
-    modal.style.display = "none";
-});
-
-
 
 //--fim-----envio de dados para o sistema DBCorp------------------------------------------------------------
 
 document.addEventListener("DOMContentLoaded", () => {
 
-showStep();
+// showStep();
 
 
 //consts email
@@ -879,7 +3530,7 @@ showStep();
     const emailAttachmentInput = document.getElementById('emailAttachment');
     const attachmentList = document.getElementById('attachmentList');
     const totalSizeDisplay = document.getElementById('totalSizeDisplay');
-    const selector = document.getElementById('seletor');
+  
     
     // Elementos do modal de limite de tamanho
     const sizeLimitModal = document.getElementById('sizeLimitModal');
@@ -889,7 +3540,7 @@ showStep();
 
     
     // E-mail fixo que não pode ser removido
-    const FIXED_EMAIL = `devolucao.kz@kidszoneworld.com.br`; // Trocar depois
+    const FIXED_EMAIL = `comercial.kz@kidszoneworld.com.br`; // Trocar depois
     
     // const FIXED_EMAIL = `luis.henrique@kidszoneworld.com.br`; // Trocar depois
     let generatedPdfFile = null;
@@ -999,36 +3650,105 @@ const { uploadUrlReb, key } = await response.json();
 
         // Função para gerar o PDF automaticamente
     async function gerarPDF() {
-        const content = document.querySelector('.container');
-        const razaoSocial = document.getElementById('razao_social').value || "Cliente";
-        const obs = document.getElementById('observation').value 
-        const timestamp = formatarDataBrasileira();
-        const filename = `Rebaixa_${razaoSocial}_${timestamp}.pdf`;
+        const razaoSocial =
+            obterValorCampoPdf(
+                'razao_social',
+                'Cliente'
+            );
 
-        const options = {
-            margin: [0, 0, 0, 0],
-            filename: filename,
-            html2canvas: { scale: 2 },
-            jsPDF: { unit: "mm", format: "a4", orientation: "landscape" }
-        };
-         try {
-            hideFeedback();
-            buttonPdf.style.display = 'none';
-            selector.style.display = 'none';
+        const codigoCliente =
+            obterValorCampoPdf(
+                'cod_cliente',
+                ''
+            );
 
-            const pdfBlob = await html2pdf().set(options).from(content).output('blob');
-            generatedPdfFile = new File([pdfBlob], filename, { type: 'application/pdf' });
+        const dataArquivo =
+            formatarDataBrasileira();
+
+        const nomeCliente =
+            String(
+                razaoSocial
+            )
+                .replace(
+                    /[\\/:*?"<>|]/g,
+                    ''
+                )
+                .trim();
+
+        const nomeArquivo =
+            `Rebaixa - ` +
+            `${nomeCliente} - ` +
+            `${codigoCliente} - ` +
+            `${dataArquivo}.pdf`;
+
+        let relatorio =
+            null;
+
+        try {
+            buttonPdf.disabled =
+                true;
+
+            showFeedback(
+                'Gerando PDF da rebaixa, aguarde...'
+            );
+
+            relatorio =
+                prepararRebaixaParaPdf();
+
+            const pdfBlob =
+                await gerarBlobRebaixaPdf(
+                    relatorio
+                );
+
+            generatedPdfFile =
+                new File(
+                    [
+                        pdfBlob
+                    ],
+                    nomeArquivo,
+                    {
+                        type:
+                            'application/pdf'
+                    }
+                );
+
+            console.log(
+                'PDF da rebaixa gerado:',
+                {
+                    nome:
+                        generatedPdfFile.name,
+
+                    tamanho:
+                        generatedPdfFile.size
+                }
+            );
+
             return generatedPdfFile;
         } catch (error) {
-            console.error('Erro ao gerar o PDF:', error);
-            alert('Erro ao gerar o PDF: ' + error.message);
+            generatedPdfFile =
+                null;
+
+            console.error(
+                'Erro ao gerar PDF da rebaixa:',
+                error
+            );
+
+            alert(
+                error.message ||
+                'Não foi possível gerar o PDF da rebaixa.'
+            );
+
             return null;
         } finally {
-            buttonPdf.style.display = 'block';
-            selector.style.display = 'inline-block';
+            relatorio?.remove();
+
+            buttonPdf.disabled =
+                false;
+
+            hideFeedback();
         }
     }
-
+    
     function atualizarListaAnexos() {
     attachmentList.innerHTML = '';
 
@@ -1184,12 +3904,20 @@ const { uploadUrlReb, key } = await response.json();
             return;
         }
 
-        await gerarPDF();
-        if (generatedPdfFile) {
-            additionalFiles = [];
-            preencherFormularioEmail();
-            emailModal.style.display = 'block';
+        const arquivoPdf =
+            await gerarPDF();
+
+        if (!arquivoPdf) {
+            return;
         }
+
+        additionalFiles =
+            [];
+
+        preencherFormularioEmail();
+
+        emailModal.style.display =
+            'block';
     });
 
     // Fecha o modal ao clicar no botão de fechar
@@ -1319,7 +4047,7 @@ const tutorialSteps = [
 
     {
         element: '#cnpj',
-        text: 'Passo 1. Informe o CNPJ do cliente.\n\n As demais informações serão carregadas automaticamente.\n\nAperte em próximo para continuar com o tutorial ou pressione finalizar para sair'
+        text: 'Passo 1. Informe o CNPJ do cliente.\n\n As demais informações serão carregadas automaticamente.\n\nClique em próximo para continuar com o tutorial ou pressione finalizar para sair'
     },
     {
         element: '#observation',
@@ -1341,24 +4069,252 @@ const tutorialSteps = [
     }
 ];
 
-function showStep() {
-    console.log("step" + step)
-    const overlay = document.getElementById('tutorialOverlay');
-    const box = document.getElementById('tutorialBox');
-    const text = document.getElementById('tutorialText');
+function bloquearCamposDuranteTutorial(){
 
-    document.querySelectorAll('.highlight').forEach(el => el.classList.remove('highlight'));
+    tutorialAtivo =
+        true;
 
-    const stepData = tutorialSteps[step];
-    const element = document.querySelector(stepData.element);
+    const campos =
+        document.querySelectorAll(
+            'input, textarea, select, button'
+        );
 
-    if (!element) return;
+    campos.forEach(campo => {
 
-    element.classList.add('highlight');
+        if(
+            campo.closest('#tutorialBox') ||
+            campo.closest('#tutorialOverlay')
+        ){
+            return;
+        }
 
-    //TRATAMENTO ESPECIAL PARA O PRIMEIRO STEP
-    if (step === 0) {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        if(!estadosCamposTutorial.has(campo)){
+
+            estadosCamposTutorial.set(
+                campo,
+                {
+                    disabled: campo.disabled,
+                    readOnly: campo.readOnly || false,
+                    pointerEvents: campo.style.pointerEvents || '',
+                    cursor: campo.style.cursor || '',
+                    tabIndex: campo.getAttribute('tabindex')
+                }
+            );
+
+        }
+
+        campo.disabled =
+            true;
+
+        if(
+            campo.tagName === 'INPUT' ||
+            campo.tagName === 'TEXTAREA'
+        ){
+
+            campo.readOnly =
+                true;
+
+        }
+
+        campo.style.pointerEvents =
+            'none';
+
+        campo.style.cursor =
+            'not-allowed';
+
+        campo.setAttribute(
+            'tabindex',
+            '-1'
+        );
+
+    });
+
+}
+
+function liberarCamposAposTutorial(){
+
+    tutorialAtivo =
+        false;
+
+    estadosCamposTutorial.forEach((estado, campo) => {
+
+        campo.disabled =
+            estado.disabled;
+
+        if(
+            campo.tagName === 'INPUT' ||
+            campo.tagName === 'TEXTAREA'
+        ){
+
+            campo.readOnly =
+                estado.readOnly;
+
+        }
+
+        campo.style.pointerEvents =
+            estado.pointerEvents;
+
+        campo.style.cursor =
+            estado.cursor;
+
+        if(estado.tabIndex === null){
+
+            campo.removeAttribute(
+                'tabindex'
+            );
+
+        }else{
+
+            campo.setAttribute(
+                'tabindex',
+                estado.tabIndex
+            );
+
+        }
+
+    });
+
+    estadosCamposTutorial.clear();
+
+}
+
+function bloquearEventosForaDoTutorial(){
+
+    document.addEventListener(
+        'click',
+        function(e){
+
+            if(
+                tutorialAtivo &&
+                !e.target.closest('#tutorialBox')
+            ){
+
+                e.preventDefault();
+                e.stopPropagation();
+
+            }
+
+        },
+        true
+    );
+
+    document.addEventListener(
+        'keydown',
+        function(e){
+
+            if(
+                tutorialAtivo &&
+                !e.target.closest('#tutorialBox')
+            ){
+
+                e.preventDefault();
+                e.stopPropagation();
+
+            }
+
+        },
+        true
+    );
+
+}
+
+function iniciarTutorial(){
+
+    step =
+        0;
+
+    bloquearEventosForaDoTutorial();
+
+    bloquearCamposDuranteTutorial();
+
+    showStep();
+
+}
+
+function showStep(){
+
+    console.log(
+        'step ' + step
+    );
+    bloquearCamposDuranteTutorial();
+
+    const overlay =
+        document.getElementById(
+            'tutorialOverlay'
+        );
+
+    const box =
+        document.getElementById(
+            'tutorialBox'
+        );
+
+    const text =
+        document.getElementById(
+            'tutorialText'
+        );
+
+    if(
+        !overlay ||
+        !box ||
+        !text
+    ){
+
+        console.error(
+            'Elementos do tutorial não encontrados.'
+        );
+
+        return;
+
+    }
+
+    document
+    .querySelectorAll(
+        '.highlight'
+    )
+    .forEach(el => {
+
+        el.classList.remove(
+            'highlight'
+        );
+
+    });
+
+    const stepData =
+        tutorialSteps[step];
+
+    const element =
+        document.querySelector(
+            stepData.element
+        );
+
+    if(!element){
+
+        console.error(
+            'Elemento do passo não encontrado:',
+            stepData.element
+        );
+
+        return;
+
+    }
+
+    element.classList.add(
+        'highlight'
+    );
+
+    overlay.style.display =
+        'block';
+
+    box.style.display =
+        'block';
+
+    text.innerText =
+        stepData.text;
+
+    if(step === 0){
+
+        window.scrollTo({
+            top: 0, behavior: 'smooth' });
 
         setTimeout(() => {
             const rect = element.getBoundingClientRect();
@@ -1406,12 +4362,54 @@ function prevStep() {
     }
 }
 
-function endTutorial() {
-    document.getElementById('tutorialOverlay').style.display = 'none';
-    document.getElementById('tutorialBox').style.display = 'none';
+function endTutorial(){
 
-    document.querySelectorAll('.highlight')
-        .forEach(el => el.classList.remove('highlight'));
+    document.getElementById(
+        'tutorialOverlay'
+    ).style.display =
+        'none';
 
-    step = 0; // reseta o tutorial
+    document.getElementById(
+        'tutorialBox'
+    ).style.display =
+        'none';
+
+    document
+    .querySelectorAll(
+        '.highlight'
+    )
+    .forEach(el => {
+
+        el.classList.remove(
+            'highlight'
+        );
+
+    });
+
+    liberarCamposAposTutorial();
+
+    step =
+        0;
+
 }
+
+document.addEventListener(
+    'DOMContentLoaded',
+    () => {
+
+        const botaoTutorial =
+            document.getElementById(
+                'iniciarTutorial'
+            );
+
+        if(botaoTutorial){
+
+            botaoTutorial.addEventListener(
+                'click',
+                iniciarTutorial
+            );
+
+        }
+
+    }
+);

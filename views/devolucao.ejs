@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+    
+<head> 
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KIDSZONE-DEVOLUÇÃO</title>
+    <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+    <link rel="icon"  type="image/png" sizes="32x32" href="/images/favicon-32x32.png" >
+    <link rel="icon"  type="image/png" sizes="16x16" href="/images/favicon-16x16.png" >
+    <link rel="manifest" href="/images/site.webmanifest">
+    <script
+    src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"
+    ></script>
+
+    <script
+        src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"
+    ></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.2/html2pdf.bundle.min.js"></script>
+
+    <link rel="stylesheet" href="/css/styles2Dev.css?v=1783967913315">
+
+    <link rel="stylesheet" href="/css/theme-toggle.css?v=1783967913315">
+    <!-- Script inline para aplicar o tema imediatamente -->
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.classList.add(savedTheme + '-theme');
+        })();
+
+    </script>
+
+</head>
+
+<body id="corpo">
+    <%- include('header') %>
+    <div class="container">
+
+           <!-- Modal de E-mail -->
+    <div id="emailModalDevolucao" class="modal">
+        <div class="modal-content email-modal-content">
+            <span class="close-button email-close-button">&times;</span>
+            <h2>Enviar E-mail</h2>
+            <form id="emailForm" class="email-form">
+                <div class="email-field">
+                    <label for="emailTo">Para:</label>
+                    <input type="email" id="emailTo" placeholder="Digite o e-mail do destinatário" required readonly>
+                </div>
+                <div class="email-field tooltip">
+                    <label for="emailCc">Cc:</label>
+                    <input type="text" id="emailCc" placeholder="Digite os e-mails separados por ;">
+                    <span class="tooltiptext">Colocar " ; " para separar os e-mails</span>
+                </div>
+                <div class="email-field">
+                    <label for="emailSubject">Assunto:</label>
+                    <input type="text" id="emailSubject" placeholder="Digite o assunto" required readonly>
+                </div>
+                <div class="email-field">
+                    <label for="emailBody">Mensagem:</label>
+                    <textarea id="emailBody" placeholder="Digite sua mensagem" rows="10" required></textarea>
+                </div>
+                <div class="email-field attachment-wrapper">
+                    <label for="emailAttachment">Anexar Fotos da devolução mostrando o lote do item:</label>
+                    <input type="file" id="emailAttachment" multiple>
+                    <div id="attachmentTooltip" class="attachment-tooltip">
+                        <ul id="attachmentList"></ul>
+                        <!-- Novo elemento para mostrar o tamanho total -->
+                        <p id="totalSizeDisplay" style="margin-top: 10px; font-weight: bold;">Tamanho total: 0 MB</p>
+                    </div>
+                </div>
+                <div class="email-buttons">
+                    <button type="button" id="sendEmailButton">Enviar</button>
+                    <button type="button" id="cancelEmailButton">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+        <!-- Novo modal para aviso de limite de tamanho -->
+    <div id="sizeLimitModal" class="modal1">
+        <div class="modal-content1">
+            <span class="close-button1">&times;</span>
+            <h2>Aviso!</h2>
+            <p id="sizeLimitMessage"></p>
+            <button id="sizeLimitOkButton">OK</button>
+        </div>
+    </div>
+
+
+
+
+        <div class="header">
+           <a href="/"><img src="/images/logo.png" alt="Imagem KidsZone"></a> 
+
+            <H1>DEVOLUÇÃO DE PRODUTOS</H1>
+
+            <div class="date"></div> <!-- A data e hora serão inseridas aqui -->
+
+                <script>
+                    // Função para formatar a data e hora
+                    function atualizarDataHora() {
+                        const elementoData = document.querySelector('.date');
+                        const agora = new Date();
+                        const dataFormatada = agora.toLocaleDateString('pt-BR', {
+                            day: '2-digit',
+                            month: '2-digit',
+                            year: 'numeric'
+                        });
+                        const horaFormatada = agora.toLocaleTimeString('pt-BR', {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            second: '2-digit'
+                        });
+                        elementoData.textContent = `${dataFormatada} ${horaFormatada}`;
+                        elementoData.style.fontSize="105%";
+
+                    }
+            
+                    // Chama a função inicialmente e depois a cada segundo para manter a hora atualizada
+                    atualizarDataHora();
+                    setInterval(atualizarDataHora, 1000);
+                </script>
+
+            <!-- Mensagem de feedback -->
+            <div id="feedback1" style="display: none; text-align: center; font-weight: bold; margin: 10px; color: red;">
+                Estamos enviando o pedido, aguarde...
+            </div>
+
+        </div>
+        <div class="button-group">
+            <button id="button_pdf">INSERIR ANEXOS E ENVIAR E-MAIL </button>
+        </div>
+               <div class="acoes-devolucao">
+                <button
+                    type="button"
+                    id="iniciarTutorial"
+                    class="button"
+                >
+                    Tutorial
+                </button>
+
+                <label
+                    for="movimentaEstoque"
+                    class="controle-movimenta-estoque"
+                >
+                    <input
+                        type="checkbox"
+                        id="movimentaEstoque"
+                        name="movimentaEstoque"
+                        value="1"
+                    >
+
+                    <span>
+                        Movimenta estoque?
+                    </span>
+                </label>
+            </div>
+        <div class="section">
+            <div class="section-title">DADOS DO CLIENTE</div>
+            <form class="form-group">
+
+                <label for="cnpj" class="label-espaco-esquerda label-obrigatorio">CNPJ:
+                    <span class="tooltip2">Campo Obrigatório</span>
+                </label> 
+                <input type="text" id="cnpj" placeholder="Digite o CNPJ" maxlength="14">
+
+                <label for="cod_cliente" class="label-espaco-esquerda">CÓD CLIENTE:</label> 
+                <input type="text" id="cod_cliente" placeholder="Código Cliente">
+
+                  <!-- input escondidos  -->
+                <label for="representanteId" class="esconder">Rep ID:</label> 
+                <input type="text" class="esconder" id="representanteId" placeholder="Rep ID" readonly>
+
+                <label for="formPagId" class="esconder">Forma de pagamento ID:</label> 
+                <input type="text" class="esconder" id="formPagId" placeholder="formPag ID" readonly>
+
+                <label for="condPagId" class="esconder">Condição de pagamento ID:</label> 
+                <input type="text" class="esconder" id="condPagId" placeholder="condPag ID" readonly>
+
+                <label for="PercentualComissaoItem" class="esconder"> % comissao item:</label> 
+                <input type="text" class="esconder" id="PercentualComissaoItem" placeholder="% comissao item" readonly>
+
+                <label for="PercentualComissaoServico" class="esconder"> % comissao servico:</label> 
+                <input type="text" class="esconder" id="PercentualComissaoServico" placeholder="% comissao servico" readonly>
+
+                <label for="ContatoClienteId" class="esconder"> contato id:</label> 
+                <input type="text" class="esconder" id="ContatoClienteId" placeholder="contato id" readonly>
+
+                <label class="esconder" for="email_rep">Email_Rep</label> 
+                <input type="text" class="esconder" id="email_rep" placeholder="Descrição Grupo" readonly>
+
+                  <!-- input escondidos  -->
+
+                <label class="IE esconder" for="ie">INSCRIÇÃO ESTADO:</label> 
+                <input type="text" id="ie" class="esconder" placeholder="Inscrição Estadual" readonly>
+
+                <label class="esconder" for="tipo_pedido">TIPO PEDIDO:
+                     <span class="tooltip2 esconder">Campo Obrigatório</span>
+                </label>
+                <select id="tipo_pedido" class="esconder">
+                    <option value="Venda">Venda</option>
+                  <!--  <option value="Promoção">Promoção</option> -->
+                    <option value="Bonificação">Bonificação</option>
+                </select>
+
+                <label for="razao_social" class="label-espaco-esquerda">RAZÃO SOCIAL:</label> 
+                <input type="text" id="razao_social" placeholder="Razão Social" readonly>
+
+                <label for="representante" class="label-espaco-esquerda">CÓDIGO REP:</label> 
+                <input type="text" id="representante" placeholder="Representante" readonly>
+
+                <label for="endereco" class="label-espaco-esquerda">ENDEREÇO:</label> 
+                <input type="text" id="endereco" placeholder="Endereço"readonly>
+
+                <label for="bairro" class="label-espaco-esquerda">BAIRRO:</label> 
+                <input type="text" id="bairro" placeholder="Bairro" readonly>
+
+                <label for="cidade" class="label-espaco-esquerda">CIDADE:</label> 
+                <input type="text" id="cidade" placeholder="Cidade"readonly>
+
+                <label for="uf" class="label-espaco-esquerda">UF:</label> 
+                <input type="text" id="uf" placeholder="UF" maxlength="2" readonly>
+
+                <label for="cep" class="label-espaco-esquerda">CEP:</label> 
+                <input type="text" id="cep" placeholder="CEP" readonly>
+
+                <label for="telefone" class="label-espaco-esquerda">TELEFONE:</label> 
+                <input type="text" id="telefone" placeholder="Telefone"readonly>
+
+                <label for="email" class="label-espaco-esquerda">E-MAIL:</label> 
+                <input type="text" id="email" placeholder="E-mail" readonly>
+
+                <label for="email_fiscal" class="label-espaco-esquerda">E-MAIL FISCAL:</label> 
+                <input type="text" id="email_fiscal" placeholder="E-mail Fiscal" readonly>
+
+                <label for="pay" class="esconder" class="label-espaco-esquerda">CONDIÇÃO PGTO:</label> 
+                <input type="text" id="pay" class="esconder" placeholder=" Condição de pagamento" readonly>
+
+                <label for="transp" class="label-espaco-esquerda esconder" >TRANSPORTE:</label> 
+                <input type="text" id="transp" placeholder="Transportadora" class="esconder" readonly>
+
+                <label class="spaceInputCod" for="codgroup" hidden>CÓDIGO TABELA:</label> 
+                <input type="text" id="codgroup" class="esconder" placeholder="Código Tabela" readonly>
+ 
+                <label class="label-espaco-esquerda esconder" for="group">TABELA:</label> 
+                <input type="text" id="group" placeholder="Descrição Grupo" class="esconder" readonly>
+
+                <label  for="formPagDescricao" class="esconder">FORMA PAGAMENTO:</label> 
+                <input type="text" id="formPagDescricao" placeholder="Forma de Pagamento" class="esconder" readonly>
+
+                <label class="esconder" for="referencia">ORDEM DE COMPRA:
+                    <span class="tooltip1 esconder">Digite a ordem de compra do cliente</span>
+                </label> 
+                <input type="text" id="referencia" class="esconder" placeholder="Digite o numero do pedido do cliente (opcional) ">
+
+                
+
+            </form>
+        </div>
+        <!-- Seção de Observações -->
+        <div class="observations">
+            <div class="obs-title"><label for="motivo" class="label-obrigatorio">MOTIVO DA DEVOLUÇÃO
+                <span class="tooltip2">Campo Obrigatório</span>
+            </label>
+        </div>
+            <textarea id="observation" placeholder="Escreva o motivo da devolução" required></textarea>
+        </div>
+        <div class="section">
+            <div class="section-title">DADOS DEVOLUÇÃO</div>
+            <div class="no-print">
+             <button type="button" id="adicionarLinha" class="btn-mobile">Adicionar Linha</button>  
+                <button type="button"   id="excluirLinha" hidden>Remover Linha</button>
+            </div>
+            <div class="table-container">
+                <table id="dadosPedido" border="1" class="table">
+                    <thead>
+                        <tr>
+                            <th class="nfOrigem">NF ORIGEM</th>
+                            <th class="data">Data NF</th>
+                            <th class="codigo-descricao">
+                                CÓDIGO / DESCRIÇÃO
+                            </th>
+                            <th class="lote">Lote</th>
+                            <th class="qtd">QTD</th>
+                            <th class="uv" >UV</th>
+                            <th class="pack">EXCLUIR</th>
+                            <th class="unit">
+                            R$ UNITÁRIO SEM IMPOSTOS
+                            </th>
+                            <th class="ipi">
+                            % IPI
+                            </th>
+                            <th class="unitipi">
+                            R$ UNITÁRIO COM IPI
+                            </th>
+                            <th class="total" >TOTAL R$</th>
+                            <th class="totalIpi" >TOTAL COM IPI R$</th>
+                            <th class="itemId" id="esconder">Item ID</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Seção de Condição de Pagamento -->
+        <div class="payment-conditions">
+            <center>
+                <label for="volume">VOLUMES:</label> 
+                <input type="text" id="volume" readonly>
+                
+                <label for="total">TOTAL PRODUTOS:</label> 
+                <input type="text" id="total" readonly>
+
+                <label for="totalIpi">TOTAL PRODUTOS COM IPI:</label> 
+                <input type="text" id="totalIpi" readonly>
+
+            </center>
+
+        </div>
+
+
+        <div id="helpContainer">
+            <div id="helpIcon" class="help-icon">
+                <a href="/devolucaoPanel"><button class="button button-group">Painel de Devoluções</button></a>
+            </div>
+        </div>
+
+        
+        
+    </div>
+
+    
+    <script src="/scriptDev.js?v=1783967913315"></script>
+    <!-- <script  src="/pdf.js?v=1742259354185"></script> -->
+    <script src="/theme-toggle.js?v=1783967913315"></script>
+
+    <script>
+         // Função para limpar dados do usuário e redirecionar para a página de login
+        document.getElementById('logoutButton2').addEventListener('click', async () => {
+            // Limpa os dados locais
+            sessionStorage.clear();
+            localStorage.clear();
+
+            // Faz a requisição ao servidor para destruir a sessão
+            await fetch('/logout', { method: 'POST' });
+
+            // Limpa cookies manualmente (como precaução)
+            document.cookie.split(";").forEach(cookie => {
+                document.cookie = cookie.split("=")[0] + "=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/";
+            });
+
+            // Redireciona para a página de login
+            window.location.href = '/login2';
+        });
+    </script>
+
+<div id="tutorialOverlay" style="display: none;"></div>
+
+<div id="tutorialBox" style="display: none;">
+    <p id="tutorialText"></p>
+    <div class="tutorial-buttons">
+        <button onclick="prevStep()">Voltar</button>
+        <button onclick="nextStep()">Próximo</button>
+        <button onclick="endTutorial()">Finalizar</button>
+    </div>
+</div>
+</body>
+</html>

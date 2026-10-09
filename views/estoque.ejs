@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+    
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KIDSZONE-PEDIDOS</title>
+    <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+    <link rel="icon"  type="image/png" sizes="32x32" href="/images/favicon-32x32.png" >
+    <link rel="icon"  type="image/png" sizes="16x16" href="/images/favicon-16x16.png" >
+    <link rel="manifest" href="/images/site.webmanifest">
+    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.2/html2pdf.bundle.min.js"></script>
+    <script src="https://cloudflare.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <link rel="stylesheet" href="/css/styles2.css">
+    <link rel="stylesheet" href="/estoque.css">
+
+
+    <link rel="stylesheet" href="/css/theme-toggle.css">
+    <!-- Script inline para aplicar o tema imediatamente -->
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.classList.add(
+                savedTheme + '-theme'
+            );
+        })();
+    </script>
+
+</head>
+<style id="coresEstoque">
+    table#dadosPedido tbody tr.estoque-baixo > td {
+        background: #f8d7da !important;
+        background-color: #f8d7da !important;
+        color: #842029 !important;
+    }
+
+    table#dadosPedido tbody tr.estoque-medio > td {
+        background: #fff3cd !important;
+        background-color: #fff3cd !important;
+        color: #664d03 !important;
+    }
+
+    table#dadosPedido tbody tr.estoque-alto > td {
+        background: #d1e7dd !important;
+        background-color: #d1e7dd !important;
+        color: #0f5132 !important;
+    }
+
+    table#dadosPedido tbody tr.estoque-baixo .codigo-item,
+    table#dadosPedido tbody tr.estoque-baixo .descricao-item {
+        color: #842029 !important;
+    }
+
+    table#dadosPedido tbody tr.estoque-medio .codigo-item,
+    table#dadosPedido tbody tr.estoque-medio .descricao-item {
+        color: #664d03 !important;
+    }
+
+    table#dadosPedido tbody tr.estoque-alto .codigo-item,
+    table#dadosPedido tbody tr.estoque-alto .descricao-item {
+        color: #0f5132 !important;
+    }
+
+    html.dark-theme table#dadosPedido tbody tr.estoque-baixo > td,
+    body.dark-theme table#dadosPedido tbody tr.estoque-baixo > td {
+        background: #5c2027 !important;
+        background-color: #5c2027 !important;
+        color: #ffd7dc !important;
+    }
+
+    html.dark-theme table#dadosPedido tbody tr.estoque-medio > td,
+    body.dark-theme table#dadosPedido tbody tr.estoque-medio > td {
+        background: #594711 !important;
+        background-color: #594711 !important;
+        color: #fff0ad !important;
+    }
+
+    html.dark-theme table#dadosPedido tbody tr.estoque-alto > td,
+    body.dark-theme table#dadosPedido tbody tr.estoque-alto > td {
+        background: #174b36 !important;
+        background-color: #174b36 !important;
+        color: #c9f3df !important;
+    }
+
+    html.dark-theme table#dadosPedido tbody tr.estoque-baixo .codigo-item,
+    html.dark-theme table#dadosPedido tbody tr.estoque-baixo .descricao-item,
+    body.dark-theme table#dadosPedido tbody tr.estoque-baixo .codigo-item,
+    body.dark-theme table#dadosPedido tbody tr.estoque-baixo .descricao-item {
+        color: #ffd7dc !important;
+    }
+
+    html.dark-theme table#dadosPedido tbody tr.estoque-medio .codigo-item,
+    html.dark-theme table#dadosPedido tbody tr.estoque-medio .descricao-item,
+    body.dark-theme table#dadosPedido tbody tr.estoque-medio .codigo-item,
+    body.dark-theme table#dadosPedido tbody tr.estoque-medio .descricao-item {
+        color: #fff0ad !important;
+    }
+
+    html.dark-theme table#dadosPedido tbody tr.estoque-alto .codigo-item,
+    html.dark-theme table#dadosPedido tbody tr.estoque-alto .descricao-item,
+    body.dark-theme table#dadosPedido tbody tr.estoque-alto .codigo-item,
+    body.dark-theme table#dadosPedido tbody tr.estoque-alto .descricao-item {
+        color: #c9f3df !important;
+    }
+</style>
+<body id="corpo">
+        <%- include('header') %>
+    
+    <div class="container">
+        <h1 class="date">ESTOQUE</h1>
+        <div class="filtro-itens">
+            <label class="date" for="filtroCodigoDescricao">
+                Código ou descrição
+            </label>
+
+            <input
+                type="search"
+                id="filtroCodigoDescricao"
+                placeholder="Digite o código ou a descrição"
+                autocomplete="off"
+            >
+        </div>
+        <table id="dadosPedido" border="1" class="table">
+            <thead>
+                <tr>
+                    <th class="cabecalho-foto-item">
+                        Foto
+                    </th>
+                    <th class="codigo-descricao">
+                        Código / Descrição
+                    </th>
+                    <th class="qtd">
+                        QTD
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+    </div>
+
+    <script  src="/estoque.js"></script>
+    <script src="/theme-toggle.js"></script>
+
+    <script>
+         // Função para limpar dados do usuário e redirecionar para a página de login
+        document.getElementById('logoutButton2').addEventListener('click', async () => {
+            // Limpa os dados locais
+            sessionStorage.clear();
+            localStorage.clear();
+
+            // Faz a requisição ao servidor para destruir a sessão
+            await fetch('/logout', { method: 'POST' });
+
+            // Limpa cookies manualmente (como precaução)
+            document.cookie.split(";").forEach(cookie => {
+                document.cookie = cookie.split("=")[0] + "=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/";
+            });
+
+            // Redireciona para a página de login
+            window.location.href = '/login2';
+        });
+    </script>
+<script
+    src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js">
+</script>
+
+<script
+    src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js">
+</script>
+
+</body>
+</html>

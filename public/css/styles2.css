@@ -71,8 +71,7 @@ body.light-theme .table td {
 }
 
 body.light-theme .button-group button,
-body.light-theme .no-print button,
-body.light-theme footer {
+body.light-theme .no-print button{
     background-color: var(--button-bg-light);
     color: var(--button-text-light);
 }
@@ -117,8 +116,7 @@ body.dark-theme .table td {
 }
 
 body.dark-theme .button-group button,
-body.dark-theme .no-print button,
-body.dark-theme footer {
+body.dark-theme .no-print button{
     background-color: var(--button-bg-dark);
     color: var(--button-text-dark);
 }
@@ -216,7 +214,7 @@ body.dark-theme #dadosPedido tbody tr td input{
 }
 .container {
     width: 95%;
-    max-width: 1000px;
+    /* max-width: 1000px; */
     margin: 0 auto;
     padding: 20px;
     background-color: #ffffff;
@@ -447,59 +445,6 @@ body.dark-theme #dadosPedido tbody tr td input{
        
     }
 
-
-footer {
-
-    display: flex;
-    justify-content:space-between;
-    flex-wrap: wrap;
-    margin-top: 20px;
-    padding-top: 20px;
-    background-color: #333;
-    width: 100%;
- 
-    margin: 0 auto;
-   
-
-}
-
-.link_sites {
-    display: flex;
-    justify-content:center;
-    width: 100%;
-    padding-top: 20px;
-    padding-bottom: 30px;
-    flex-wrap: nowrap;
-    gap: 15px;
-   
-}
-
-
-.link_sites a {
-    display: flex;
-    justify-content:center;
-    color:#ffffff ;
-    text-align: center;
-    padding-left: 20px;
-    text-decoration: none;
-    white-space: nowrap;
-    font-size: clamp(9px, 1vw, 16px);
-    
-    transition: all .3s ease;
-}
-
-.link_sites label {
-    display: flex;
-    justify-content:center;
-    margin-right: 15px;
-
-}
-
-
-.link_sites a:hover {
-    color:rgba(225,0,152);
-    font-size: 110%;
-}
 
 
 input:focus , textarea:focus{
@@ -1302,5 +1247,812 @@ body.dark-theme .date{
 body.light-theme .button:hover {
     background-color: #c4007a;
     border-color: #c4007a;
+}
+
+.overlay-importacao-pedido {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+
+    align-items: center;
+    justify-content: center;
+
+    width: 100%;
+    height: 100%;
+
+    background-color: rgba(0, 0, 0, 0.78);
+    backdrop-filter: blur(4px);
+
+    cursor: wait;
+    user-select: none;
+    touch-action: none;
+}
+
+.overlay-importacao-pedido.ativo {
+    display: flex;
+}
+
+.carregamento-importacao {
+    width: min(90%, 430px);
+    padding: 30px;
+
+    border: 1px solid #cccccc;
+    border-radius: 12px;
+
+    background-color: #ffffff;
+    color: #333333;
+
+    text-align: center;
+    box-sizing: border-box;
+
+    box-shadow:
+        0 10px 35px rgba(0, 0, 0, 0.35);
+}
+
+.carregamento-importacao h2 {
+    margin: 15px 0 10px;
+}
+
+.carregamento-importacao p {
+    margin: 8px 0;
+}
+
+.progresso-importacao {
+    min-height: 20px;
+    font-size: 14px;
+    font-weight: bold;
+    color: #c4007a;
+}
+
+.spinner-importacao {
+    width: 52px;
+    height: 52px;
+    margin: 0 auto;
+
+    border: 6px solid #dddddd;
+    border-top-color: #c4007a;
+    border-radius: 50%;
+
+    animation:
+        girarImportacao 0.8s linear infinite;
+}
+
+body.dark-theme .carregamento-importacao {
+    background-color: var(--container-bg-dark);
+    color: var(--table-text-color-dark);
+    border-color: #555555;
+}
+
+body.dark-theme .spinner-importacao {
+    border-color: #555555;
+    border-top-color: #f18fc7;
+}
+
+body.dark-theme .progresso-importacao {
+    color: #f18fc7;
+}
+
+body.importando-pedido {
+    overflow: hidden;
+}
+
+@keyframes girarImportacao {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.celula-foto-item {
+    width: 74px;
+    min-width: 74px;
+    text-align: center;
+    vertical-align: middle;
+}
+
+.foto-item-pedido {
+    display: block;
+    width: 60px;
+    height: 60px;
+    margin: 0 auto;
+    object-fit: contain;
+    border: 1px solid #d5d5d5;
+    border-radius: 6px;
+    background-color: #ffffff;
+}
+
+.foto-item-pedido.sem-foto {
+    display: none;
+}
+
+
+
+.campo-descricao-item {
+    min-width: 250px;
+}
+
+/* ==============================================================
+   TABELA DE PEDIDOS
+   Restaura o visual original dos inputs das linhas
+   ============================================================== */
+
+#dadosPedido {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+}
+
+#dadosPedido th,
+#dadosPedido td {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: center;
+    vertical-align: middle;
+    box-sizing: border-box;
+}
+
+/*
+ * Inputs da tabela sem borda própria.
+ * A divisão visual será feita pela célula da tabela.
+ */
+#dadosPedido tbody .linha-item-pedido input {
+    display: block;
+    width: 100%;
+    min-width: 0;
+    height: 34px;
+    margin: 0;
+    padding: 5px;
+
+    border: none;
+    border-radius: 0;
+    outline: none;
+
+    background-color: transparent;
+    color: #333333;
+
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+    text-align: center;
+
+    box-sizing: border-box;
+}
+
+/*
+ * Evita aparência acinzentada nos campos somente leitura.
+ */
+#dadosPedido tbody .linha-item-pedido input[readonly] {
+    opacity: 1;
+    cursor: default;
+}
+
+/*
+ * Campos editáveis.
+ */
+
+#dadosPedido tbody .campo-quantidade-item {
+    cursor: text;
+}
+
+/*
+ * Campos automáticos.
+ */
+
+#dadosPedido tbody .campo-unidade-item,
+#dadosPedido tbody .campo-ipi-item,
+#dadosPedido tbody .campo-preco-unitario-item,
+#dadosPedido tbody .campo-preco-com-ipi-item,
+#dadosPedido tbody .campo-total-item {
+    cursor: default;
+}
+
+/*
+ * Descrição alinhada à esquerda.
+ */
+
+
+/*
+ * Campos monetários sem quebra de linha.
+ */
+#dadosPedido tbody .campo-preco-unitario-item,
+#dadosPedido tbody .campo-preco-com-ipi-item,
+#dadosPedido tbody .campo-total-item,
+#dadosPedido tbody .campo-ipi-item {
+    white-space: nowrap;
+}
+
+/*
+ * Destaque apenas no campo que está em foco.
+ */
+#dadosPedido tbody .linha-item-pedido input:focus {
+    border: none;
+    outline: none;
+    box-shadow: inset 0 0 0 2px rgba(225, 0, 152, 0.85);
+    background-color: rgba(225, 0, 152, 0.05);
+}
+
+/*
+ * Não aplica destaque visual em campos readonly.
+ */
+#dadosPedido tbody .linha-item-pedido input[readonly]:focus {
+    box-shadow: none;
+    background-color: transparent;
+}
+
+
+/* ==============================================================
+   TABELA DE PEDIDOS: TEMA CLARO
+   ============================================================== */
+
+body.light-theme #dadosPedido tbody .linha-item-pedido td {
+    background-color: var(--table-bg-light);
+    color: var(--text-color-light);
+}
+
+body.light-theme #dadosPedido tbody .linha-item-pedido input {
+    background-color: var(--table-bg-light);
+    color: var(--text-color-light);
+}
+
+body.light-theme #dadosPedido tbody .linha-item-pedido input:focus {
+    background-color: #ffffff;
+    box-shadow: inset 0 0 0 2px rgba(225, 0, 152, 0.85);
+}
+
+body.light-theme #dadosPedido tbody .linha-item-pedido inputfocus {
+    background-color: var(--table-bg-light);
+    box-shadow: none;
+}
+
+/* ==============================================================
+   TABELA DE PEDIDOS: TEMA ESCURO
+   ============================================================== */
+
+body.dark-theme #dadosPedido tbody .linha-item-pedido td {
+    background-color: var(--table-bg-dark);
+    color: var(--button-hover-text-dark);
+    border-color: #555555;
+}
+
+body.dark-theme #dadosPedido tbody .linha-item-pedido input {
+    background-color: var(--table-bg-dark);
+    color: var(--button-hover-text-dark);
+    border: none;
+}
+
+body.dark-theme #dadosPedido tbody .linha-item-pedido input:focus {
+    background-color: #292929;
+    color: #ffffff;
+    box-shadow: inset 0 0 0 2px #f18fc7;
+}
+
+body.dark-theme #dadosPedido tbody .linha-item-pedido inputfocus {
+    background-color: var(--table-bg-dark);
+    box-shadow: none;
+}
+
+
+.campo-item-pesquisa {
+    width: 100%;
+    min-width: 300px;
+    text-align: left;
+    padding-left: 8px;
+    box-sizing: border-box;
+}
+
+.codigo-descricao {
+    width: 34%;
+}
+
+body.dark-theme .campo-item-pesquisa {
+    background-color: var(--table-bg-dark);
+    color: var(--button-hover-text-dark);
+}
+
+/* ==============================================================
+   LAYOUT DEFINITIVO DO PDF
+   Deve permanecer no final do arquivo
+   ============================================================== */
+
+html .container-pdf.layout-pdf-desktop {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+
+    width: 1120px !important;
+    min-width: 1120px !important;
+    max-width: 1120px !important;
+
+    height: auto !important;
+    max-height: none !important;
+
+    margin: 0 !important;
+    padding: 20px !important;
+
+    border: 1px solid #dddddd !important;
+    border-radius: 12px !important;
+
+    background: #ffffff !important;
+    color: #333333 !important;
+
+    overflow: visible !important;
+    transform: none !important;
+
+    font-family: Arial, sans-serif !important;
+    font-size: 14px !important;
+
+    box-sizing: border-box !important;
+    pointer-events: none !important;
+}
+
+html .container-pdf.layout-pdf-desktop,
+html .container-pdf.layout-pdf-desktop * {
+    box-sizing: border-box !important;
+}
+
+/* Cabeçalho fixo */
+
+html .container-pdf.layout-pdf-desktop .header {
+    position: relative !important;
+
+    width: 100% !important;
+
+    padding: 10px 0 !important;
+
+    text-align: center !important;
+
+    border-bottom: 2px solid #333333 !important;
+}
+
+html .container-pdf.layout-pdf-desktop .header img {
+    width: 150px !important;
+    height: auto !important;
+}
+
+html .container-pdf.layout-pdf-desktop .header .date {
+    position: absolute !important;
+    top: 10px !important;
+    right: 10px !important;
+
+    font-size: 12px !important;
+}
+
+/* Seções */
+
+html .container-pdf.layout-pdf-desktop .section {
+    width: 100% !important;
+    margin-top: 20px !important;
+}
+
+html .container-pdf.layout-pdf-desktop .section-title,
+html .container-pdf.layout-pdf-desktop .obs-title {
+    display: block !important;
+
+    width: 100% !important;
+
+    padding: 5px !important;
+
+    background-color: #333333 !important;
+    color: #ffffff !important;
+
+    font-size: 14px !important;
+    font-weight: bold !important;
+    text-align: center !important;
+}
+
+/* Dados do cliente sempre no padrão desktop */
+
+html .container-pdf.layout-pdf-desktop .form-group {
+    display: grid !important;
+
+    grid-template-columns:
+        repeat(4, minmax(0, 1fr)) !important;
+
+    gap: 10px !important;
+
+    width: 100% !important;
+
+    margin: 0 !important;
+    padding: 10px !important;
+
+    border: 1px solid #dddddd !important;
+}
+
+html .container-pdf.layout-pdf-desktop .form-group label {
+    display: block !important;
+
+    width: auto !important;
+    min-width: 0 !important;
+
+    margin: 10px 0 0 !important;
+
+    color: #333333 !important;
+
+    font-size: 14px !important;
+    font-weight: bold !important;
+}
+
+html .container-pdf.layout-pdf-desktop .form-group input,
+html .container-pdf.layout-pdf-desktop .form-group select,
+html .container-pdf.layout-pdf-desktop #tipo_pedido {
+    display: block !important;
+
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+
+    height: 34px !important;
+
+    margin: 0 !important;
+    padding: 8px !important;
+
+    border: 1px solid #242323 !important;
+    border-radius: 3px !important;
+
+    background-color: #ffffff !important;
+    color: #333333 !important;
+
+    font-family: Arial, sans-serif !important;
+    font-size: 14px !important;
+}
+
+/* Tabela sempre no padrão desktop */
+
+html .container-pdf.layout-pdf-desktop .table-container {
+    display: block !important;
+
+    width: 100% !important;
+    max-width: 100% !important;
+
+    overflow: visible !important;
+}
+
+html .container-pdf.layout-pdf-desktop .table,
+html .container-pdf.layout-pdf-desktop #dadosPedido {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+
+    margin-top: 10px !important;
+
+    border-collapse: collapse !important;
+    table-layout: fixed !important;
+}
+
+html .container-pdf.layout-pdf-desktop #dadosPedido th,
+html .container-pdf.layout-pdf-desktop #dadosPedido td {
+    padding: 8px !important;
+
+    border: 1px solid #dddddd !important;
+
+    font-size: 12px !important;
+    line-height: 1.3 !important;
+
+    text-align: center !important;
+    vertical-align: middle !important;
+
+    overflow: hidden !important;
+    overflow-wrap: anywhere !important;
+    word-break: break-word !important;
+}
+
+html .container-pdf.layout-pdf-desktop #dadosPedido th {
+    background-color: #333333 !important;
+    color: #ffffff !important;
+}
+
+html .container-pdf.layout-pdf-desktop #dadosPedido td {
+    background-color: #ffffff !important;
+    color: #333333 !important;
+}
+
+html .container-pdf.layout-pdf-desktop #dadosPedido input {
+    display: block !important;
+
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+
+    height: 34px !important;
+
+    margin: 0 !important;
+    padding: 4px !important;
+
+    border: none !important;
+
+    background-color: #ffffff !important;
+    color: #333333 !important;
+
+    font-family: Arial, sans-serif !important;
+    font-size: 12px !important;
+    text-align: center !important;
+}
+
+html .container-pdf.layout-pdf-desktop
+#dadosPedido .campo-item-pesquisa {
+    min-width: 0 !important;
+
+    white-space: normal !important;
+    text-align: left !important;
+}
+
+/* Larguras fixas das oito colunas do PDF */
+
+html .container-pdf.layout-pdf-desktop
+#dadosPedido th:nth-child(1),
+html .container-pdf.layout-pdf-desktop
+#dadosPedido td:nth-child(1) {
+    width: 8% !important;
+}
+
+html .container-pdf.layout-pdf-desktop
+#dadosPedido th:nth-child(2),
+html .container-pdf.layout-pdf-desktop
+#dadosPedido td:nth-child(2) {
+    width: 36% !important;
+}
+
+html .container-pdf.layout-pdf-desktop
+#dadosPedido th:nth-child(3),
+html .container-pdf.layout-pdf-desktop
+#dadosPedido td:nth-child(3) {
+    width: 7% !important;
+}
+
+html .container-pdf.layout-pdf-desktop
+#dadosPedido th:nth-child(4),
+html .container-pdf.layout-pdf-desktop
+#dadosPedido td:nth-child(4) {
+    width: 6% !important;
+}
+
+html .container-pdf.layout-pdf-desktop
+#dadosPedido th:nth-child(5),
+html .container-pdf.layout-pdf-desktop
+#dadosPedido td:nth-child(5) {
+    width: 7% !important;
+}
+
+html .container-pdf.layout-pdf-desktop
+#dadosPedido th:nth-child(6),
+html .container-pdf.layout-pdf-desktop
+#dadosPedido td:nth-child(6) {
+    width: 12% !important;
+}
+
+html .container-pdf.layout-pdf-desktop
+#dadosPedido th:nth-child(7),
+html .container-pdf.layout-pdf-desktop
+#dadosPedido td:nth-child(7) {
+    width: 12% !important;
+}
+
+html .container-pdf.layout-pdf-desktop
+#dadosPedido th:nth-child(8),
+html .container-pdf.layout-pdf-desktop
+#dadosPedido td:nth-child(8) {
+    width: 12% !important;
+}
+
+/* Condições de pagamento fixas */
+
+html .container-pdf.layout-pdf-desktop .payment-conditions {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+
+    gap: 10px !important;
+
+    width: 100% !important;
+
+    margin-top: 20px !important;
+    padding: 15px !important;
+
+    border: 1px solid #1b1a1a !important;
+}
+
+html .container-pdf.layout-pdf-desktop
+.payment-conditions label {
+    flex: 0 0 auto !important;
+
+    width: auto !important;
+    min-width: 100px !important;
+
+    margin: 0 !important;
+    padding: 5px !important;
+
+    background-color: #333333 !important;
+    color: #ffffff !important;
+
+    font-size: 14px !important;
+    text-align: center !important;
+}
+
+html .container-pdf.layout-pdf-desktop
+.payment-conditions input,
+html .container-pdf.layout-pdf-desktop
+.payment-conditions select {
+    flex: 1 1 120px !important;
+
+    width: auto !important;
+    min-width: 100px !important;
+    max-width: none !important;
+
+    margin: 0 !important;
+    padding: 5px !important;
+
+    background-color: #ffffff !important;
+    color: #333333 !important;
+}
+
+/* Observação com quebra de linha */
+
+html .container-pdf.layout-pdf-desktop .observations {
+    display: block !important;
+
+    width: 100% !important;
+
+    margin-top: 20px !important;
+}
+
+.acoes-devolucao {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+
+    margin: 12px 0;
+}
+
+.controle-movimenta-estoque {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+
+    min-height: 38px;
+    padding: 6px 12px;
+
+    border: 1px solid #b9b9b9;
+    border-radius: 6px;
+
+    background-color: #ffffff;
+    color: #222222;
+
+    font-weight: bold;
+    cursor: pointer;
+}
+
+#movimentaEstoque {
+    width: 20px;
+    height: 20px;
+    margin: 0;
+
+    accent-color: #2878c8;
+    cursor: pointer;
+}
+
+html.dark-theme .controle-movimenta-estoque {
+    border-color: #666666;
+    background-color: #292929;
+    color: #ffffff;
+}
+
+@media (max-width: 768px) {
+    .acoes-devolucao {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .controle-movimenta-estoque {
+        justify-content: center;
+        width: 100%;
+        box-sizing: border-box;
+    }
+}
+
+
+html .container-pdf.layout-pdf-desktop .observacao-pdf {
+    display: block !important;
+
+    width: 100% !important;
+    min-width: 100% !important;
+    max-width: 100% !important;
+
+    min-height: 100px !important;
+    height: auto !important;
+
+    margin-top: 10px !important;
+    padding: 8px !important;
+
+    border: 1px solid #3d3c3c !important;
+    border-radius: 5px !important;
+
+    background-color: #ffffff !important;
+    color: #333333 !important;
+
+    font-family: Arial, sans-serif !important;
+    font-size: 14px !important;
+    line-height: 1.4 !important;
+    text-align: left !important;
+
+    white-space: pre-wrap !important;
+    overflow-wrap: anywhere !important;
+    word-break: break-word !important;
+
+    overflow: visible !important;
+}
+
+/* Elementos que nunca aparecem no PDF */
+
+html .container-pdf.layout-pdf-desktop .no-print,
+html .container-pdf.layout-pdf-desktop .button-group,
+html .container-pdf.layout-pdf-desktop .btn-mobile,
+html .container-pdf.layout-pdf-desktop .btn-remover-linha,
+html .container-pdf.layout-pdf-desktop .celula-excluir-item,
+html .container-pdf.layout-pdf-desktop .cabecalho-excluir-item,
+html .container-pdf.layout-pdf-desktop .cabecalho-item-id,
+html .container-pdf.layout-pdf-desktop .modal,
+html .container-pdf.layout-pdf-desktop .modal1,
+html .container-pdf.layout-pdf-desktop .overlay,
+html .container-pdf.layout-pdf-desktop
+.overlay-importacao-pedido {
+    display: none !important;
+}
+
+/* ==============================================================
+   LARGURAS DAS COLUNAS
+   ============================================================== */
+
+   #dadosPedido th:nth-child(1),
+#dadosPedido td:nth-child(1) {
+    width: 8%;
+}
+
+#dadosPedido th:nth-child(2),
+#dadosPedido td:nth-child(2) {
+    width: 34%;
+}
+
+#dadosPedido th:nth-child(3),
+#dadosPedido td:nth-child(3) {
+    width: 7%;
+}
+
+#dadosPedido th:nth-child(4),
+#dadosPedido td:nth-child(4) {
+    width: 6%;
+}
+
+#dadosPedido th:nth-child(5),
+#dadosPedido td:nth-child(5) {
+    width: 7%;
+}
+
+#dadosPedido th:nth-child(6),
+#dadosPedido td:nth-child(6) {
+    width: 11%;
+}
+
+#dadosPedido th:nth-child(7),
+#dadosPedido td:nth-child(7) {
+    width: 11%;
+}
+
+#dadosPedido th:nth-child(8),
+#dadosPedido td:nth-child(8) {
+    width: 11%;
+}
+
+#dadosPedido th:nth-child(9),
+#dadosPedido td:nth-child(9) {
+    width: 9%;
 }
 

@@ -28,95 +28,148 @@ const redesDistribuidorController = require('../controllers/redesDistribuidorCon
 const displayDistribuidorController = require('../controllers/displayDistribuidorController');
 const sellOutDistribuidorController = require('../controllers/sellOutDistribuidorController');
 const sellInDistribuidorController = require('../controllers/sellInDistribuidorController');
-
+const investPanelController = require('../controllers/investPanelController');
+const estoqueController = require('../controllers/estoqueController');
 
 // Rota para a página inicial
 router.get('/', authMiddleware, (req, res) => {
     console.log('Rota / acessada');
-    res.sendFile(path.resolve(__dirname, '..', 'views', 'index.html'));
+    res.render(path.resolve(__dirname, '..', 'views', 'index.ejs'));
 });
 
 // Rota para a página de login
 router.get('/login', (req, res) => {
-    res.sendFile(path.resolve(__dirname, '..', 'views', 'login.html'));
+    res.render(path.resolve(__dirname, '..', 'views', 'login.ejs'));
 });
 
 // Rota para a página de login2
 router.get('/login2', (req, res) => {
-    res.sendFile(path.resolve(__dirname, '..', 'views', 'login2.html'));
+    res.render(path.resolve(__dirname, '..', 'views', 'login2.ejs'));
 });
 
 // Rota para a página de devolução
 router.get('/devolucao',authMiddleware, (req, res) => {
-    res.sendFile(path.join(__dirname, '..', 'views', 'devolucao.html'));
+    res.render(path.join(__dirname, '..', 'views', 'devolucao.ejs'));
+});
+
+//Rota página de estoque
+router.get('/estoque',authMiddleware, (req, res) => {
+    res.render(path.join(__dirname, '..', 'views', 'estoque.ejs'));
 });
 
 router.get('/rebaixa',authMiddleware, (req, res) => {
-    res.sendFile(path.join(__dirname, '..', 'views', 'rebaixa.html'));
+    res.render(path.join(__dirname, '..', 'views', 'rebaixa.ejs'));
 });
 
 // Rota para a página de administração
 router.get('/admin', (req, res) => {
-    res.sendFile(path.resolve(__dirname, '..', 'views', 'admin.html'));
+    res.render(path.resolve(__dirname, '..', 'views', 'admin.ejs'));
 });
 
-// Rota para a página de pedidos comerciais (comercial.html)
+// Rota para a página de pedidos comerciais (comercial.ejs)
 router.get('/comercial', authMiddleware,(req, res) => {
-    res.sendFile(path.resolve(__dirname, '..', 'views', 'comercial.html'));
+    res.render(path.resolve(__dirname, '..', 'views', 'comercial.ejs'));
 });
 
-// Rota para a página de detalhes do pedido (detalhes.html)
+// Rota para a página de detalhes do pedido (detalhes.ejs)
 router.get('/detalhes',authMiddleware, (req, res) => {
-    res.sendFile(path.join(__dirname, '..', 'views', 'detalhes.html'));
+    res.render(path.join(__dirname, '..', 'views', 'detalhes.ejs'));
 });
 
 router.get('/devolucaoPanel',authMiddleware, (req, res) => {
-    res.sendFile(path.join(__dirname, '..', 'views', 'devolucaoPanel.html'));
+    res.render(path.join(__dirname, '..', 'views', 'devolucaoPanel.ejs'));
 });
 
 router.get('/rebaixaPanel',authMiddleware, (req, res) => {
-    res.sendFile(path.join(__dirname, '..', 'views', 'rebaixaPanel.html'));
+    res.render(path.join(__dirname, '..', 'views', 'rebaixaPanel.ejs'));
 });
 
-// Rota para a página de detalhes do produto (Detalhes_Produtos.html)
-router.get('/devolucaoDetalhe.html',authMiddleware, (req, res) => {
-  res.sendFile(require('path').join(__dirname, '../views/devolucaoDetalhe.html'));
+// Rota para a página de detalhes do produto (Detalhes_Produtos.ejs)
+router.get('/devolucaoDetalhe.ejs',authMiddleware, (req, res) => {
+  res.render(require('path').join(__dirname, '../views/devolucaoDetalhe.ejs'));
 });
 
-router.get('/rebaixaDetalhe.html',authMiddleware, (req, res) => {
-  res.sendFile(require('path').join(__dirname, '../views/rebaixaDetalhe.html'));
+router.get('/rebaixaDetalhe.ejs',authMiddleware, (req, res) => {
+  res.render(require('path').join(__dirname, '../views/rebaixaDetalhe.ejs'));
 });
 
 //Rota para a pagina de detalhes de devoulção
 router.get('/detalhesProdutos',authMiddleware,(req, res) => {
-    res.sendFile(path.join(__dirname, '..', 'views', 'Detalhes_Produtos.html'));
+    res.render(path.join(__dirname, '..', 'views', 'Detalhes_Produtos.ejs'));
 });
 //rota distribuidores, sell pagina inicial
 router.get(
     '/distribuidores',
     authMiddleware,
     (req, res) => {
-        res.sendFile(
+        res.render(
             path.join(
                 __dirname,
                 '..',
                 'views',
-                'distribuidores.html'
+                'distribuidores.ejs'
             )
         );
     }
 );
+
+router.get(
+    '/session-data',
+    authMiddleware,
+    (req, res) => {
+
+        const usuario =
+            req.session?.user || {};
+
+        return res.json({
+            sucesso: true,
+
+            isAuthenticated:
+                req.session?.isAuthenticated === true,
+
+            userNumero:
+                usuario.numero ||
+                req.session?.userNumero ||
+                '',
+
+            userNome:
+                usuario.nome ||
+                req.session?.userNome ||
+                '',
+
+            user: {
+                id:
+                    usuario.id || '',
+
+                email:
+                    usuario.email || '',
+
+                nome:
+                    usuario.nome ||
+                    req.session?.userNome ||
+                    '',
+
+                numero:
+                    usuario.numero ||
+                    req.session?.userNumero ||
+                    ''
+            }
+        });
+
+    }
+);
+
 router.get(
     '/displayDistribuidor/:codigoDistribuidor',
     authMiddleware,
     (req, res) => {
 
-        res.sendFile(
+        res.render(
             path.join(
                 __dirname,
                 '..',
                 'views',
-                'displayDistribuidor.html'
+                'displayDistribuidor.ejs'
             )
         );
 
@@ -126,12 +179,12 @@ router.get(
     '/investimentoDistribuidor/:codigoDistribuidor',
     authMiddleware,
     (req, res) => {
-        res.sendFile(
+        res.render(
             path.join(
                 __dirname,
                 '..',
                 'views',
-                'investimentoDistribuidor.html'
+                'investimentoDistribuidor.ejs'
             )
         );
     }
@@ -142,12 +195,12 @@ router.get(
     authMiddleware,
     (req, res) => {
 
-        res.sendFile(
+        res.render(
             path.join(
                 __dirname,
                 '..',
                 'views',
-                'adminItens.html'
+                'adminItens.ejs'
             )
         );
 
@@ -159,12 +212,12 @@ router.get(
     authMiddleware,
     (req,res)=>{
 
-        res.sendFile(
+        res.render(
             path.join(
                 __dirname,
                 '..',
                 'views',
-                'sellOutDistribuidor.html'
+                'sellOutDistribuidor.ejs'
             )
         );
 
@@ -176,12 +229,12 @@ router.get(
     authMiddleware,
     (req,res)=>{
 
-        res.sendFile(
+        res.render(
             path.join(
                 __dirname,
                 '..',
                 'views',
-                'positivacaoDistribuidor.html'
+                'positivacaoDistribuidor.ejs'
             )
         );
 
@@ -192,12 +245,12 @@ router.get(
     authMiddleware,
     (req, res) => {
 
-        res.sendFile(
+        res.render(
             path.join(
                 __dirname,
                 '..',
                 'views',
-                'sellInDistribuidor.html'
+                'sellInDistribuidor.ejs'
             )
         );
 
@@ -205,59 +258,100 @@ router.get(
 );
 
 router.get(
-    '/devolucaoEditar.html',
+    '/investDetalhe.ejs',
     authMiddleware,
     (req, res) => {
-        res.sendFile(
+
+        return res.render(
             path.join(
                 __dirname,
                 '..',
                 'views',
-                'devolucaoEditar.html'
+                'investDetalhe.ejs'
+            )
+        );
+
+    }
+);
+
+router.get(
+    '/devolucaoEditar.ejs',
+    authMiddleware,
+    (req, res) => {
+        res.render(
+            path.join(
+                __dirname,
+                '..',
+                'views',
+                'devolucaoEditar.ejs'
             )
         );
     }
 );
 
-// Rota para a página de eficiencia cliente (eficiencia.html)
+router.get(
+    '/api/investimentos-comerciais',
+    authMiddleware,
+    investPanelController.listarInvestimentos
+);
+
+router.get(
+    '/api/investimentos-comerciais/:id',
+    authMiddleware,
+    investPanelController.buscarInvestimentoPorId
+);
+
+router.put(
+    '/api/investimentos-comerciais/:id/status',
+    authMiddleware,
+    investPanelController.atualizarStatusInvestimento
+);
+
+
+// Rota para a página de eficiencia cliente (eficiencia.ejs)
 router.get('/eficiencia',authMiddleware,(req, res) => {
-    res.sendFile(path.join(__dirname, '..', 'views', 'eficiencia.html'));
+    res.render(path.join(__dirname, '..', 'views', 'eficiencia.ejs'));
 });
 
-// Rota para a página de eficiencia cliente (sellOutMenu.html)
+
+// Rota para a página de eficiencia cliente (sellOutMenu.ejs)
 router.get('/sellOutMenu',authMiddleware,(req, res) => {
-    res.sendFile(path.join(__dirname, '..', 'views', 'sellOutMenu.html'));
+    res.render(path.join(__dirname, '..', 'views', 'sellOutMenu.ejs'));
 });
 
 
 
-// Rota para a página de cadastro de sellOut cliente (sellOutCadastro.html)
+// Rota para a página de cadastro de sellOut cliente (sellOutCadastro.ejs)
 router.get('/sellOutCadastro',authMiddleware,(req, res) => {
-    res.sendFile(path.join(__dirname, '..', 'views', 'sellOutCadastro.html'));
+    res.render(path.join(__dirname, '..', 'views', 'sellOutCadastro.ejs'));
 });
 
-// Rota para a página de eficiencia cliente (display.html)
+// Rota para a página de eficiencia cliente (display.ejs)
 router.get('/display',authMiddleware,(req, res) => {
-    res.sendFile(path.join(__dirname, '..', 'views', 'display.html'));
+    res.render(path.join(__dirname, '..', 'views', 'display.ejs'));
 });
 
-// Rota para a página de eficiencia cliente (redes.html)
+// Rota para a página de eficiencia cliente (redes.ejs)
 router.get('/redes',authMiddleware,(req, res) => {
-    res.sendFile(path.join(__dirname, '..', 'views', 'redes.html'));
+    res.render(path.join(__dirname, '..', 'views', 'redes.ejs'));
 });
 
-// Rota para a página de detalhes do pedido (detalhes.html)
+// Rota para a página de detalhes do pedido (detalhes.ejs)
 router.get('/logistica',authMiddleware, (req, res) => {
-    res.sendFile(path.join(__dirname, '..', 'views', 'logistica.html'));
+    res.render(path.join(__dirname, '..', 'views', 'logistica.ejs'));
 });
 
-// Rota para a página de detalhes do pedido (detalhes.html)
+// Rota para a página de detalhes do pedido (detalhes.ejs)
 router.get('/logistica03', authMiddleware, (req, res) => {
-    res.sendFile(path.join(__dirname, '..', 'views', 'logisticaFernando.html'));
+    res.render(path.join(__dirname, '..', 'views', 'logisticaFernando.ejs'));
 });
 
 router.get('/logistica02', authMiddleware, (req, res) => {
-    res.sendFile(path.join(__dirname, '..', 'views', 'logisticaJoao.html'));
+    res.render(path.join(__dirname, '..', 'views', 'logisticaJoao.ejs'));
+});
+
+router.get('/PainelInvestimento',authMiddleware,(req, res) => {
+    res.render(path.join(__dirname, '..', 'views', 'investPanel.ejs'));
 });
 
 
@@ -266,12 +360,12 @@ router.get(
     authMiddleware,
     (req,res)=>{
 
-        res.sendFile(
+        res.render(
             path.join(
                 __dirname,
                 '..',
                 'views',
-                'estoqueDistribuidor.html'
+                'estoqueDistribuidor.ejs'
             )
         );
 
@@ -283,36 +377,36 @@ router.get(
     authMiddleware,
     (req,res)=>{
 
-        res.sendFile(
+        res.render(
             path.join(
                 __dirname,
                 '..',
                 'views',
-                'redesDistribuidor.html'
+                'redesDistribuidor.ejs'
             )
         );
 
     }
 );
 
-// Rota para a página (video.html)
+// Rota para a página (video.ejs)
 router.get('/video',authMiddleware, (req, res) => {
-    res.sendFile(path.join(__dirname, '..', 'views', 'video.html'));
+    res.render(path.join(__dirname, '..', 'views', 'video.ejs'));
 });
 
-// Rota para a página (cadastroCliente.html)
+// Rota para a página (cadastroCliente.ejs)
 router.get('/cadastroCliente',authMiddleware, (req, res) => {
-    res.sendFile(path.join(__dirname, '..', 'views', 'cadastroCliente.html'));
+    res.render(path.join(__dirname, '..', 'views', 'cadastroCliente.ejs'));
 });
 
 
-// Rota para a página (invest.html)
+// Rota para a página (invest.ejs)
 router.get('/investComercial',authMiddleware, (req, res) => {
-    res.sendFile(path.join(__dirname, '..', 'views', 'invest_comercial.html'));
+    res.render(path.join(__dirname, '..', 'views', 'invest_comercial.ejs'));
 });
 
 router.get('/investPromotor',authMiddleware, (req, res) => {
-    res.sendFile(path.join(__dirname, '..', 'views', 'invest_promotor.html'));
+    res.render(path.join(__dirname, '..', 'views', 'invest_promotor.ejs'));
 });
 
 
@@ -353,6 +447,54 @@ router.post(
     authMiddleware,
     itemController.salvarItem
 );
+
+router.get('/cliente/:cnpj', async (req, res) => {
+
+    try {
+
+        const cliente =
+            await obterClientePorCnpj(
+                req.params.cnpj
+            );
+            
+        const endereco =
+            cliente.enderecos?.[0];
+
+        const enderecoFormatado =
+            endereco
+                ? `${endereco.logradouro || ''}, ${endereco.numero || ''} - ${endereco.bairro || ''}, ${endereco.cidade?.nome || ''}`
+                : '';
+
+        const telefoneFormatado =
+            cliente.telefone?.numero
+                ? `(${cliente.telefone.ddd}) ${cliente.telefone.numero}`
+                : '';
+     
+        res.json({
+            razaoSocial:
+                cliente.razaoSocial || '',
+
+            endereco:
+                enderecoFormatado,
+
+            telefone:
+                telefoneFormatado
+        });
+
+    } catch (error) {
+
+        console.error(
+            'Erro ao consultar cliente:',
+            error
+        );
+
+        res.status(500).json({
+            erro: error.message
+        });
+    }
+
+});
+
 
 router.get(
     '/api/itens',
@@ -397,12 +539,12 @@ router.get(
     authMiddleware,
     (req, res) => {
 
-        res.sendFile(
+        res.render(
             path.join(
                 __dirname,
                 '..',
                 'views',
-                'infoDistribuidor.html'
+                'infoDistribuidor.ejs'
             )
         );
 
@@ -511,23 +653,14 @@ router.put('/rebaixa/:id', rebController.atualizarRebaixa);
 
 // Rota para página de erro 401 (Senha incorreta)
 router.get('/error-401', (req, res) => {
-    res.status(401).sendFile(path.join(__dirname, '..', 'views', 'error-401.html'));
+    res.status(401).sendFile(path.join(__dirname, '..', 'views', 'error-401.ejs'));
 });
 
 // Rota para página de erro 404 (Usuário não encontrado)
 router.get('/error-404', (req, res) => {
-    res.status(404).sendFile(path.join(__dirname, '..', 'views', 'error-404.html'));
+    res.status(404).sendFile(path.join(__dirname, '..', 'views', 'error-404.ejs'));
 });
 
-
-// Rota para enviar os dados da sessão para o front-end
-router.get('/session-data', authMiddleware, (req, res) => {
-    res.json({
-        userNumero: req.session.userNumero || '',
-        isAuthenticated: req.session.isAuthenticated || false,
-        user: req.session.user || null,
-    });
-});
 //rota listar distribuidores
 router.get(
     '/api/distribuidores',
@@ -667,15 +800,10 @@ router.post('/api/pedidos/input', inputOrdersController.fetchImputOrders)
 router.get('/api/lista-preco/:listaId', productController.getListaPreco);
 router.get('/api/lista-preco-Sem-Verificar/:listaId', productController.getListaPrecoSemVerificar);
 
-
-/////banco de dados mogondb atlas
+//banco de dados mogondb atlas
 
 router.get('/api/eficiencia/:codgroup', eficienciaController.getEficienciaBycodgroup);
 router.post('/api/eficiencia/salvar', eficienciaController.salvarEficiencia);
-
-
-
-
 
 router.post('/api/devolucoes', devController.salvarDevolucao);
 router.get('/api/devolucoes/:id', devController.buscarDevolucaoPorId);
@@ -685,5 +813,308 @@ router.post('/api/rebaixas', rebController.salvarRebaixa);
 router.get('/api/rebaixas/:id', rebController.buscarRebaixaPorId);
 router.put('/api/rebaixas/:id', rebController.atualizarRebaixa);
 
+
+let authToken = null;
+let tokenExpirationTime = null;
+
+const ngLink = process.env.NG_LINK;
+const usuarioDbCorp = process.env.USUARIO_DBCORP;
+const senhabCorp = process.env.SENHA_DBCORP;
+
+async function authenticate() {
+    const response = await fetch(
+        `${ngLink}/identidade-service/autenticar`,
+        {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                Origin: 'https://kidszone-ng.dbcorp.com.br'
+            },
+            body: JSON.stringify({
+                usuario: usuarioDbCorp,
+                senha: senhabCorp,
+                origin: 'kidszone-ng'
+            })
+        }
+    );
+
+    const data = await response.json();
+
+    authToken = data.tokenAcesso;
+    tokenExpirationTime =
+        Date.now() + (2 * 60 * 60 * 1000);
+}
+
+async function ensureAuthenticated() {
+    if (
+        !authToken ||
+        !tokenExpirationTime ||
+        Date.now() >= tokenExpirationTime
+    ) {
+        await authenticate();
+    }
+}
+
+async function obterClientePorCnpj(cnpj) {
+
+    await ensureAuthenticated();
+
+    const response = await fetch(
+        `${ngLink}/pessoa-service/cliente/documento/${cnpj}`,
+        {
+            method: 'GET',
+            headers: {
+                Authorization: `Bearer ${authToken}`,
+                'Content-Type': 'application/json',
+                Origin: 'https://kidszone-ng.dbcorp.com.br'
+            }
+        }
+    );
+
+    if (!response.ok) {
+        throw new Error(
+            `Erro ao consultar cliente: ${response.status}`
+        );
+    }
+
+    return await response.json();
+}
+
+router.get(
+    '/investimentoComercialEditar',
+    authMiddleware,
+    (
+        req,
+        res
+    ) => {
+        return res.render(
+            'investimentoComercialEditar'
+        );
+    }
+);
+
+router.get(
+    '/api/investimentos-comerciais/:id/editar',
+    authMiddleware,
+    investPanelController
+        .buscarInvestimentoParaEdicao
+);
+
+router.put(
+    '/api/investimentos-comerciais/:id/editar',
+    authMiddleware,
+    investPanelController
+        .editarInvestimentoPendente
+);
+
+router.get(
+    '/api/catalogo-cliente/:clienteCodigo',
+    productController.getCatalogoCliente
+);
+
+
+
+router.get(
+    '/api/listarItens',
+    authMiddleware,
+    async (req, res) => {
+        try {
+            console.log(
+                'Rota /api/listarItens iniciada.'
+            );
+
+            const itens = await estoqueController.listarItens();
+
+            console.log(
+                `Enviando ${itens.length} itens ao navegador.`
+            );
+
+            return res.status(200).json({
+                dados: itens,
+                total: itens.length
+            });
+        } catch (error) {
+            console.error(
+                'Erro na rota /api/listarItens:',
+                error
+            );
+
+            return res.status(500).json({
+                mensagem: error.message ||
+                    'Erro ao carregar os itens.'
+            });
+        }
+    }
+);
+
+function esperarImagem(tempo) {
+    return new Promise((resolve) => {
+        setTimeout(resolve, tempo);
+    });
+}
+
+router.get(
+    '/api/imagem-item',
+    authMiddleware,
+    async (req, res) => {
+        const enderecoImagem = String(
+            req.query.url || ''
+        ).trim();
+
+        try {
+            if (!enderecoImagem) {
+                return res.status(400).send(
+                    'URL da imagem não informada.'
+                );
+            }
+
+            const urlImagem = new URL(
+                enderecoImagem
+            );
+
+            const hostsPermitidos = [
+                'homolog-kidszone-api-integracao.dbcorp.com.br',
+                'kidszone-api-integracao.dbcorp.com.br'
+            ];
+
+            if (
+                !hostsPermitidos.includes(
+                    urlImagem.hostname
+                )
+            ) {
+                return res.status(403).send(
+                    'Servidor de imagem não permitido.'
+                );
+            }
+
+            for (
+                let tentativa = 1;
+                tentativa <= 4;
+                tentativa += 1
+            ) {
+                const controller =
+                    new AbortController();
+
+                const timeout = setTimeout(
+                    () => {
+                        controller.abort();
+                    },
+                    15000
+                );
+
+                try {
+                    const response = await fetch(
+                        enderecoImagem,
+                        {
+                            method: 'GET',
+                            headers: {
+                                ApplicationToken:
+                                    process.env.APPLICATION_TOKEN,
+
+                                CompanyToken:
+                                    process.env.COMPANY_TOKEN,
+
+                                Accept:
+                                    'image/png,image/jpeg,image/webp'
+                            },
+                            signal:
+                                controller.signal
+                        }
+                    );
+
+                    if (response.ok) {
+                        const tipoImagem =
+                            response.headers.get(
+                                'content-type'
+                            ) || 'image/png';
+
+                        const imagem =
+                            Buffer.from(
+                                await response.arrayBuffer()
+                            );
+
+                        res.setHeader(
+                            'Content-Type',
+                            tipoImagem
+                        );
+
+                        res.setHeader(
+                            'Cache-Control',
+                            'public, max-age=86400'
+                        );
+
+                        clearTimeout(
+                            timeout
+                        );
+
+                        return res.status(200).send(
+                            imagem
+                        );
+                    }
+
+                    const textoErro =
+                        await response.text();
+
+                    console.warn(
+                        `Falha na imagem. Tentativa ${tentativa}. Status ${response.status}.`,
+                        textoErro
+                    );
+
+                    if (response.status === 404) {
+                        clearTimeout(
+                            timeout
+                        );
+
+                        return res.status(404).send(
+                            'Imagem não encontrada.'
+                        );
+                    }
+                } catch (error) {
+                    if (error.name === 'AbortError') {
+                        console.warn(
+                            `Tempo esgotado na tentativa ${tentativa} da imagem.`
+                        );
+                    } else {
+                        console.warn(
+                            `Erro na tentativa ${tentativa} da imagem:`,
+                            error.message
+                        );
+                    }
+                } finally {
+                    clearTimeout(
+                        timeout
+                    );
+                }
+
+                if (tentativa < 4) {
+                    const tempoEspera =
+                        tentativa * 750;
+
+                    await esperarImagem(
+                        tempoEspera
+                    );
+                }
+            }
+
+            return res.status(502).send(
+                'Servidor de imagens indisponível.'
+            );
+        } catch (error) {
+            console.error(
+                'Erro na rota de imagem:',
+                enderecoImagem,
+                error
+            );
+
+            if (res.headersSent) {
+                return;
+            }
+
+            return res.status(500).send(
+                'Erro ao processar imagem.'
+            );
+        }
+    }
+);
 
 module.exports = router;

@@ -436,17 +436,6 @@ body.dark-theme #dadosPedido tbody tr td input{
        
     }
 
-.header {
-    display: flex;
-    justify-content:space-between;
-    flex-wrap: wrap;
-    margin-top: 20px;
-    padding-top: 20px;
-    background-color: #333;
-    width: 100%;
-    margin: 0 auto;
-}
-
 .link_sites {
     display: flex;
     justify-content:center;
@@ -636,6 +625,45 @@ label[for="referencia"]::after {
   
  
 
+#dadosInvestimento {
+    table-layout: fixed;
+    width: 100%;
+}
+
+.coluna-tipo-investimento {
+    width: 18%;
+}
+
+.coluna-data-investimento {
+    width: 12%;
+}
+
+.coluna-valor-investimento {
+    width: 16%;
+}
+
+.coluna-observacao-investimento {
+    width: 54%;
+}
+
+.tipoInvestimentoTabela,
+.dataInvestimentoTabela,
+.valorInvestimentoTabela {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.observacaoInvestimentoTabela {
+    width: 100%;
+    min-height: 70px;
+    resize: vertical;
+    box-sizing: border-box;
+    padding: 6px;
+    font-family: inherit;
+    font-size: 14px;
+    line-height: 1.4;
+    white-space: pre-wrap;
+}
 
 
 

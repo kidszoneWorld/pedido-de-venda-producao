@@ -105,6 +105,38 @@ exports.salvarDevolucao = async (req, res) => {
 
   try {
 
+    const movimentaEstoque =
+        Number(
+            req.body.movimentaEstoque ??
+            req.body.MovimentaEstoque ??
+            0
+        ) === 1
+            ? 1
+            : 0;
+
+    const uv =
+        movimentaEstoque === 1
+            ? 'CX'
+            : 'UN';
+
+    req.body.movimentaEstoque =
+        movimentaEstoque;
+
+    req.body.produtos =
+        Array.isArray(
+            req.body.produtos
+        )
+            ? req.body.produtos.map(
+                produto => {
+                    return {
+                        ...produto,
+                        uv:
+                            uv
+                    };
+                }
+            )
+            : [];
+
     const devolucao =
       await devolucaoRepository.inserirDevolucao(req.body);
 
@@ -224,7 +256,8 @@ const putCommand = new PutObjectCommand({
         console.log("📧 Tentando enviar e-mail...");
     const info = await transporter.sendMail({
       from: "Devoluções KIDS ZONE <kidzonkidszonemail@gmail.com>",
-      to: "devolucao.kz@kidszoneworld.com.br; erick.almeida@kidszoneworld.com.br",
+      // to: "devolucao.kz@kidszoneworld.com.br; erick.almeida@kidszoneworld.com.br",
+      to: "luis.henrique@kidszoneworld.com.br",
       cc: emailCc ? emailCc.split(";").map(email => email.trim()) : [],
       subject,
       text: `
@@ -285,12 +318,51 @@ exports.editarDevolucaoPendente = async (req, res) => {
             });
         }
 
-        const dados = req.body;
+        const movimentaEstoque =
+          Number(
+              req.body.movimentaEstoque ??
+              req.body.MovimentaEstoque ??
+              0
+          ) === 1
+              ? 1
+              : 0;
 
-        await devolucaoRepository.atualizarDadosDevolucaoPendente(
-            id,
-            dados
-        );
+      const uv =
+          movimentaEstoque === 1
+              ? 'CX'
+              : 'UN';
+
+      const produtos =
+          Array.isArray(
+              req.body.produtos
+          )
+              ? req.body.produtos.map(
+                  produto => {
+                      return {
+                          ...produto,
+
+                          uv:
+                              uv
+                      };
+                  }
+              )
+              : [];
+
+      const dados = {
+          ...req.body,
+
+          movimentaEstoque:
+              movimentaEstoque,
+
+          produtos:
+              produtos
+      };
+
+      await devolucaoRepository
+          .atualizarDadosDevolucaoPendente(
+              id,
+              dados
+          );
 
         res.json({
             success:true

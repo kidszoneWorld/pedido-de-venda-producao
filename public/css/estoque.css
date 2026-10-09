@@ -1,0 +1,153 @@
+.table-container {
+    width: 100%;
+    overflow-x: auto;
+}
+
+#dadosPedido {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+#dadosPedido th,
+#dadosPedido td {
+    padding: 10px;
+    border: 1px solid #dddddd;
+    vertical-align: middle;
+}
+
+#dadosPedido .cabecalho-foto-item,
+#dadosPedido .celula-foto-item {
+    width: 100px;
+    text-align: center;
+}
+
+#dadosPedido .codigo-descricao {
+    text-align: left;
+}
+
+#dadosPedido .qtd {
+    width: 100px;
+    text-align: center;
+}
+
+.foto-item-pedido {
+    display: block;
+    width: 80px;
+    height: 80px;
+    margin: 0 auto;
+    object-fit: contain;
+}
+
+.foto-item-pedido.sem-foto {
+    visibility: hidden;
+}
+
+.codigo-item {
+    color: #222222;
+}
+
+.descricao-item {
+    color: #444444;
+}
+
+.mensagem-lista-itens {
+    padding: 24px;
+    text-align: center;
+    color: #666666;
+}
+
+.foto-item-pedido {
+    display: block;
+    width: 100px;
+    height: 100px;
+    margin: 0 auto;
+    object-fit: contain;
+    background-color: #ffffff;
+}
+
+.foto-item-pedido.sem-foto {
+    visibility: hidden;
+}
+
+.celula-foto-item {
+    width: 120px;
+    min-width: 120px;
+    text-align: center;
+    vertical-align: middle;
+}
+
+.filtro-itens {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 16px;
+}
+
+.filtro-itens input {
+    width: 100%;
+    max-width: 500px;
+    padding: 10px 12px;
+    border: 1px solid #cccccc;
+    border-radius: 6px;
+    font-size: 16px;
+}
+
+#dadosPedido tbody tr.estoque-baixo td {
+    background-color: #f8d7da !important;
+    color: #842029 !important;
+}
+
+#dadosPedido tbody tr.estoque-medio td {
+    background-color: #fff3cd !important;
+    color: #664d03 !important;
+}
+
+#dadosPedido tbody tr.estoque-alto td {
+    background-color: #d1e7dd !important;
+    color: #0f5132 !important;
+}
+
+#dadosPedido tbody tr.estoque-baixo .codigo-item,
+#dadosPedido tbody tr.estoque-baixo .descricao-item {
+    color: #842029 !important;
+}
+
+#dadosPedido tbody tr.estoque-medio .codigo-item,
+#dadosPedido tbody tr.estoque-medio .descricao-item {
+    color: #664d03 !important;
+}
+
+#dadosPedido tbody tr.estoque-alto .codigo-item,
+#dadosPedido tbody tr.estoque-alto .descricao-item {
+    color: #0f5132 !important;
+}
+
+body.dark-theme #dadosPedido tbody tr.estoque-baixo td {
+    background-color: #5c2027 !important;
+    color: #ffd7dc !important;
+}
+
+body.dark-theme #dadosPedido tbody tr.estoque-medio td {
+    background-color: #594711 !important;
+    color: #fff0ad !important;
+}
+
+body.dark-theme #dadosPedido tbody tr.estoque-alto td {
+    background-color: #174b36 !important;
+    color: #c9f3df !important;
+}
+
+body.dark-theme #dadosPedido tbody tr.estoque-baixo .codigo-item,
+body.dark-theme #dadosPedido tbody tr.estoque-baixo .descricao-item {
+    color: #ffd7dc !important;
+}
+
+body.dark-theme #dadosPedido tbody tr.estoque-medio .codigo-item,
+body.dark-theme #dadosPedido tbody tr.estoque-medio .descricao-item {
+    color: #fff0ad !important;
+}
+
+body.dark-theme #dadosPedido tbody tr.estoque-alto .codigo-item,
+body.dark-theme #dadosPedido tbody tr.estoque-alto .descricao-item {
+    color: #c9f3df !important;
+}

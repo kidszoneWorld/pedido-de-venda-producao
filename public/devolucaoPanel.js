@@ -184,7 +184,8 @@ function renderizarTabela(lista) {
             tr.style.setProperty('background-color', 'var(--tr-bg-cor-rep)'); // vermelho
         }
 
-        const totalItens = dev.produtos.reduce((acc, p) => acc + parseFloat(p.total), 0);
+        //mostra o totalIpi, caso seja "NAN" mostra total sem IPI
+        const totalItens = dev.produtos.reduce((acc, p) => acc + parseFloat(p.totalIpi || p.total), 0);
         // console.log("total de itens "+ parseFloat(totalItens))
         const isPendente = status === 'pendente';
         const isReprovado = status === 'reprovado';
@@ -262,7 +263,7 @@ document.getElementById('filtroFinalizado').addEventListener('change', aplicarFi
 document.getElementById('filtroNfVinculada').addEventListener('input', aplicarFiltros);
 
 function editarDevolucao(id){
-    window.open(`/devolucaoEditar.html?id=${id}`, '_blank');
+    window.open(`/devolucaoEditar.ejs?id=${id}`, '_blank');
 }
 // helpers
 function formatarCNPJ(cnpj) {
@@ -384,7 +385,7 @@ function salvar(id, btn) {
 
 // 🔎 botão detalhes
 function verDetalhes(id) {
-    window.open( `/devolucaoDetalhe.html?id=${id}`, '_blank');
+    window.open( `/devolucaoDetalhe.ejs?id=${id}`, '_blank');
 }
 
 carregarDevolucoes();

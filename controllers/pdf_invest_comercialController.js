@@ -1,52 +1,626 @@
-const nodemailer = require('nodemailer');
+const nodemailer =
+    require(
+        'nodemailer'
+    );
 
-let emailsRecentes = new Map();
+const pool = require('../config/database');
 
-exports.sendPdf = async (req, res) => {
-    const { pdfBase64, razaoSocial, codCliente } = req.body;
+let authToken = null;
+let tokenExpirationTime = null;
 
-    if (!pdfBase64 || !razaoSocial || !codCliente) {
-        return res.status(400).send('Dados incompletos para envio do PDF.');
+async function ensureAuthenticated() {
+    if (
+        !authToken ||
+        !tokenExpirationTime ||
+        Date.now() >= tokenExpirationTime
+    ) {
+        await authenticate();
+    }
+}
+
+async function obterClientePorCnpj(cnpj) {
+    await ensureAuthenticated();
+
+    const documento = cnpj.replace(/\D/g, '');
+
+    const response = await fetch(
+        `${ngLink}/pessoa-service/cliente/documento/${documento}`,
+        {
+            method: 'GET',
+            headers: {
+                Authorization: `Bearer ${authToken}`,
+                'Content-Type': 'application/json',
+                Origin: 'https://kidszone-ng.dbcorp.com.br'
+            }
+        }
+    );
+
+    if (!response.ok) {
+        throw new Error(
+            `Erro ao consultar cliente: ${response.status}`
+        );
     }
 
-    const emailKey = `${razaoSocial}-${codCliente}-${Date.now()}`; // Adiciona timestamp para unicidade
+    const cliente = await response.json();
 
-    if (emailsRecentes.has(emailKey)) {
-        return res.status(429).send('E-mail já enviado recentemente. Aguarde antes de tentar novamente.');
+    const enderecoPrincipal =
+        cliente.enderecos?.[0];
+
+    return {
+        razaoSocial:
+            cliente.razaoSocial || '',
+
+        telefone:
+            cliente.telefone &&
+            cliente.telefone.numero
+                ? `(${cliente.telefone.ddd}) ${cliente.telefone.numero}`
+                : '',
+
+        endereco: enderecoPrincipal
+            ? `${enderecoPrincipal.logradouro}, ${enderecoPrincipal.numero}, ${enderecoPrincipal.bairro}, ${enderecoPrincipal.cidade?.nome}/${obterUf(enderecoPrincipal.cidade?.uf)}`
+            : ''
+    };
+}
+
+function obterUf(codigoUf) {
+    const ufs = {
+        11: 'RO',
+        12: 'AC',
+        13: 'AM',
+        14: 'RR',
+        15: 'PA',
+        16: 'AP',
+        17: 'TO',
+        21: 'MA',
+        22: 'PI',
+        23: 'CE',
+        24: 'RN',
+        25: 'PB',
+        26: 'PE',
+        27: 'AL',
+        28: 'SE',
+        29: 'BA',
+        31: 'MG',
+        32: 'ES',
+        33: 'RJ',
+        35: 'SP',
+        41: 'PR',
+        42: 'SC',
+        43: 'RS',
+        50: 'MS',
+        51: 'MT',
+        52: 'GO',
+        53: 'DF'
+    };
+
+    return ufs[codigoUf] || '';
+}
+
+const emailsRecentes =
+    new Map();
+
+function textoOuNull(valor){
+
+    if(
+        valor === null ||
+        valor === undefined
+    ){
+        return null;
     }
 
-    try {
-        emailsRecentes.set(emailKey, Date.now());
+    const texto =
+        String(valor).trim();
 
-        const transporter = nodemailer.createTransport({
-            service: 'gmail',
-            auth: {
-                user: process.env.GMAIL_USER,
-                pass: process.env.GMAIL_APP_PASSWORD
-            },//att
-            tls: { rejectUnauthorized: false }
-        });
+    return texto || null;
 
-        const subject = `Solicitação de Investimento comercial ${razaoSocial} - ${codCliente}`;
-        const fileName = `Solicitacao_Investimento_comercial_${razaoSocial}_${codCliente}.pdf`;
+}
 
-        await transporter.sendMail({
-            from: 'KidsZone Investimento Comercial <kidzonekidszonemail@gmail.com>',
-            to: ['verbas@kidszoneworld.com.br'],
-            subject,
-            text: `Segue em anexo o PDF da solicitação de investimento comercial para o cliente ${razaoSocial} - ${codCliente}.`,
-            attachments: [{
-                filename: fileName,
-                content: pdfBase64.split(",")[1],
-                encoding: 'base64'
-            }]
-        });
+function numeroOuZero(valor){
 
-        res.status(200).send('E-mail enviado com sucesso!');
-    } catch (error) {
-        console.error('Erro ao enviar o e-mail:', error);
-        res.status(500).send('Erro ao enviar o e-mail');
-    } finally {
-        setTimeout(() => emailsRecentes.delete(emailKey), 10000); // Remove após 10 segundos
+    const numero =
+        Number(valor);
+
+    return Number.isFinite(numero)
+        ? numero
+        : 0;
+
+}
+
+exports.sendPdf =
+    async (req, res) => {
+
+        const {
+            pdfBase64,
+            razaoSocial,
+            codCliente,
+            dadosInvestimento
+        } = req.body || {};
+
+        if(
+            !pdfBase64 ||
+            !razaoSocial ||
+            !codCliente ||
+            !dadosInvestimento
+        ){
+
+            return res
+                .status(400)
+                .json({
+                    sucesso: false,
+                    mensagem:
+                        'Dados incompletos para salvar e enviar o PDF.'
+                });
+
+        }
+
+        const usuarioSessao =
+            req.session?.user || {};
+
+        const numeroRepresentante =
+            usuarioSessao.numero ||
+            req.session?.userNumero ||
+            '';
+
+        const nomeRepresentante =
+            usuarioSessao.nome ||
+            req.session?.userNome ||
+            '';
+
+        const representanteDigitado =
+            textoOuNull(
+                dadosInvestimento
+                    .representanteInvestimento
+            );
+
+        let representanteResponsavel =
+            null;
+
+        if(numeroRepresentante){
+
+            representanteResponsavel =
+                nomeRepresentante
+                    ? `${numeroRepresentante} - ${nomeRepresentante}`
+                    : String(numeroRepresentante);
+
+        }else{
+
+            representanteResponsavel =
+                representanteDigitado;
+
+        }
+
+        if(!representanteResponsavel){
+
+            return res
+                .status(400)
+                .json({
+                    sucesso: false,
+                    mensagem:
+                        'Representante responsável não informado.'
+                });
+
+        }
+
+        const emailKey =
+            `${razaoSocial}-${codCliente}`;
+
+        if(emailsRecentes.has(emailKey)){
+
+            return res
+                .status(429)
+                .json({
+                    sucesso: false,
+                    mensagem:
+                        'E-mail já enviado recentemente. Aguarde antes de tentar novamente.'
+                });
+
+        }
+
+        let client;
+
+        try{
+
+            emailsRecentes.set(
+                emailKey,
+                Date.now()
+            );
+
+            client =
+                await pool.connect();
+
+            await client.query(
+                'BEGIN'
+            );
+
+            const insertSql = `
+                INSERT INTO public."TbInvestimentoComercial"
+                (
+                    "CnpjInvestimento",
+                    "EnderecoInvestimento",
+                    "RazaoSocialInvestimento",
+                    "TelefoneInvestimento",
+                    "ResponsavelInvestimento",
+                    "CargoInvestimento",
+                    "ResumoInvestimento",
+                    "VigenciaInicialInvestimento",
+                    "VigenciaFinalInvestimento",
+                    "TipoInvestimento",
+                    "DescricaoInvestimento",
+                    "ObservacaoDescricaoInvestimento",
+                    "ValorInvestimento",
+                    "ValorCompraInvestimento",
+                    "RepresentanteInvestimento",
+                    "StatusInvestimento",
+                    "ObservacaoInvestimento",
+                    "InvestimentoSobreCompra"
+                )
+                VALUES
+                (
+                    $1, $2, $3, $4, $5,
+                    $6, $7, $8, $9, $10,
+                    $11, $12, $13, $14, $15,
+                    $16, $17, $18
+                )
+                RETURNING
+                    "CodigoInvestimento"
+                    AS "codigoInvestimento"
+            `;
+
+            const valores = [
+
+                textoOuNull(
+                    dadosInvestimento
+                        .cnpjInvestimento
+                ),
+
+                textoOuNull(
+                    dadosInvestimento
+                        .enderecoInvestimento
+                ),
+
+                textoOuNull(
+                    dadosInvestimento
+                        .razaoSocialInvestimento
+                ),
+
+                textoOuNull(
+                    dadosInvestimento
+                        .telefoneInvestimento
+                ),
+
+                textoOuNull(
+                    dadosInvestimento
+                        .responsavelInvestimento
+                ),
+
+                textoOuNull(
+                    dadosInvestimento
+                        .cargoInvestimento
+                ),
+
+                textoOuNull(
+                    dadosInvestimento
+                        .resumoInvestimento
+                ),
+
+                textoOuNull(
+                    dadosInvestimento
+                        .vigenciaInicialInvestimento
+                ),
+
+                textoOuNull(
+                    dadosInvestimento
+                        .vigenciaFinalInvestimento
+                ),
+
+                textoOuNull(
+                    dadosInvestimento
+                        .tipoInvestimento
+                ),
+
+                textoOuNull(
+                    dadosInvestimento
+                        .descricaoInvestimento
+                ),
+
+                textoOuNull(
+                    dadosInvestimento
+                        .observacaoDescricaoInvestimento
+                ),
+
+                numeroOuZero(
+                    dadosInvestimento
+                        .valorInvestimento
+                ),
+
+                numeroOuZero(
+                    dadosInvestimento
+                        .valorCompraInvestimento
+                ),
+
+                textoOuNull(
+                    representanteResponsavel
+                ),
+
+                textoOuNull(
+                    dadosInvestimento
+                        .statusInvestimento
+                ) || 'pendente',
+
+                textoOuNull(
+                    dadosInvestimento
+                        .observacaoInvestimento
+                ),
+                numeroOuZero(
+                    dadosInvestimento
+                        .investimentoSobreCompra
+                )
+
+
+            ];
+
+            const resultadoInsert =
+                await client.query(
+                    insertSql,
+                    valores
+                );
+
+            const codigoInvestimento =
+                resultadoInsert.rows[0]
+                    .codigoInvestimento;
+
+            const parcelas =
+                Array.isArray(
+                    dadosInvestimento.parcelas
+                )
+                    ? dadosInvestimento.parcelas
+                    : [];
+
+
+
+            for(const parcela of parcelas){
+
+                const parcelaTexto =
+                    textoOuNull(
+                        parcela.parcela
+                    );
+
+                const valorParcela =
+                    numeroOuZero(
+                        parcela.valorParcela
+                    );
+
+                const valorPagamento =
+                    numeroOuZero(
+                        parcela.valorPagamento
+                    );
+
+                /*
+                * Ignora uma linha completamente vazia.
+                */
+                if(
+                    !parcelaTexto &&
+                    valorParcela === 0 &&
+                    valorPagamento === 0
+                ){
+                    continue;
+                }
+
+                await client.query(
+                    `
+                        INSERT INTO public."TbParcelaInvestimentoComercial"
+                        (
+                            "CodigoInvestimento",
+                            "Parcela",
+                            "ValorParcela",
+                            "ValorPagamento"
+                        )
+                        VALUES
+                        (
+                            $1,
+                            $2,
+                            $3,
+                            $4
+                        )
+                    `,
+                    [
+                        codigoInvestimento,
+                        parcelaTexto,
+                        valorParcela,
+                        valorPagamento
+                    ]
+                );
+
+            }
+
+            const transporter =
+                nodemailer.createTransport({
+
+                    service:
+                        'gmail',
+
+                    auth: {
+
+                        user:
+                            process.env.GMAIL_USER,
+
+                        pass:
+                            process.env
+                                .GMAIL_APP_PASSWORD
+
+                    },
+
+                    tls: {
+                        rejectUnauthorized:
+                            false
+                    }
+
+                });
+
+            const subject =
+                `Solicitação de Investimento comercial ${razaoSocial} - ${codCliente}`;
+
+            const fileName =
+                `Solicitacao_Investimento_comercial_${codigoInvestimento}_${razaoSocial}.pdf`;
+
+            const conteudoBase64 =
+                pdfBase64.includes(',')
+                    ? pdfBase64.split(',')[1]
+                    : pdfBase64;
+
+            await transporter.sendMail({
+
+                from:
+                    'KidsZone Investimento Comercial <kidzonekidszonemail@gmail.com>',
+
+                to: [
+                    'verbas@kidszoneworld.com.br'
+                ],
+
+                // to: [
+                //     'luis.henrique@kidszoneworld.com.br'
+                // ],
+
+                subject:
+                    subject,
+
+                text:
+                    `Segue em anexo a solicitação de investimento comercial nº ${codigoInvestimento}, referente ao cliente ${razaoSocial} - ${codCliente}.`,
+
+                attachments: [
+                    {
+                        filename:
+                            fileName,
+
+                        content:
+                            conteudoBase64,
+
+                        encoding:
+                            'base64',
+
+                        contentType:
+                            'application/pdf'
+                    }
+                ]
+
+            });
+
+            /*
+             * Só confirma o INSERT quando o e-mail
+             * também tiver sido enviado.
+             */
+            await client.query(
+                'COMMIT'
+            );
+
+            return res
+                .status(200)
+                .json({
+
+                    sucesso:
+                        true,
+
+                    mensagem:
+                        'Informações salvas e e-mail enviado com sucesso.',
+
+                    codigoInvestimento:
+                        codigoInvestimento
+
+                });
+
+        }catch(error){
+
+            if(client){
+
+                await client
+                    .query('ROLLBACK')
+                    .catch(rollbackError => {
+
+                        console.error(
+                            'Erro ao executar rollback:',
+                            rollbackError
+                        );
+
+                    });
+
+            }
+
+            console.error(
+                'Erro ao salvar ou enviar investimento:',
+                error
+            );
+
+            console.error(
+    'Erro detalhado no investimento:',
+    {
+        message:
+            error.message,
+
+        code:
+            error.code,
+
+        detail:
+            error.detail,
+
+        hint:
+            error.hint,
+
+        table:
+            error.table,
+
+        column:
+            error.column,
+
+        constraint:
+            error.constraint,
+
+        stack:
+            error.stack
     }
-};
+);
+
+return res
+    .status(500)
+    .json({
+        sucesso:
+            false,
+
+        mensagem:
+            'Erro ao salvar as informações ou enviar o e-mail.',
+
+        detalhe:
+            error.message,
+
+        codigoErro:
+            error.code || null,
+
+        coluna:
+            error.column || null,
+
+        tabela:
+            error.table || null,
+
+        restricao:
+            error.constraint || null
+    });
+
+        }finally{
+
+            if(client){
+                client.release();
+            }
+
+            setTimeout(
+                () => {
+
+                    emailsRecentes.delete(
+                        emailKey
+                    );
+
+                },
+                10000
+            );
+
+        }
+
+    };
