@@ -879,7 +879,7 @@ function montarParcelasHtml(parcelas){
 
             return `
                 <div class="parcela-resumo">
-                    ${numero}: ${valor} / ${pagamento}
+                    ${numero}: ${valor}
                 </div>
             `;
 
