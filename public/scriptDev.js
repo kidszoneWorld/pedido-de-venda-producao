@@ -4384,7 +4384,17 @@ closeButton.addEventListener("click", () => {
 //--fim-----envio de dados para o sistema DBCorp------------------------------------------------------------
 
 document.addEventListener("DOMContentLoaded", () => {
-
+const campoMovimentaEstoque =
+        document.getElementById(
+            'movimentaEstoque'
+        );
+    campoMovimentaEstoque?.addEventListener(
+            'change',
+            () => {
+                         atualizarUvTodasAsLinhasEdicao();
+            }
+        )
+    
 //consts email
     const emailModal = document.getElementById('emailModalDevolucao');
     const buttonPdf = document.getElementById('button_pdf');
@@ -4406,10 +4416,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     
     // E-mail fixo que não pode ser removido
-    const FIXED_EMAIL = `devolucao.kz@kidszoneworld.com.br`;
+    // const FIXED_EMAIL = `devolucao.kz@kidszoneworld.com.br`;
     
     let generatedPdfFile = null;
-    // const FIXED_EMAIL = `luis.henrique@kidszoneworld.com.br; erick.almeida@kidszoneworld.com.br`;
+    const FIXED_EMAIL = `luis.henrique@kidszoneworld.com.br; erick.almeida@kidszoneworld.com.br`;
     let additionalFiles = [];
 
 
@@ -5102,6 +5112,56 @@ function bloquearEventosForaDoTutorial(){
     );
 
 }
+function obterMovimentaEstoqueEdicao() {
+    const campo =
+        document.getElementById(
+            'movimentaEstoque'
+        );
+
+    return campo?.checked
+        ? 1
+        : 0;
+}
+
+
+function atualizarUvTodasAsLinhasEdicao() {
+    const uv =
+        obterUvEdicao();
+
+    const linhas =
+        document.querySelectorAll(
+            '#dadosPedido tbody ' +
+            '.linha-item-devolucao'
+        );
+
+    linhas.forEach(
+        tr => {
+            const campoUnidade =
+                tr.querySelector(
+                    '.campo-unidade-item'
+                );
+
+            if (campoUnidade) {
+                campoUnidade.value =
+                    uv;
+            }
+        }
+    );
+
+    console.log(
+        'Movimenta estoque:',
+        obterMovimentaEstoqueEdicao(),
+        'UV aplicada:',
+        uv
+    );
+}
+
+
+function obterUvEdicao() {
+    return obterMovimentaEstoqueEdicao() === 1
+        ? 'CX'
+        : 'UN';
+}
 
 function removerColunasTecnicasPdf(
     clone
@@ -5384,6 +5444,7 @@ function endTutorial(){
 document.addEventListener(
     'DOMContentLoaded',
     () => {
+
 
         const botaoTutorial =
             document.getElementById(
