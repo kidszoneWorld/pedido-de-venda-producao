@@ -43,6 +43,48 @@ async function checkToken() {
   }
 }    
 
+function removerImagensDoCatalogo(
+    catalogo
+) {
+    const itensOriginais =
+        Array.isArray(
+            catalogo?.itens
+        )
+            ? catalogo.itens
+            : [];
+
+    const itensSemImagem =
+        itensOriginais.map(
+            item => {
+                if (
+                    !item ||
+                    typeof item !== 'object'
+                ) {
+                    return item;
+                }
+
+                const {
+                    foto,
+                    imagem,
+                    image,
+                    imageBase64,
+                    fotoBase64,
+                    bytes,
+                    ...itemSemImagem
+                } = item;
+
+                return itemSemImagem;
+            }
+        );
+
+    return {
+        ...catalogo,
+
+        itens:
+            itensSemImagem
+    };
+}
+
 async function getCatalogoCliente(
     req,
     res
@@ -77,10 +119,15 @@ async function getCatalogoCliente(
 
         }
 
-        const catalogo =
+       const catalogo =
             await apiForm.fetchCatalogoCliente(
                 clienteCodigo,
                 listaCodigo
+            );
+
+        const catalogoSemImagens =
+            removerImagensDoCatalogo(
+                catalogo
             );
 
         return res
@@ -89,9 +136,9 @@ async function getCatalogoCliente(
                 sucesso:
                     true,
 
-                ...catalogo
+                ...catalogoSemImagens
             });
-
+            
     }catch(error){
 
         console.error(

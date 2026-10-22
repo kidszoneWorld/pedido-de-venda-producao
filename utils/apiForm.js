@@ -835,9 +835,9 @@ async function fetchCatalogoCliente(
                         produto.unidadeMedidaAbreviado ||
                         'CX',
 
-                    foto:
-                        produto.foto ||
-                        null,
+                    // foto:
+                    //     produto.foto ||
+                    //     null,
 
                     ativo:
                         produto.ativo === true,

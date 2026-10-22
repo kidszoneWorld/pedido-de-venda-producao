@@ -161,29 +161,29 @@ async function gerarPdfNoNavegador(elemento, nomeArquivo) {
         await document.fonts.ready;
     }
 
-    const imagens = Array.from(elemento.querySelectorAll('img'));
+    // const imagens = Array.from(elemento.querySelectorAll('img'));
 
-    await Promise.all(
-        imagens.map((imagem) => {
-            if (imagem.complete) {
-                return Promise.resolve();
-            }
+    // await Promise.all(
+    //     imagens.map((imagem) => {
+    //         if (imagem.complete) {
+    //             return Promise.resolve();
+    //         }
 
-            return new Promise((resolve) => {
-                let terminou = false;
+    //         return new Promise((resolve) => {
+    //             let terminou = false;
 
-                const finalizar = () => {
-                    if (terminou) return;
-                    terminou = true;
-                    resolve();
-                };
+    //             const finalizar = () => {
+    //                 if (terminou) return;
+    //                 terminou = true;
+    //                 resolve();
+    //             };
 
-                imagem.addEventListener('load', finalizar, { once: true });
-                imagem.addEventListener('error', finalizar, { once: true });
-                setTimeout(finalizar, 5000);
-            });
-        })
-    );
+    //             imagem.addEventListener('load', finalizar, { once: true });
+    //             imagem.addEventListener('error', finalizar, { once: true });
+    //             setTimeout(finalizar, 5000);
+    //         });
+        // })
+    // );
 
     const larguraPadraoPdf = 1120;
 
@@ -912,25 +912,25 @@ function limparDadosLinhaItem(
 
     });
 
-    const imagem =
-        tr.querySelector(
-            '.foto-item-pedido'
-        );
+    // const imagem =
+    //     tr.querySelector(
+    //         '.foto-item-pedido'
+    //     );
 
-    if(imagem){
+    // if(imagem){
 
-        imagem.removeAttribute(
-            'src'
-        );
+    //     imagem.removeAttribute(
+    //         'src'
+    //     );
 
-        imagem.alt =
-            'Foto do item';
+    //     imagem.alt =
+    //         'Foto do item';
 
-        imagem.classList.add(
-            'sem-foto'
-        );
+    //     imagem.classList.add(
+    //         'sem-foto'
+    //     );
 
-    }
+    // }
 
     tr.dataset.itemId =
         '';
@@ -989,10 +989,10 @@ function preencherLinhaComItem(
             '.campo-item-id'
         );
 
-    const imagem =
-        tr.querySelector(
-            '.foto-item-pedido'
-        );
+    // const imagem =
+    //     tr.querySelector(
+    //         '.foto-item-pedido'
+    //     );
 
     const preco =
         Number(
@@ -1095,37 +1095,37 @@ function preencherLinhaComItem(
             ipi
         );
 
-    const srcFoto =
-        montarSrcFotoItem(
-            item.foto
-        );
+    // const srcFoto =
+    //     montarSrcFotoItem(
+    //         item.foto
+    //     );
 
-    if(
-        imagem &&
-        srcFoto
-    ){
+    // if(
+    //     imagem &&
+    //     srcFoto
+    // ){
 
-        imagem.src =
-            srcFoto;
+    //     imagem.src =
+    //         srcFoto;
 
-        imagem.alt =
-            `Foto do item ${codigo}`;
+    //     imagem.alt =
+    //         `Foto do item ${codigo}`;
 
-        imagem.classList.remove(
-            'sem-foto'
-        );
+    //     imagem.classList.remove(
+    //         'sem-foto'
+    //     );
 
-    }else if(imagem){
+    // }else if(imagem){
 
-        imagem.removeAttribute(
-            'src'
-        );
+    //     imagem.removeAttribute(
+    //         'src'
+    //     );
 
-        imagem.classList.add(
-            'sem-foto'
-        );
+    //     imagem.classList.add(
+    //         'sem-foto'
+    //     );
 
-    }
+    // }
 
     campoQuantidade.readOnly =
         false;
@@ -2016,14 +2016,14 @@ function adicionarNovaLinha(){
     tr.classList.add(
         'linha-item-pedido'
     );
-
+//  <td class="celula-foto-item">
+//             <img
+//                 class="foto-item-pedido sem-foto"
+//                 alt="Foto do item"
+//             >
+//         </td>
     tr.innerHTML = `
-        <td class="celula-foto-item">
-            <img
-                class="foto-item-pedido sem-foto"
-                alt="Foto do item"
-            >
-        </td>
+       
 
         <td>
             <input
@@ -4385,7 +4385,16 @@ function prepararPedidoParaPdf(){
         clone.querySelectorAll(
             'input, textarea, select'
         );
-
+        
+        clone
+    .querySelectorAll(
+        '.foto-item-pedido'
+    )
+    .forEach(
+        imagem => {
+            imagem.remove();
+        }
+    );
     camposOriginais.forEach(
         (
             campoOriginal,
