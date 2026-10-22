@@ -2011,29 +2011,29 @@ html .container-pdf.layout-pdf-desktop
    LARGURAS DAS COLUNAS
    ============================================================== */
 
-   #dadosPedido th:nth-child(1),
+#dadosPedido th:nth-child(1),
 #dadosPedido td:nth-child(1) {
-    width: 8%;
+    width: 34%;
 }
 
 #dadosPedido th:nth-child(2),
 #dadosPedido td:nth-child(2) {
-    width: 34%;
+    width: 7%;
 }
 
 #dadosPedido th:nth-child(3),
 #dadosPedido td:nth-child(3) {
-    width: 7%;
+    width: 6%;
 }
 
 #dadosPedido th:nth-child(4),
 #dadosPedido td:nth-child(4) {
-    width: 6%;
+    width: 7%;
 }
 
 #dadosPedido th:nth-child(5),
 #dadosPedido td:nth-child(5) {
-    width: 7%;
+    width: 11%;
 }
 
 #dadosPedido th:nth-child(6),
@@ -2048,11 +2048,6 @@ html .container-pdf.layout-pdf-desktop
 
 #dadosPedido th:nth-child(8),
 #dadosPedido td:nth-child(8) {
-    width: 11%;
-}
-
-#dadosPedido th:nth-child(9),
-#dadosPedido td:nth-child(9) {
     width: 9%;
 }
 
