@@ -4306,6 +4306,7 @@ function adicionarNovaLinha() {
 
     return tr;
 }
+
 // Função para remover a última linha da tabela
 document.getElementById('excluirLinha').addEventListener('click', function () {
     let tbody = document.querySelector('#dadosPedido tbody');
@@ -4378,8 +4379,6 @@ const cnpjInput = document.getElementById('cnpj');
 closeButton.addEventListener("click", () => {
     modal.style.display = "none";
 });
-
-
 
 //--fim-----envio de dados para o sistema DBCorp------------------------------------------------------------
 

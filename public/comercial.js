@@ -12,6 +12,19 @@ let currentFilters = {
     statusSeparacao: ''
 };
 
+function formatarCNPJ(cnpj) {
+  const numeros = String(cnpj ?? '').replace(/\D/g, '');
+
+  if (numeros.length !== 14) {
+    return cnpj ?? '';
+  }
+
+  return numeros.replace(
+    /^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/,
+    '$1.$2.$3/$4-$5'
+  );
+}
+
 // Função para formatar as datas no formato YYYY-MM-DD
 function formatDate(dateString) {
     if (!dateString) return '';
@@ -51,7 +64,20 @@ function exportToExcel(data) {
         "Cód Pedido": order.codigo || "",
         "Status": mapStatus(order.status) || "",
         "Status Separação": mapStatusSeparacao(order.statusSeparacao) || "",
-        "Nota Fiscal": order.notas_fiscais?.dados[0].numero || 'Sem Nota',// Nova coluna no Excel
+       "Nota Fiscal":
+    obterNotasFiscaisPedido(
+        order
+    )
+        .map(
+            nota => nota.numero
+        )
+        .filter(
+            Boolean
+        )
+        .join(
+            ', '
+        ) ||
+    'Sem Nota',
         "Cliente": order.cliente.nomeAbreviado || "",
         "Cliente CNPJ": order.cliente.documento.numeroTexto?.replace(/[\.\-\/]/g, '') || "",
         "Cód Rep": order.representante?.codigo || "",
@@ -197,69 +223,69 @@ async function loadOrderDetails(
     currentFilters.status =
         status;
 
-        const possuiBuscaDireta =
-    Boolean(
-        currentFilters.codigoPedido ||
-        currentFilters.numeroNota
-    );
+    const buscaPorCodigoPedido =
+        Boolean(
+            currentFilters.codigoPedido
+        );
 
     const statusConsulta =
-        possuiBuscaDireta
+        buscaPorCodigoPedido
             ? ''
             : currentFilters.status;
 
     const separacaoConsulta =
-        possuiBuscaDireta
+        buscaPorCodigoPedido
             ? ''
             : currentFilters.statusSeparacao;
 
     const dataInicioConsulta =
-        possuiBuscaDireta
+        buscaPorCodigoPedido
             ? ''
             : formatDate(
                 currentFilters.dataInicio
             );
 
     const dataFimConsulta =
-        possuiBuscaDireta
+        buscaPorCodigoPedido
             ? ''
             : formatDate(
                 currentFilters.dataFim
             );
 
-
     const queryParams =
-    new URLSearchParams({
-        status:
-            statusConsulta || '',
+        new URLSearchParams({
+            status:
+                statusConsulta || '',
 
-        codRep:
-            currentFilters.representante || '',
+            codRep:
+                currentFilters.representante || '',
 
-        clienteCNPJ:
-            currentFilters.clienteCNPJ || '',
+            clienteCNPJ:
+                currentFilters.clienteCNPJ || '',
 
-        ClienteCodigo:
-            currentFilters.ClienteCodigo || '',
+            ClienteCodigo:
+                currentFilters.ClienteCodigo || '',
 
-        codigoPedido:
-            currentFilters.codigoPedido || '',
+            codigoPedido:
+                currentFilters.codigoPedido || '',
 
-        numeroNota:
-            currentFilters.numeroNota || '',
+            numeroNota:
+                currentFilters.numeroNota || '',
 
-        DataPedidoInicio:
-            dataInicioConsulta || '',
+            DataPedidoInicio:
+                dataInicioConsulta || '',
 
-        DataPedidoFim:
-            dataFimConsulta || '',
+            DataPedidoFim:
+                dataFimConsulta || '',
 
-        statusSeparacao:
-            separacaoConsulta || ''
-    });
+            statusSeparacao:
+                separacaoConsulta || ''
+        });
 
     showFeedback(
-        'Carregando pedidos, aguarde...'
+        currentFilters.numeroNota
+            ? 'Procurando o pedido vinculado à nota fiscal. Isso pode levar alguns instantes...'
+            : 'Carregando pedidos, aguarde...'
     );
 
     try {
@@ -267,6 +293,8 @@ async function loadOrderDetails(
             await fetch(
                 `/api/pedidos?${queryParams.toString()}`
             );
+
+        // Mantenha o restante da função atual.
 
         if (response.status === 404) {
             ordersData =
@@ -359,6 +387,243 @@ async function loadOrderDetails(
     }
 }
 
+async function baixarPdfNotaFiscal(
+    chaveAcesso,
+    numeroNota,
+    botao
+) {
+    const chaveNormalizada =
+        String(
+            chaveAcesso ?? ''
+        ).replace(
+            /\D/g,
+            ''
+        );
+
+    const numeroNormalizado =
+        String(
+            numeroNota ?? ''
+        ).replace(
+            /\D/g,
+            ''
+        );
+
+    if (chaveNormalizada.length !== 44) {
+        console.error(
+            'Chave de acesso inválida:',
+            chaveNormalizada
+        );
+
+        alert(
+            'A chave de acesso da nota fiscal é inválida.'
+        );
+
+        return;
+    }
+
+    const textoOriginal =
+        botao?.textContent?.trim() ||
+        numeroNormalizado ||
+        'Nota Fiscal';
+
+    try {
+        if (botao) {
+            botao.disabled =
+                true;
+
+            botao.textContent =
+                'Baixando PDF...';
+        }
+
+        showFeedback(
+            `Baixando PDF da nota fiscal ${numeroNormalizado}...`
+        );
+
+        const url =
+            '/api/notas-fiscais/' +
+            'chave-de-acesso/' +
+            encodeURIComponent(
+                chaveNormalizada
+            ) +
+            '/pdf';
+
+        console.log(
+            'Solicitando PDF ao backend:',
+            {
+                numeroNota:
+                    numeroNormalizado,
+
+                chaveAcesso:
+                    chaveNormalizada,
+
+                url:
+                    url
+            }
+        );
+
+        const response =
+            await fetch(
+                `${url}?t=${Date.now()}`,
+                {
+                    method:
+                        'GET',
+
+                    credentials:
+                        'same-origin',
+
+                    cache:
+                        'no-store',
+
+                    headers: {
+                        Accept:
+                            'application/pdf, application/json',
+
+                        'Cache-Control':
+                            'no-cache'
+                    }
+                }
+            );
+
+        if (!response.ok) {
+            const contentType =
+                response.headers.get(
+                    'content-type'
+                ) || '';
+
+            let mensagem =
+                `Erro HTTP ${response.status} ao baixar o PDF.`;
+
+            if (
+                contentType.includes(
+                    'application/json'
+                )
+            ) {
+                const resultado =
+                    await response.json();
+
+                mensagem =
+                    resultado.mensagem ||
+                    resultado.error ||
+                    mensagem;
+            } else {
+                const texto =
+                    await response.text();
+
+                mensagem =
+                    texto ||
+                    mensagem;
+            }
+
+            throw new Error(
+                mensagem
+            );
+        }
+
+        const contentType =
+            response.headers.get(
+                'content-type'
+            ) || '';
+
+        if (
+            !contentType.includes(
+                'application/pdf'
+            )
+        ) {
+            throw new Error(
+                'O servidor não retornou um arquivo PDF.'
+            );
+        }
+
+        const blob =
+            await response.blob();
+
+        if (
+            !blob ||
+            blob.size === 0
+        ) {
+            throw new Error(
+                'O arquivo PDF retornado está vazio.'
+            );
+        }
+
+        const contentDisposition =
+            response.headers.get(
+                'content-disposition'
+            ) || '';
+
+        const nomeEncontrado =
+            contentDisposition.match(
+                /filename="?([^";]+)"?/i
+            );
+
+        const nomeArquivo =
+            nomeEncontrado?.[1] ||
+            (
+                numeroNormalizado
+                    ? `NFe-${numeroNormalizado}.pdf`
+                    : `${chaveNormalizada}.pdf`
+            );
+
+        const urlTemporaria =
+            URL.createObjectURL(
+                blob
+            );
+
+        const link =
+            document.createElement(
+                'a'
+            );
+
+        link.href =
+            urlTemporaria;
+
+        link.download =
+            nomeArquivo;
+
+        document.body.appendChild(
+            link
+        );
+
+        link.click();
+
+        link.remove();
+
+        setTimeout(
+            () => {
+                URL.revokeObjectURL(
+                    urlTemporaria
+                );
+            },
+            1000
+        );
+
+        hideFeedback();
+    } catch (error) {
+        console.error(
+            'Erro ao baixar PDF da nota fiscal:',
+            error
+        );
+
+        showFeedback(
+            error.message ||
+            'Não foi possível baixar o PDF da nota fiscal.'
+        );
+
+        alert(
+            error.message ||
+            'Não foi possível baixar o PDF da nota fiscal.'
+        );
+    } finally {
+        if (botao) {
+            botao.disabled =
+                false;
+
+            botao.textContent =
+                textoOriginal;
+        }
+    }
+}
+
 // Renderizar tabela
 function renderTable(data) {
     const orderTableBody = document.querySelector('#order-table tbody');
@@ -367,18 +632,62 @@ function renderTable(data) {
         const row = document.createElement('tr');
         row.innerHTML = `
             <td class="dataPedido">${order.dataPedido ? new Date(order.dataPedido).toLocaleDateString('pt-BR') : 'N/A'}</td>
-             <td class="codPedido"><a href="detalhes?codPedido=${order.codigo}" target="_blank">${order.codigo}</a></td>
+            <td class="codPedido"><a href="detalhes?codPedido=${order.codigo}" target="_blank">${order.codigo}</a></td>
             <td class="statusPedido">${mapStatus(order.status)}</td>
             <td class="statusSeparacao">${mapStatusSeparacao(order.statusSeparacao)}</td>
-            <td class="notaFiscal">${order.notas_fiscais?.dados[0].numero || 'Sem Nota'}</td>
+            <td class="notaFiscal">${montarNotaFiscalHtml(order)}</td>
             <td class="codCliente">${order.cliente.codigo}</td>
             <td class="cliente">${order.cliente.nomeAbreviado}</td>
-            <td class="clienteCNPJ">${order.cliente.documento.numeroTexto}</td>
+            <td class="clienteCNPJ">${formatarCNPJ(order.cliente.documento.numeroTexto)}</td>
             <td class="codRep">${order.representante?.codigo || 'Não informado'}</td>
             <td class="representante">${order.representante?.nomeAbreviado || 'Não informado'}</td>
             <td class="valorTotal">${order.detalhes?.valor?.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) || 'N/A'}</td>
             <td class="transportadora">${order.detalhes_transporte?.nomeAbreviado || 'Não informado'}</td>
         `;
+
+        row
+            .querySelectorAll(
+                '.link-download-pdf'
+            )
+            .forEach(
+                botao => {
+                    botao.addEventListener(
+                        'click',
+                        async evento => {
+                            const botaoClicado =
+                                evento.currentTarget;
+
+                            const chaveAcesso =
+                                botaoClicado
+                                    .dataset
+                                    .chaveAcesso;
+
+                            const numeroNota =
+                                botaoClicado
+                                    .dataset
+                                    .numeroNota;
+
+                            console.log(
+                                'Clique no download do PDF:',
+                                {
+                                    numeroNota:
+                                        numeroNota,
+
+                                    chaveAcesso:
+                                        chaveAcesso
+                                }
+                            );
+
+                            await baixarPdfNotaFiscal(
+                                chaveAcesso,
+                                numeroNota,
+                                botaoClicado
+                            );
+                        }
+                    );
+                }
+            );
+
         orderTableBody.appendChild(row);
     });
 }
@@ -447,6 +756,179 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 });
 
+function normalizarTextoNota(
+    valor
+) {
+    return String(
+        valor ?? ''
+    )
+        .trim()
+        .normalize(
+            'NFD'
+        )
+        .replace(
+            /[\u0300-\u036f]/g,
+            ''
+        )
+        .toLowerCase();
+}
+
+function notaPodeAparecerNaLinha(
+    nota
+) {
+    if (
+        !nota ||
+        typeof nota !== 'object'
+    ) {
+        return false;
+    }
+
+    const status =
+        normalizarTextoNota(
+            nota.status
+        );
+
+    if (status !== 'impresso') {
+        return false;
+    }
+
+    const tipoDocumento =
+        normalizarTextoNota(
+            nota.tipo
+        );
+
+    if (tipoDocumento === 'devolucao') {
+        return false;
+    }
+
+    const itens =
+        Array.isArray(
+            nota.itens
+        )
+            ? nota.itens
+            : [];
+
+    const possuiDevolucao =
+        itens.some(
+            item => {
+                const tipo =
+                    normalizarTextoNota(
+                        item
+                            ?.naturezaDaOperacao
+                            ?.tipo
+                    );
+
+                return (
+                    tipo ===
+                    'devolucao'
+                );
+            }
+        );
+
+    return !possuiDevolucao;
+}
+
+function obterNotasFiscaisPedido(
+    order
+) {
+    const notasLista =
+        Array.isArray(
+            order?.notas_fiscais?.dados
+        )
+            ? order.notas_fiscais.dados
+            : [];
+
+    const notaDireta =
+        order?.notas_fiscais?.notaFiscal ??
+        null;
+
+    const candidatas = [
+        ...notasLista
+    ];
+
+    if (notaDireta) {
+        candidatas.push(
+            notaDireta
+        );
+    }
+
+    const notasUnicas =
+        new Map();
+
+    candidatas.forEach(
+        nota => {
+            if (
+                !notaPodeAparecerNaLinha(
+                    nota
+                )
+            ) {
+                return;
+            }
+
+            const numero =
+                String(
+                    nota?.numero ??
+                    ''
+                ).trim();
+
+            const chaveAcesso =
+                String(
+                    nota?.chaveAcesso ??
+                    ''
+                ).replace(
+                    /\D/g,
+                    ''
+                );
+
+            if (!numero) {
+                return;
+            }
+
+            const chaveUnica =
+                chaveAcesso ||
+                numero;
+
+            if (
+                notasUnicas.has(
+                    chaveUnica
+                )
+            ) {
+                return;
+            }
+
+            notasUnicas.set(
+                chaveUnica,
+                {
+                    numero:
+                        numero,
+
+                    serie:
+                        nota?.serie ??
+                        '',
+
+                    chaveAcesso:
+                        chaveAcesso,
+
+                    status:
+                        nota?.status ??
+                        '',
+
+                    itens:
+                        Array.isArray(
+                            nota?.itens
+                        )
+                            ? nota.itens
+                            : []
+                }
+            );
+        }
+    );
+
+    return Array.from(
+        notasUnicas.values()
+    );
+}
+
 async function applyFilters() {
     currentFilters.representante =
         document
@@ -509,13 +991,32 @@ async function applyFilters() {
             )
             .value;
 
-    const possuiBuscaDireta =
+    const possuiNumeroNota =
         Boolean(
-            currentFilters.codigoPedido ||
             currentFilters.numeroNota
         );
 
-    if (!possuiBuscaDireta) {
+    if (
+        possuiNumeroNota &&
+        currentFilters.status === '6'
+    ) {
+        currentFilters.status =
+            '5';
+
+        document
+            .getElementById(
+                'statusFilter'
+            )
+            .value =
+            '5';
+    }
+
+    const possuiBuscaPorCodigo =
+        Boolean(
+            currentFilters.codigoPedido
+        );
+
+    if (!possuiBuscaPorCodigo) {
         sincronizarStatusSeparacao();
     }
 
@@ -595,7 +1096,7 @@ async function clearFilters() {
             '',
 
         status:
-            '3',
+            '6',
 
         dataInicio:
             '',
@@ -604,7 +1105,7 @@ async function clearFilters() {
             '',
 
         statusSeparacao:
-            ''
+            '0'
     };
 
     await loadOrderDetails(currentFilters.status);
@@ -650,6 +1151,358 @@ document.getElementById('exportExcel1').addEventListener('click', async () => {
     exportToExcel(dataToExport);
 });
 
+function escaparHtml(
+    valor
+) {
+    const elemento =
+        document.createElement(
+            'div'
+        );
+
+    elemento.textContent =
+        String(
+            valor ?? ''
+        );
+
+    return elemento.innerHTML;
+}
+
+function montarNotaFiscalHtml(
+    order
+) {
+    const notas =
+        obterNotasFiscaisPedido(
+            order
+        );
+
+    if (notas.length === 0) {
+        return `
+            <span class="nota-fiscal-indisponivel">
+                Sem Nota
+            </span>
+        `;
+    }
+
+    return notas
+        .map(
+            nota => {
+                const numeroNota =
+                    String(
+                        nota?.numero ??
+                        ''
+                    ).trim();
+
+                const chaveAcesso =
+                    String(
+                        nota?.chaveAcesso ??
+                        ''
+                    ).replace(
+                        /\D/g,
+                        ''
+                    );
+
+                if (!numeroNota) {
+                    return '';
+                }
+
+                // Sem uma chave válida, mostra o número sem link.
+                if (chaveAcesso.length !== 44) {
+                    return `
+                        <span
+                            class="nota-fiscal-sem-pdf"
+                            title="Chave de acesso não disponível para esta nota"
+                        >
+                            ${escaparHtml(numeroNota)}
+                        </span>
+                    `;
+                }
+
+                return `
+                    <button
+                        type="button"
+                        class="link-download-pdf"
+                        data-chave-acesso="${escaparHtml(chaveAcesso)}"
+                        data-numero-nota="${escaparHtml(numeroNota)}"
+                        title="Baixar PDF da nota fiscal ${escaparHtml(numeroNota)}"
+                        aria-label="Baixar PDF da nota fiscal ${escaparHtml(numeroNota)}"
+                    >
+                        ${escaparHtml(numeroNota)}
+                    </button>
+                `;
+            }
+        )
+        .filter(
+            Boolean
+        )
+        .join(
+            '<br>'
+        );
+}
+
+async function baixarXmlNotaFiscal(
+    codigoPedido,
+    numeroNota,
+    botao
+) {
+    const codigoPedidoNormalizado =
+        String(
+            codigoPedido || ''
+        )
+            .replace(
+                /\D/g,
+                ''
+            );
+
+    const numeroNotaNormalizado =
+        String(
+            numeroNota || ''
+        )
+            .replace(
+                /\D/g,
+                ''
+            );
+
+    if (!codigoPedidoNormalizado) {
+        alert(
+            'O código do pedido não foi encontrado.'
+        );
+
+        return;
+    }
+
+    if (!numeroNotaNormalizado) {
+        alert(
+            'O número da nota fiscal não foi encontrado.'
+        );
+
+        return;
+    }
+
+    const textoOriginal =
+        botao?.textContent?.trim() ||
+        numeroNotaNormalizado;
+
+    try {
+        if (botao) {
+            botao.disabled =
+                true;
+
+            botao.textContent =
+                'Baixando...';
+        }
+
+        showFeedback(
+            `Baixando XML da nota fiscal ${numeroNotaNormalizado}...`
+        );
+
+        const url =
+            '/api/pedidos/' +
+            encodeURIComponent(
+                codigoPedidoNormalizado
+            ) +
+            '/notas-fiscais/' +
+            encodeURIComponent(
+                numeroNotaNormalizado
+            ) +
+            '/xml';
+
+        console.log(
+            'Solicitando download do XML:',
+            {
+                codigoPedido:
+                    codigoPedidoNormalizado,
+
+                numeroNota:
+                    numeroNotaNormalizado,
+
+                url:
+                    url
+            }
+        );
+
+        /*
+         * O parâmetro impede cache de respostas antigas
+         * durante os testes.
+         */
+        const urlSemCache =
+            `${url}?t=${Date.now()}`;
+
+        const response =
+            await fetch(
+                urlSemCache,
+                {
+                    method:
+                        'GET',
+
+                    credentials:
+                        'same-origin',
+
+                    cache:
+                        'no-store',
+
+                    headers: {
+                        Accept:
+                            'application/xml, text/xml, application/json',
+
+                        'Cache-Control':
+                            'no-cache'
+                    }
+                }
+            );
+
+        if (!response.ok) {
+            const contentType =
+                response.headers.get(
+                    'content-type'
+                ) || '';
+
+            let mensagem =
+                `Erro HTTP ${response.status} ao baixar o XML.`;
+
+            if (
+                contentType.includes(
+                    'application/json'
+                )
+            ) {
+                const resultado =
+                    await response.json();
+
+                mensagem =
+                    resultado.mensagem ||
+                    resultado.error ||
+                    mensagem;
+            } else {
+                const texto =
+                    await response.text();
+
+                mensagem =
+                    texto ||
+                    mensagem;
+            }
+
+            throw new Error(
+                mensagem
+            );
+        }
+
+        const xml =
+            await response.text();
+
+        if (!xml.trim()) {
+            throw new Error(
+                'O arquivo XML retornado está vazio.'
+            );
+        }
+
+        /*
+         * Validação no navegador:
+         * verifica se o XML contém <nNF>2499</nNF>.
+         */
+        const correspondencia =
+            xml.match(
+                /<(?:[A-Za-z0-9_-]+:)?nNF>\s*(\d+)\s*<\/(?:[A-Za-z0-9_-]+:)?nNF>/i
+            );
+
+        const numeroXml =
+            correspondencia?.[1] ||
+            '';
+
+        if (
+            numeroXml &&
+            numeroXml !==
+                numeroNotaNormalizado
+        ) {
+            throw new Error(
+                `O XML retornado pertence à nota ${numeroXml}, ` +
+                `mas a nota solicitada foi ${numeroNotaNormalizado}.`
+            );
+        }
+
+        const blob =
+            new Blob(
+                [
+                    xml
+                ],
+                {
+                    type:
+                        'application/xml;charset=utf-8'
+                }
+            );
+
+        const contentDisposition =
+            response.headers.get(
+                'content-disposition'
+            ) || '';
+
+        const nomeEncontrado =
+            contentDisposition.match(
+                /filename="?([^";]+)"?/i
+            );
+
+        const nomeArquivo =
+            nomeEncontrado?.[1] ||
+            `NFe-${numeroNotaNormalizado}.xml`;
+
+        const urlTemporaria =
+            URL.createObjectURL(
+                blob
+            );
+
+        const link =
+            document.createElement(
+                'a'
+            );
+
+        link.href =
+            urlTemporaria;
+
+        link.download =
+            nomeArquivo;
+
+        document.body.appendChild(
+            link
+        );
+
+        link.click();
+
+        link.remove();
+
+        setTimeout(
+            () => {
+                URL.revokeObjectURL(
+                    urlTemporaria
+                );
+            },
+            1000
+        );
+
+        hideFeedback();
+    } catch (error) {
+        console.error(
+            'Erro ao baixar XML da nota fiscal:',
+            error
+        );
+
+        showFeedback(
+            error.message ||
+            'Não foi possível baixar o XML da nota fiscal.'
+        );
+
+        alert(
+            error.message ||
+            'Não foi possível baixar o XML da nota fiscal.'
+        );
+    } finally {
+        if (botao) {
+            botao.disabled =
+                false;
+
+            botao.textContent =
+                textoOriginal;
+        }
+    }
+}
+
 function sincronizarStatusSeparacao() {
     const campoStatus =
         document.getElementById(
@@ -679,13 +1532,21 @@ function sincronizarStatusSeparacao() {
     if (status === '5') {
         campoSeparacao.value =
             '2';
-    } else if (status === '4') {
+    } else if (
+        status === '4' ||
+        status === '1'
+    ) {
         campoSeparacao.value =
             '1';
-    } else if (status === '3') {
+    } else if (
+        status === '3'
+    ) {
         campoSeparacao.value =
             '0';
     }
+
+        console.log("separação "+ campoSeparacao.value)
+
 
     currentFilters.statusSeparacao =
         campoSeparacao.value;
@@ -711,7 +1572,11 @@ document.getElementById('clearFilters').addEventListener('click', clearFilters);
 
 
 
-document.getElementById('logoutButton').addEventListener('click', async () => {
+document
+    .getElementById(
+        'logoutButton'
+    )
+    ?.addEventListener('click', async () => {
     // Limpa os dados locais
     sessionStorage.clear();
     localStorage.clear();

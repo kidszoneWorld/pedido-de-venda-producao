@@ -46,7 +46,7 @@ async function checkToken() {
 function removerImagensDoCatalogo(
     catalogo
 ) {
-    const itensOriginais =
+    const itens =
         Array.isArray(
             catalogo?.itens
         )
@@ -54,7 +54,7 @@ function removerImagensDoCatalogo(
             : [];
 
     const itensSemImagem =
-        itensOriginais.map(
+        itens.map(
             item => {
                 if (
                     !item ||
@@ -63,15 +63,16 @@ function removerImagensDoCatalogo(
                     return item;
                 }
 
-                const {
-                    foto,
-                    imagem,
-                    image,
-                    imageBase64,
-                    fotoBase64,
-                    bytes,
-                    ...itemSemImagem
-                } = item;
+                const itemSemImagem = {
+                    ...item
+                };
+
+                delete itemSemImagem.foto;
+                delete itemSemImagem.imagem;
+                delete itemSemImagem.image;
+                delete itemSemImagem.fotoBase64;
+                delete itemSemImagem.imageBase64;
+                delete itemSemImagem.bytes;
 
                 return itemSemImagem;
             }
@@ -79,7 +80,6 @@ function removerImagensDoCatalogo(
 
     return {
         ...catalogo,
-
         itens:
             itensSemImagem
     };
@@ -119,7 +119,7 @@ async function getCatalogoCliente(
 
         }
 
-       const catalogo =
+        const catalogo =
             await apiForm.fetchCatalogoCliente(
                 clienteCodigo,
                 listaCodigo
@@ -138,7 +138,7 @@ async function getCatalogoCliente(
 
                 ...catalogoSemImagens
             });
-            
+
     }catch(error){
 
         console.error(
