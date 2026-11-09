@@ -1648,9 +1648,9 @@ function buscarItemPorDescricao(texto) {
 
 function validarPedidoMinimo() {
 
-    totalComIpiPed = totalComIpi();
-    const estado = el('uf').value
-    console.log("estado:"+ estado)
+    // totalComIpiPed = totalComIpi();
+    // const estado = el('uf').value
+    // console.log("estado:"+ estado)
     
     console.log("total:"+ totalComIpiPed)
     let limite = [];
@@ -1698,6 +1698,7 @@ function validarPedidoMinimo() {
 // ======================================================================
 // 👤 CLIENTE / CNPJ
 // ======================================================================
+
 function limparCamposCliente() {
     [
         'razao_social','ie','representante','endereco','bairro','cidade','uf',
@@ -1725,7 +1726,83 @@ cnpjInput1.addEventListener('focus', () => {
     }
    // limparCamposCliente();
 });
+async function validarRepresentanteDoCliente(
+    clienteApi
+) {
+    const sessionResponse = await fetch(
+        '/session-data',
+        {
+            method: 'GET',
+            headers: {
+                Accept: 'application/json'
+            },
+            credentials: 'same-origin',
+            cache: 'no-store'
+        }
+    );
 
+    if (!sessionResponse.ok) {
+        throw new Error(
+            'Não foi possível consultar o usuário da sessão.'
+        );
+    }
+
+    const sessionData =
+        await sessionResponse.json();
+
+    const userNumero = String(
+        sessionData.userNumero ??
+        sessionData.user?.numero ??
+        ''
+    ).trim();
+
+    const codigoRepresentanteCliente = String(
+        clienteApi?.REPRESENTANTE ??
+        clienteApi?.representante?.codigo ??
+        ''
+    ).trim();
+
+    console.log(
+        'UsuNumero:',
+        userNumero
+    );
+
+    console.log(
+        'Representante do cliente:',
+        codigoRepresentanteCliente
+    );
+
+    if (!userNumero) {
+        return true;
+    }
+
+    if (!codigoRepresentanteCliente) {
+        alert(
+            'Não foi possível identificar o representante deste cliente.'
+        );
+
+        window.location.reload();
+
+        return false;
+    }
+
+    if (
+        userNumero !==
+        codigoRepresentanteCliente
+    ) {
+        alert(
+            'Este cliente pertence a outro representante.\n\n' +
+            'Representante do cliente: ' +
+            codigoRepresentanteCliente
+        );
+
+        window.location.reload();
+
+        return false;
+    }
+
+    return true;
+}
 // ======================================================================
 // 🔄 BLUR CNPJ → API CLIENTE
 // ======================================================================
@@ -1754,6 +1831,15 @@ cnpjInput1.addEventListener('blur', async function () {
         const res = await fetch(`/api/cliente/${api}/${encodeURIComponent(cnpj)}`);
         if (!res.ok) throw new Error();
         clienteApi = await res.json();
+
+        const representantePermitido =
+            await validarRepresentanteDoCliente(
+                clienteApi
+            );
+
+        if (!representantePermitido) {
+            return;
+        }
 
         const podeContinuar =
             verificarClienteInativoOuSuspenso(
@@ -1845,6 +1931,15 @@ codInput1.addEventListener('blur', async function () {
         if (!res.ok) throw new Error();
         clienteApi = await res.json();
 
+        const representantePermitido =
+            await validarRepresentanteDoCliente(
+                clienteApi
+            );
+
+        if (!representantePermitido) {
+            return;
+        }
+
         const podeContinuar =
             verificarClienteInativoOuSuspenso(
                 clienteApi
@@ -1902,8 +1997,17 @@ codInput1.addEventListener('blur', async function () {
         this.readOnly = false;
         garantirLinhaInicial();
         // setTimeout(() => document.querySelector('#dadosPedido tbody tr input')?.focus(), 0);
-    } catch {
-        alert("Cliente não encontrado, verificar com o financeiro.");
+    }catch (error) {
+        console.error(
+            'Erro ao carregar cliente:',
+            error
+        );
+
+        alert(
+            error.message ||
+            'Cliente não encontrado, verificar com o financeiro.'
+        );
+
         hideFeedback();
         return;
     } finally {
@@ -3635,8 +3739,8 @@ btSistema.addEventListener("click", () => {
     if(!validarTabelaPedido())
         return;
     if(document.getElementById('tipo_pedido').value == "Venda")
-        if(!validarPedidoMinimo())                          
-            return;
+        // if(!validarPedidoMinimo())                          
+        //     return;
     modal.style.display = "block"; // Exibe o modal
 });
 
@@ -5747,8 +5851,8 @@ async function gerarEEnviarPDF(){
         if(!validarTabelaPedido())
             return;
         if(document.getElementById('tipo_pedido').value == "Venda")
-            if(!validarPedidoMinimo())
-                return;
+            // if(!validarPedidoMinimo())
+            //     return;
 
         gerarEEnviarPDF();
     

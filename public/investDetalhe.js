@@ -249,12 +249,19 @@ function preencherDetalhesInvestimento(
 
 function formatarNomeStatusEmail(status){
 
-    if(status == 'aprovacao_comercial'){
-        return 'Aprovado/Comercial';
-    }
-    else if(status == 'aprovacao_diretoria'){
+
+    if(status == 'aprovacao_diretoria'){
         return 'Aprovado/Diretoria';
     }
+    // else if(status == 'aprovacao_comercial'){
+    //     return 'Aprovado/Comercial';
+    // }
+    else if(status == 'aprovacao_juliana')
+        return 'Aprovado/Juliana'
+    else if(status == 'aprovacao_clayton')
+        return Aprovado/Clayton
+
+
 
     return status;
 
