@@ -3739,8 +3739,8 @@ btSistema.addEventListener("click", () => {
     if(!validarTabelaPedido())
         return;
     if(document.getElementById('tipo_pedido').value == "Venda")
-        // if(!validarPedidoMinimo())                          
-        //     return;
+        if(!validarPedidoMinimo())                          
+            return;
     modal.style.display = "block"; // Exibe o modal
 });
 
@@ -5758,13 +5758,9 @@ async function gerarEEnviarPDF(){
 
                         feedbackDiv.style.display =
                             'none';
-
                     }
-
                 };
-
         }
-
     }catch(error){
 
         console.error(
@@ -5851,8 +5847,8 @@ async function gerarEEnviarPDF(){
         if(!validarTabelaPedido())
             return;
         if(document.getElementById('tipo_pedido').value == "Venda")
-            // if(!validarPedidoMinimo())
-            //     return;
+            if(!validarPedidoMinimo())
+                return;
 
         gerarEEnviarPDF();
     
