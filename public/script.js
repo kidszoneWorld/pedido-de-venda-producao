@@ -1648,9 +1648,9 @@ function buscarItemPorDescricao(texto) {
 
 function validarPedidoMinimo() {
 
-    // totalComIpiPed = totalComIpi();
-    // const estado = el('uf').value
-    // console.log("estado:"+ estado)
+    totalComIpiPed = totalComIpi();
+    const estado = el('uf').value
+    console.log("estado:"+ estado)
     
     console.log("total:"+ totalComIpiPed)
     let limite = [];
